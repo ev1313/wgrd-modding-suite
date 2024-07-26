@@ -1,3 +1,6 @@
 [submodule "ImGuiFileDialog"]
 	path = ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog
+[submodule "deps/wgrd-tools"]
+	path = deps/wgrd-tools
+	url = https://github.com/ev1313/wgrd-tools
