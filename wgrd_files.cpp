@@ -1,5 +1,6 @@
 #include "wgrd_files.h"
 
+#include <algorithm>
 #include <utility>
 #include <iostream>
 #include <imgui.h>
@@ -282,22 +283,13 @@ bool wgrd_files::Dic::is_file(std::string vfs_path, std::ifstream &f, size_t off
 }
 
 wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
-  // check for already existing NdfBin XML file
-  /*
-  fs::path outpath_xml = fs::path("out/") / fs::path(vfs_path);
-  outpath_xml.replace_extension(".decompressed.xml");
-  if(fs::exists(outpath_xml)) {
-    pugi::xml_parse_result result = ndf_xml.load_file(outpath_xml.c_str());
-    ndf_parsed = true;
-  }
-  */
 }
 
 int wgrd_files::NdfBin::render_object_list() {
   ImGui::Text(gettext("List of objects"));
 
-  static bool filter_topo = false;
-  ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
+  //static bool filter_topo = false;
+  //ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
 
   static int item_current_idx = -1;
   if (ImGui::BeginListBox("##ObjectList"))
@@ -330,31 +322,22 @@ int wgrd_files::NdfBin::render_object_list() {
 }
 
 int wgrd_files::NdfBin::render_property_list(int object_idx) {
-  return -1;
-  /*
   if(object_idx == -1 || object_idx >= ndfbin.get_object_count()) {
     return -1;
   }
 
   ImGui::Text(gettext("List of properties"));
 
-  auto object = ndfbin.get_object(object_idx);
+  auto& object = ndfbin.get_object(object_idx);
 
   static int item_current_idx = -1;
   if (ImGui::BeginListBox("##PropertyList"))
   {
     int n = 0;
 
-    for(auto property : object_iterator->children()) {
-      unsigned int property_index = property.attribute("propertyIndex").as_uint();
-
-      // end of property list
-      if(property_index == 2880154539) {
-        continue;
-      }
-
+    for(auto& property : object.properties) {
       const bool is_selected = (item_current_idx == n);
-      if(ImGui::Selectable(std::format("Property {} - {}", n, get_property_name(property_index)).c_str(), is_selected)) {
+      if(ImGui::Selectable(std::format("Property {} - {}", n, property->property_name).c_str(), is_selected)) {
         item_current_idx = n;
       }
 
@@ -369,34 +352,106 @@ int wgrd_files::NdfBin::render_property_list(int object_idx) {
   }
 
   return item_current_idx;
-  */
 }
 
 void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
-  /*
-  if(object_idx == -1 || object_idx >= get_object_count()) {
+  if(object_idx == -1 || object_idx >= ndfbin.get_object_count()) {
     return;
   }
-  if(property_idx == -1 || property_idx >= get_property_count(object_idx)) {
+  auto& object = ndfbin.get_object(object_idx);
+  if(property_idx == -1 || property_idx >= object.properties.size()) {
     return;
   }
+  auto& property = object.properties.at(property_idx);
 
   //int ndf_type_id = get_ndf_type_id(property_idx);
-  auto ndf_type = get_ndf_type(object_idx, property_idx);
-  int ndf_type_id = ndf_type.attribute("typeId").as_int();
+  int ndf_type_id = property->property_type;
 
   switch(ndf_type_id) {
-    case 0x7: {
-      ImGui::Text("Type: %s", "String");
-      ImGui::Text("Value: %s", get_string(ndf_type.child("StringReference").child("StringReference").attribute("stringIndex").as_uint()).c_str());
+    case 0x0: {
+      ImGui::Text("Type: Boolean");
+      ImGui::Text("Value: %s", reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(property)->value ? "true" : "false");
       break;
     }
+    case 0x1: {
+      ImGui::Text("Type: Int8");
+      ImGui::Text("Value: %d", reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(property)->value);
+      break;
+    }
+    case 0x2: {
+      ImGui::Text("Type: Int32");
+      ImGui::Text("Value: %d", reinterpret_cast<std::unique_ptr<NDFPropertyInt32>&>(property)->value);
+      break;
+    }
+    case 0x3: {
+      ImGui::Text("Type: UInt32");
+      ImGui::Text("Value: %d", reinterpret_cast<std::unique_ptr<NDFPropertyUInt32>&>(property)->value);
+      break;
+    }
+    case 0x5: {
+      ImGui::Text("Type: Float32");
+      ImGui::Text("Value: %f", reinterpret_cast<std::unique_ptr<NDFPropertyFloat32>&>(property)->value);
+      break;
+    }
+    case 0x6: {
+      ImGui::Text("Type: Float64");
+      ImGui::Text("Value: %f", reinterpret_cast<std::unique_ptr<NDFPropertyFloat64>&>(property)->value);
+      break;
+    }
+    case 0x7: {
+      ImGui::Text("Type: String");
+      ImGui::Text("Value: %s", reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(property)->value.c_str());
+      break;
+    }
+    case 0x8: {
+      ImGui::Text("Type: WideString");
+      ImGui::Text("Value: %s", reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(property)->value.c_str());
+      break;
+    }
+    case 0x9: {
+      if(property->is_object_reference()) {
+        ImGui::Text("Type: ObjectReference");
+        auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(property);
+        ImGui::Text("Value: %s", p->object_name.c_str());
+      }
+      if(property->is_import_reference()) {
+        ImGui::Text("Type: ImportReference");
+        auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyImportReference>&>(property);
+        ImGui::Text("Value: %s", p->import_name.c_str());
+      }
+      break;
+    }
+    case 0xB: {
+      ImGui::Text("Type: F32_vec3");
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec3>&>(property);
+      ImGui::Text("Value: %f %f %f", p->x, p->y, p->z);
+      break;
+    }
+    case 0xC: {
+      ImGui::Text("Type: F32_vec4");
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec4>&>(property);
+      ImGui::Text("Value: %f %f %f %f", p->x, p->y, p->z, p->w);
+      break;
+    }
+    case 0xD: {
+      ImGui::Text("Type: Color");
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(property);
+      ImGui::Text("Value: %d %d %d %d", p->r, p->g, p->b, p->a);
+    }
+    case 0xE: {
+      ImGui::Text("Type: S32_vec3");
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(property);
+      ImGui::Text("Value: %d %d %d", p->x, p->y, p->z);
+    }
+    case 0x11: {
+      ImGui::Text("Type: List");
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(property);
+    }
     default:{
-      ImGui::Text("Unknown type %d", ndf_type_id);
+      ImGui::Text("Unknown type %02x", ndf_type_id);
       break;
     }
   }
-  */
 }
 
 bool wgrd_files::NdfBin::imgui_call() {
@@ -405,6 +460,7 @@ bool wgrd_files::NdfBin::imgui_call() {
     if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
       if(ImGui::Button(gettext("Parse NDF"))) {
         fs::path path = fs::path("out/") / fs::path(vfs_path);
+        copy_to_file(path);
         ndfbin.start_parsing(path);
       }
     }
@@ -440,11 +496,16 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
 
   f.clear();
   f.seekg(offset);
-
-  if(!strcmp(magic, "EUG0") && !strcmp(magic3, "CNDF")) {
-    return true;
+  
+  if(strncmp(magic, "EUG0", 4)) {
+    return false;
   }
-  return false;
+
+  if(strncmp(magic3, "CNDF", 4)) {
+    return false;
+  }
+
+  return true;
 }
 
 void wgrd_files::Files::imgui_call() {

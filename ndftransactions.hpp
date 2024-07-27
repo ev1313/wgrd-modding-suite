@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <future>
 #include <optional>
 #include <pugixml.hpp>
@@ -16,19 +18,220 @@ namespace py = pybind11;
 
 namespace wgrd_files {
 
-/*
- * List of possible transactions
- *
- * - add object with class id (properties are all empty)
- * - remove object => ultra aids, will rewrite EVERY id
- * - change object class id (-> == remove object, add object with class id)
- * - edit object property
- * - change export name
- * - set as top object
- *
- *
- * */
+struct NdfTransaction {
+  virtual void apply(NDF& ndf) = 0;
+  virtual void undo(NDF& ndf) = 0;
+};
 
+struct NdfTransactionAddObject : public NdfTransaction {
+  std::string object_name;
+  void apply(NDF& ndf) override {
+    //
+  }
+  void undo(NDF& ndf) override {
+    //
+  }
+};
+
+struct NdfTransactionRemoveObject : public NdfTransaction {
+  std::string object_name;
+  void apply(NDF& ndf) override {
+    //
+  }
+  void undo(NDF& ndf) override {
+    //
+  }
+};
+
+struct NdfTransactionChangeProperty : public NdfTransaction {
+  std::string object_name;
+  std::string property_name;
+  void apply(NDF& ndf) override {
+    auto& object = ndf.get_obj_ref(object_name);
+    auto& property = object.get_property(property_name);
+    apply_property(property);
+  }
+  void undo(NDF& ndf) override {
+    auto& object = ndf.get_obj_ref(object_name);
+    auto& property = object.get_property(property_name);
+    undo_property(property);
+  }
+  virtual void apply_property(std::unique_ptr<NDFProperty>& prop) = 0;
+  virtual void undo_property(std::unique_ptr<NDFProperty>& prop) = 0;
+};
+
+struct NdfTransactionChangeProperty_Bool : public NdfTransactionChangeProperty {
+  bool value;
+  bool previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Bool);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Bool);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_Int8 : public NdfTransactionChangeProperty {
+  int8_t value;
+  int8_t previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Int8);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Int8);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_Int32 : public NdfTransactionChangeProperty {
+  int32_t value;
+  int32_t previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Int32);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt32>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Int32);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt32>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_UInt32 : public NdfTransactionChangeProperty {
+  uint32_t value;
+  uint32_t previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::UInt32);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyUInt32>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::UInt32);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyUInt32>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactoinChangeProperty_Float32 : public NdfTransactionChangeProperty {
+  float value;
+  float previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Float32);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyFloat32>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Float32);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyFloat32>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_Float64 : public NdfTransactionChangeProperty {
+  double value;
+  double previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Float64);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyFloat64>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Float64);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyFloat64>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_String : public NdfTransactionChangeProperty {
+  std::string value;
+  std::string previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::String);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::String);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_WideString : public NdfTransactionChangeProperty {
+  std::string value;
+  std::string previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::WideString);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::WideString);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_ObjectReference : public NdfTransactionChangeProperty {
+  std::string value;
+  std::string previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::ObjectReference);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(prop);
+    previous_value = property->object_name;
+    property->object_name = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::ObjectReference);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(prop);
+    property->object_name = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_ImportReference : public NdfTransactionChangeProperty {
+  std::string value;
+  std::string previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::ImportReference);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyImportReference>&>(prop);
+    previous_value = property->import_name;
+    property->import_name = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::ImportReference);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyImportReference>&>(prop);
+    property->import_name = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_AddListItem : public NdfTransactionChangeProperty {
+
+};
+
+struct NdfTransactionChangeProperty_RemoveListItem : public NdfTransactionChangeProperty {
+
+};
+
+struct NdfTransactionChangeProperty_ChangeListItem : public NdfTransactionChangeProperty {
+  std::unique_ptr<NdfTransactionChangeProperty> change;
+  
+};
 
 class NdfBinFile {
 private:

@@ -4,3 +4,6 @@
 [submodule "deps/wgrd-tools"]
 	path = deps/wgrd-tools
 	url = https://github.com/ev1313/wgrd-tools
+[submodule "deps/imgui"]
+	path = deps/imgui
+	url = https://github.com/ocornut/imgui

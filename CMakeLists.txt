@@ -5,12 +5,9 @@ set(CMAKE_CXX_STANDARD 23)
 
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(imgui REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
 find_package(Python COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
-find_package(imgui REQUIRED)
-find_package(argparse REQUIRED)
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
@@ -18,6 +15,18 @@ execute_process(COMMAND_ECHO STDOUT COMMAND ${Python_EXECUTABLE} -m venv ${VENV}
 execute_process(COMMAND_ECHO STDOUT COMMAND ${PYDIR}/python -m pip install wgrd-cons-parsers wgrd-cons-tools)
 
 add_subdirectory(deps/wgrd-tools/)
+
+add_library(imgui
+  deps/imgui/imgui.cpp
+  deps/imgui/imgui_tables.cpp
+  deps/imgui/imgui_draw.cpp
+  deps/imgui/imgui_widgets.cpp
+  deps/imgui/misc/cpp/imgui_stdlib.cpp
+)
+target_include_directories(imgui PUBLIC 
+deps/imgui/
+deps/imgui/misc/cpp/
+)
 
 add_executable(modding_suite
 		ImGuiFileDialog/ImGuiFileDialog.cpp
@@ -39,8 +48,7 @@ target_link_libraries(modding_suite
 	pybind11::embed
 	glfw
 	OpenGL::GL
-	imgui::imgui
-	argparse::argparse
+  imgui
   ndf
 )
 
