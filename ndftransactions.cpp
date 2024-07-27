@@ -12,7 +12,7 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
 
   std::thread([&]() {
     py::gil_scoped_acquire acquire;
-    py::object decompress_ndfbin = py::module_::import("wgrd_cons_parsers.decompress_ndfbin").attr("decompress_ndfbin ");
+    py::object decompress_ndfbin = py::module_::import("wgrd_cons_parsers.decompress_ndfbin").attr("decompress_ndfbin");
     py::object open = py::module_::import("io").attr("open");
 
     py::object f = open(path.string(), "rb");
