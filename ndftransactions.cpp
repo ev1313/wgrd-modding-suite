@@ -1,11 +1,11 @@
 #include "ndftransactions.hpp"
 
-#include "ndfbin.hpp"
-
 void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
+  ndf_parsed = false;
+  ndf_parsing = false;
   m_ndf_parsed_promise = std::nullopt;
   m_ndf_parsed_future = std::nullopt;
-  ndf_xml.reset();
+  ndf.clear();
 
   m_ndf_parsed_promise = std::promise<bool>();
   m_ndf_parsed_future = m_ndf_parsed_promise->get_future();
@@ -32,20 +32,7 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
     fs::path outpath_xml = decompressed_path;
     outpath_xml.replace_extension(".xml");
 
-    {
-      auto NdfBin = get_ndfbin();
-      std::ifstream input;
-      spdlog::debug("Opening NdfBin {}", decompressed_path.string());
-      input.open(decompressed_path, std::ios::in | std::ios::binary);
-      NdfBin->parse(input);
-
-      pugi::xml_document doc;
-      auto root = doc.append_child("root");
-      NdfBin->build_xml(root, "NdfBin");
-      doc.save_file(outpath_xml.c_str());
-    }
-
-    pugi::xml_parse_result result = ndf_xml.load_file(outpath_xml.c_str());
+    ndf.load_from_ndfbin(decompressed_path);
 
     this->m_ndf_parsed_promise->set_value(true);
   }).detach();

@@ -12,6 +12,8 @@ namespace py = pybind11;
 
 #include <fstream>
 
+#include "ndf.hpp"
+
 namespace wgrd_files {
 
 /*
@@ -34,7 +36,7 @@ private:
   bool ndf_parsing = false;
   std::optional<std::promise<bool>> m_ndf_parsed_promise;
   std::optional<std::future<bool>> m_ndf_parsed_future;
-  pugi::xml_document ndf_xml;
+  NDF ndf;
 
 public:
   void start_parsing(fs::path path);

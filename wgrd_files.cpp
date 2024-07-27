@@ -10,8 +10,6 @@
 
 #include <filesystem>
 
-#include "ndfbin.hpp"
-
 #include <thread>
 
 namespace fs = std::filesystem;
@@ -287,16 +285,20 @@ bool wgrd_files::Dic::is_file(std::string vfs_path, std::ifstream &f, size_t off
 
 wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
   // check for already existing NdfBin XML file
+  /*
   fs::path outpath_xml = fs::path("out/") / fs::path(vfs_path);
   outpath_xml.replace_extension(".decompressed.xml");
   if(fs::exists(outpath_xml)) {
     pugi::xml_parse_result result = ndf_xml.load_file(outpath_xml.c_str());
     ndf_parsed = true;
   }
+  */
 }
 
 int wgrd_files::NdfBin::render_object_list() {
   ImGui::Text(gettext("List of objects"));
+  return 0;
+  /*
   static bool filter_topo = false;
   ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
 
@@ -336,9 +338,11 @@ int wgrd_files::NdfBin::render_object_list() {
     ImGui::EndListBox();
   }
   return item_current_idx;
+  */
 }
 
 int wgrd_files::NdfBin::render_property_list(int object_idx) {
+  /*
   if(object_idx == -1 || object_idx >= get_object_count()) {
     return -1;
   }
@@ -377,9 +381,12 @@ int wgrd_files::NdfBin::render_property_list(int object_idx) {
   }
 
   return item_current_idx;
+  */
+  return 0;
 }
 
 void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
+  /*
   if(object_idx == -1 || object_idx >= get_object_count()) {
     return;
   }
@@ -402,9 +409,11 @@ void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
       break;
     }
   }
+  */
 }
 
 bool wgrd_files::NdfBin::imgui_call() {
+  /*
   if(ImGui::BeginTabItem(vfs_path.c_str())) {
     ImGui::Text("NdfBin: %s", vfs_path.c_str());
     if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
@@ -429,6 +438,7 @@ bool wgrd_files::NdfBin::imgui_call() {
     ImGui::EndTabItem();
     return true;
   }
+  */
   return false;
 }
 

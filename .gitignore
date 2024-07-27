@@ -3,3 +3,4 @@ cmake-build*
 .idea
 .cache
 *.swp
+compile_commands.json

@@ -39,7 +39,7 @@ target_link_libraries(modding_suite
 	OpenGL::GL
 	imgui::imgui
 	argparse::argparse
-  etceterapp
+  ndf
 )
 
 target_include_directories(modding_suite
