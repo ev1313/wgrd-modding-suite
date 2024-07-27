@@ -10,8 +10,6 @@
 
 #include <filesystem>
 
-#include <thread>
-
 namespace fs = std::filesystem;
 using namespace wgrd_files;
 
@@ -297,8 +295,7 @@ wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset
 
 int wgrd_files::NdfBin::render_object_list() {
   ImGui::Text(gettext("List of objects"));
-  return 0;
-  /*
+
   static bool filter_topo = false;
   ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
 
@@ -307,23 +304,15 @@ int wgrd_files::NdfBin::render_object_list() {
   {
 
     ImGuiListClipper clipper;
-    clipper.Begin(get_object_count());
+    clipper.Begin(ndfbin.get_object_count());
 
     while (clipper.Step()) {
       int n = clipper.DisplayStart;
-      auto begin_object_iterator = get_object_iterator().begin();
-      auto end_object_iterator = get_object_iterator().begin();
-      std::advance(begin_object_iterator, clipper.DisplayStart);
-      std::advance(end_object_iterator, clipper.DisplayEnd);
 
-      for (auto it = begin_object_iterator; it != end_object_iterator; ++it) {
-        pugi::xml_node node = *it;
-        int classIndex = node.attribute("classIndex").as_int();
-        auto classIterator = get_class_iterator().begin();
-        std::advance(classIterator, classIndex);
-
+      for (int it = clipper.DisplayStart; it < clipper.DisplayEnd; ++it) {
+        auto& object = ndfbin.get_object(it);
         const bool is_selected = (item_current_idx == n);
-        if (ImGui::Selectable(std::format("Object {} - {}", n, classIterator->attribute("str").as_string()).c_str(), is_selected)) {
+        if (ImGui::Selectable(std::format("Object {} - {}", object.name, object.class_name).c_str(), is_selected)) {
           item_current_idx = n;
         }
 
@@ -338,19 +327,18 @@ int wgrd_files::NdfBin::render_object_list() {
     ImGui::EndListBox();
   }
   return item_current_idx;
-  */
 }
 
 int wgrd_files::NdfBin::render_property_list(int object_idx) {
+  return -1;
   /*
-  if(object_idx == -1 || object_idx >= get_object_count()) {
+  if(object_idx == -1 || object_idx >= ndfbin.get_object_count()) {
     return -1;
   }
 
   ImGui::Text(gettext("List of properties"));
 
-  auto object_iterator = get_object_iterator().begin();
-  std::advance(object_iterator, object_idx);
+  auto object = ndfbin.get_object(object_idx);
 
   static int item_current_idx = -1;
   if (ImGui::BeginListBox("##PropertyList"))
@@ -382,7 +370,6 @@ int wgrd_files::NdfBin::render_property_list(int object_idx) {
 
   return item_current_idx;
   */
-  return 0;
 }
 
 void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
@@ -413,7 +400,6 @@ void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
 }
 
 bool wgrd_files::NdfBin::imgui_call() {
-  /*
   if(ImGui::BeginTabItem(vfs_path.c_str())) {
     ImGui::Text("NdfBin: %s", vfs_path.c_str());
     if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
@@ -438,7 +424,6 @@ bool wgrd_files::NdfBin::imgui_call() {
     ImGui::EndTabItem();
     return true;
   }
-  */
   return false;
 }
 

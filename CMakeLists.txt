@@ -30,6 +30,8 @@ add_executable(modding_suite
 		wgrd_files.h
     maingui.cpp
     maingui.hpp
+    ndftransactions.cpp
+    ndftransactions.hpp
 )
 
 target_link_libraries(modding_suite

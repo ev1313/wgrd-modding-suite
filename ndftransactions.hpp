@@ -60,6 +60,13 @@ public:
       ndf_parsing = false;
     }
   }
+  size_t get_object_count() {
+    return ndf.objects.size();
+  }
+
+  NDFObject& get_object(size_t index) {
+    return ndf.objects.at(index);
+  }
 };
 
 }
