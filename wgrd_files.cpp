@@ -7,7 +7,10 @@
 
 #include "file_tree.h"
 
+#include "imgui_stdlib.h"
+
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "ndf.hpp"
 
 #include <filesystem>
 
@@ -364,13 +367,29 @@ void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
   }
   auto& property = object.properties.at(property_idx);
 
-  //int ndf_type_id = get_ndf_type_id(property_idx);
-  int ndf_type_id = property->property_type;
+  auto transaction_opt = render_ndf_type(property);
 
+  if(transaction_opt) {
+    auto transaction_change = std::move(transaction_opt.value());
+    transaction_change->object_name = object.name;
+    transaction_change->property_name = property->property_name;
+    spdlog::warn("Applying transaction {} {}", object.name, property->property_name);
+    ndfbin.apply_transaction(std::move(transaction_change));
+  }
+}
+
+std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin::render_ndf_type(std::unique_ptr<NDFProperty>& property) {
+  int ndf_type_id = property->property_type;
   switch(ndf_type_id) {
-    case 0x0: {
+    case NDFPropertyType::Bool: {
       ImGui::Text("Type: Boolean");
-      ImGui::Text("Value: %s", reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(property)->value ? "true" : "false");
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(property);
+      bool value = prop->value;
+      if(ImGui::Checkbox("Value", &value)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_Bool>();
+        change->value = value;
+        return change;
+      }
       break;
     }
     case 0x1: {
@@ -398,14 +417,28 @@ void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
       ImGui::Text("Value: %f", reinterpret_cast<std::unique_ptr<NDFPropertyFloat64>&>(property)->value);
       break;
     }
-    case 0x7: {
+    case NDFPropertyType::String: {
       ImGui::Text("Type: String");
-      ImGui::Text("Value: %s", reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(property)->value.c_str());
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(property);
+      std::string value = prop->value;
+      if(ImGui::InputText("Value", &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        spdlog::warn("changing string");
+        auto change = std::make_unique<NdfTransactionChangeProperty_String>();
+        change->value = value;
+        return change;
+      }
       break;
     }
-    case 0x8: {
+    case NDFPropertyType::WideString: {
       ImGui::Text("Type: WideString");
-      ImGui::Text("Value: %s", reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(property)->value.c_str());
+      ImGui::Text("Type: String");
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(property);
+      std::string value = prop->value;
+      if(ImGui::InputText("Value", &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_WideString>();
+        change->value = value;
+        return change;
+      }
       break;
     }
     case 0x9: {
@@ -452,6 +485,7 @@ void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
       break;
     }
   }
+  return std::nullopt;
 }
 
 bool wgrd_files::NdfBin::imgui_call() {

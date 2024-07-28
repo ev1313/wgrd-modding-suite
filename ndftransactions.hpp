@@ -19,6 +19,7 @@ namespace py = pybind11;
 namespace wgrd_files {
 
 struct NdfTransaction {
+  virtual ~NdfTransaction() = default;
   virtual void apply(NDF& ndf) = 0;
   virtual void undo(NDF& ndf) = 0;
 };
@@ -221,16 +222,58 @@ struct NdfTransactionChangeProperty_ImportReference : public NdfTransactionChang
 };
 
 struct NdfTransactionChangeProperty_AddListItem : public NdfTransactionChangeProperty {
+  // when initializing, this needs to be created
+  // when applying, this gets moved into the object
+  // when undoing, this gets moved back into the transaction
+  std::unique_ptr<NDFProperty> value;
 
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::List);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
+    property->values.push_back(std::move(value));
+  }
+
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::List);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
+    value = std::move(property->values.back());
+    property->values.pop_back();
+  }
 };
 
 struct NdfTransactionChangeProperty_RemoveListItem : public NdfTransactionChangeProperty {
+  // needs no initialization
+  // when applying, this gets moved into the transaction
+  // when undoing, this gets moved back into the object
+  std::unique_ptr<NDFProperty> previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::List);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
+    previous_value = std::move(property->values.back());
+    property->values.pop_back();
+  }
 
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::List);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
+    property->values.push_back(std::move(previous_value));
+  }
 };
 
 struct NdfTransactionChangeProperty_ChangeListItem : public NdfTransactionChangeProperty {
+  uint32_t index;
   std::unique_ptr<NdfTransactionChangeProperty> change;
   
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::List);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
+    change->apply_property(property->values.at(index));
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::List);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
+    change->undo_property(property->values.at(index));
+  }
 };
 
 class NdfBinFile {
@@ -269,6 +312,34 @@ public:
 
   NDFObject& get_object(size_t index) {
     return ndf.objects.at(index);
+  }
+public:
+  std::vector<std::unique_ptr<NdfTransaction>> applied_transactions;
+  std::vector<std::unique_ptr<NdfTransaction>> undone_transactions;
+  void apply_transaction(std::unique_ptr<NdfTransaction> transaction) {
+    transaction->apply(ndf);
+
+    applied_transactions.push_back(std::move(transaction));
+    // since we now changed state, we need to clear the undone_transactions
+    undone_transactions.clear();
+  }
+  void undo_transaction() {
+    if(applied_transactions.empty()) {
+      return;
+    }
+    auto& transaction = applied_transactions.back();
+    transaction->undo(ndf);
+    undone_transactions.push_back(std::move(transaction));
+    applied_transactions.pop_back();
+  }
+  void redo_transaction() {
+    if(undone_transactions.empty()) {
+      return;
+    }
+    auto& transaction = undone_transactions.back();
+    transaction->apply(ndf);
+    applied_transactions.push_back(std::move(transaction));
+    undone_transactions.pop_back();
   }
 };
 

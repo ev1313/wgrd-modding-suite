@@ -97,6 +97,7 @@ private:
   int render_object_list();
   int render_property_list(int object_idx);
   void render_property(int object_idx, int property_idx);
+  std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
 public:
   explicit NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
   bool imgui_call() override;
