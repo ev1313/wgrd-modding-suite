@@ -3,8 +3,12 @@ project(modding_suite)
 
 set(CMAKE_CXX_STANDARD 23)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules/")
+
 find_package(glfw3 REQUIRED)
-find_package(OpenGL REQUIRED)
+find_package(Gettext REQUIRED)
+find_package(Epoxy REQUIRED)
+#find_package(OpenGL REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
 find_package(Python COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
@@ -47,7 +51,8 @@ target_link_libraries(modding_suite
 	PRIVATE
 	pybind11::embed
 	glfw
-	OpenGL::GL
+	intl
+	${LibEpoxy_LIBRARIES}
   imgui
   ndf
 )
@@ -55,6 +60,7 @@ target_link_libraries(modding_suite
 target_include_directories(modding_suite
 PRIVATE
 deps/wgrd-tools/src
+${LibEpoxy_INCLUDE_DIRS}
 )
 
 install(TARGETS modding_suite DESTINATION bin)

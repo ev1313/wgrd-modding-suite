@@ -12,6 +12,8 @@
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "ndf.hpp"
 
+#include <libintl.h>
+
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -24,7 +26,9 @@ bool wgrd_files::File::imgui_call() {
       std::filesystem::path vfs(vfs_path);
       auto filename = vfs.filename().string();
       auto extension = ".*," + vfs.extension().string();
-      ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", extension.c_str(), filename.c_str());
+      IGFD::FileDialogConfig config;
+      config.path = filename.c_str();
+      ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", extension.c_str(), config);
     }
     if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
     {

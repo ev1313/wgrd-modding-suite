@@ -3,23 +3,17 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
-#define GL_SILENCE_DEPRECATION
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-#include <GLES2/gl2.h>
-#endif
+#include <epoxy/gl.h>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
-// This example can also compile and run with Emscripten! See 'Makefile.emscripten' for details.
-#ifdef __EMSCRIPTEN__
-#include "../libs/emscripten/emscripten_mainloop_stub.h"
-#endif
-
 #include "maingui.hpp"
+
+#include <libintl.h>
 #include <locale.h>
 
 static void glfw_error_callback(int error, const char* description)
 {
-  fprintf(stderr, gettext("GLFW Error %d: %s\n"), error, description);
+	std::cerr << std::vformat(gettext("GLFW Error {}: {}\n"), std::make_format_args(error, description));
 }
 
 // Main code
@@ -108,14 +102,7 @@ int main(int argc, char* argv[])
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   // Main loop
-#ifdef __EMSCRIPTEN__
-  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
-  // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
-  io.IniFilename = nullptr;
-  EMSCRIPTEN_MAINLOOP_BEGIN
-#else
   while (!glfwWindowShouldClose(window))
-#endif
   {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.

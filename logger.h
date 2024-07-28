@@ -7,6 +7,8 @@
 #include <sstream>
 #include <imgui.h>
 
+#include <libintl.h>
+
 namespace mod_manager {
     template<typename Mutex>
     class logger : public spdlog::sinks::base_sink<Mutex> {
