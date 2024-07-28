@@ -8,7 +8,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules/")
 find_package(glfw3 REQUIRED)
 find_package(Gettext REQUIRED)
 find_package(Epoxy REQUIRED)
-#find_package(OpenGL REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
 find_package(Python COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
@@ -51,7 +50,7 @@ target_link_libraries(modding_suite
 	PRIVATE
 	pybind11::embed
 	glfw
-	intl
+  $<$<BOOL:${WIN32}>:intl>
 	${LibEpoxy_LIBRARIES}
   imgui
   ndf
