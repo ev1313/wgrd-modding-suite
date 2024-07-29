@@ -1,5 +1,6 @@
 #include "maingui.hpp"
 
+#include "imgui.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
@@ -42,18 +43,25 @@ bool maingui::init(int argc, char *argv[]) {
 }
 
 bool maingui::render() {
-    std::map<std::string, std::ifstream> file_handles;
-
-    py::gil_scoped_acquire acquire;
-    auto ret = file_tree.render("test");
-    for(auto& file_meta : ret) {
-      if(!file_handles.contains(file_meta.fs_path)) {
-        file_handles.try_emplace(file_meta.fs_path, file_meta.fs_path, std::ios::in | std::ios::binary);
-      }
-      files.add_file(file_meta, file_handles[file_meta.fs_path]);
-    }
-    files.imgui_call();
-    py::gil_scoped_release release;
+  // render main window
+#ifdef IMGUI_HAS_VIEWPORT
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(viewport->GetWorkPos());
+  ImGui::SetNextWindowSize(viewport->GetWorkSize());
+  ImGui::SetNextWindowViewport(viewport->ID);
+#else 
+  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+#endif
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNav);
+  auto meta = file_tree.render("Workspace 1");
+  if(meta) {
+    files.add_file(meta.value());
+  }
+  ImGui::SameLine();
+    files.imgui_call(meta);
+  ImGui::End();
 
   // FIXME: add something to exit the program?
   return false;

@@ -1,7 +1,5 @@
 #include "ndftransactions.hpp"
 
-#include <iostream>
-
 void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
   spdlog::warn("start_parsing {}", path.string());
   ndf_parsed = false;

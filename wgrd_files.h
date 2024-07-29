@@ -19,10 +19,10 @@ class File;
 
 class Files {
 private:
-  std::vector<std::unique_ptr<File>> files;
+  std::map<size_t, std::unique_ptr<File>> files;
 public:
-  void imgui_call();
-  bool add_file(FileMeta meta, std::ifstream& f, size_t f_offset = 0);
+  void imgui_call(std::optional<FileMeta> meta);
+  void add_file(FileMeta meta, size_t offset = 0);
 };
 
 class File {

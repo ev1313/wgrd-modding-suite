@@ -44,6 +44,37 @@ struct NdfTransactionRemoveObject : public NdfTransaction {
   }
 };
 
+struct NdfTransactionCopyObject : public NdfTransaction {
+  std::string object_name;
+  std::string new_object_name;
+  void apply(NDF& ndf) override {
+    if(!ndf.copy_object(object_name, new_object_name)) {
+      throw std::runtime_error(std::format("applying CopyObject transaction failed! {} -> {}", object_name, new_object_name));
+    }
+  }
+  void undo(NDF& ndf) override {
+    if(!ndf.remove_object(new_object_name)) {
+      throw std::runtime_error(std::format("undoing CopyObject transaction failed! {} -> {}", new_object_name, object_name));
+    }
+  }
+};
+
+struct NdfTransactionChangeObjectName : public NdfTransaction {
+  // previous_name & name needs to be set when initializing
+  std::string previous_name;
+  std::string name;
+  void apply(NDF& ndf) override {
+    if(!ndf.change_object_name(previous_name, name)) {
+      throw std::runtime_error(std::format("applying ChangeObjectName transaction failed! {} -> {}", previous_name, name));
+    }
+  }
+  void undo(NDF& ndf) override {
+    if(!ndf.change_object_name(previous_name, name)) {
+      throw std::runtime_error(std::format("undoing ChangeObjectName transaction failed! {} -> {}", name, previous_name));
+    }
+  }
+};
+
 struct NdfTransactionChangeProperty : public NdfTransaction {
   std::string object_name;
   std::string property_name;
@@ -308,6 +339,18 @@ public:
   }
   size_t get_object_count() {
     return ndf.objects.size();
+  }
+  size_t get_object_count(const std::string& filter) {
+    if(filter.empty()) {
+      return get_object_count();
+    }
+    size_t count = 0;
+    for(auto& object : ndf.objects) {
+      if(object.class_name.contains(filter)) {
+        count++;
+      }
+    }
+    return count;
   }
 
   NDFObject& get_object(size_t index) {
