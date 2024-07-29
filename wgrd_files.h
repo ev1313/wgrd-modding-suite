@@ -93,6 +93,16 @@ public:
 
 class NdfBin : public File {
 private:
+  // object count is cached, since it iterates all objects in ndfbin
+  // gets set to true if the object count changed after removing / adding / cloning objects
+  bool object_count_changed = false;
+  size_t object_count = 0;
+  std::string object_filter = "";
+  std::string class_filter = "";
+  int item_current_idx = -1;
+  
+  int property_item_current_idx = -1;
+
   NdfBinFile ndfbin;
   int render_object_list();
   int render_property_list(int object_idx);

@@ -263,15 +263,26 @@ wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset
 int wgrd_files::NdfBin::render_object_list() {
   //static bool filter_topo = false;
   //ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
-  static size_t object_count = ndfbin.get_object_count();
+  object_count = ndfbin.get_object_count();
 
-  static std::string class_filter = "";
+  ImGui::Text("Object Filter: ");
+  ImGui::SameLine();
+  if(ImGui::InputText("##ObjectFilter", &object_filter)) {
+    object_count_changed = true;
+  }
+
+  ImGui::Text("Class Filter: ");
+  ImGui::SameLine();
   if(ImGui::InputText("##ClassFilter", &class_filter)) {
-    object_count = ndfbin.get_object_count(class_filter);
+    object_count_changed = true;
+  }
+
+  if(object_count_changed) {
+    object_count = ndfbin.get_object_count(object_filter, class_filter);
+    object_count_changed = false;
   }
 
 
-  static int item_current_idx = -1;
   if (ImGui::BeginListBox("##ObjectList", ImVec2(-FLT_MIN, 20*ImGui::GetTextLineHeightWithSpacing())))
   {
 
@@ -282,9 +293,12 @@ int wgrd_files::NdfBin::render_object_list() {
       int n = clipper.DisplayStart;
 
       for (int it = clipper.DisplayStart; it < clipper.DisplayEnd; ++it) {
-        auto& object = ndfbin.get_object(it);
+        const auto& object = ndfbin.get_object_at_index(it);
 
         if(!class_filter.empty() && !object.class_name.contains(class_filter)) {
+          continue;
+        }
+        if(!object_filter.empty() && !object.name.contains(object_filter)) {
           continue;
         }
 
@@ -311,7 +325,7 @@ int wgrd_files::NdfBin::render_property_list(int object_idx) {
     return -1;
   }
 
-  auto& object = ndfbin.get_object(object_idx);
+  auto& object = ndfbin.get_object_at_index(object_idx);
 
   {
     std::string object_name = object.name;
@@ -323,17 +337,34 @@ int wgrd_files::NdfBin::render_property_list(int object_idx) {
       change->name = object_name;
       ndfbin.apply_transaction(std::move(change));
     }
+
+    if(ImGui::Button(gettext("Remove Object"))) {
+      auto change = std::make_unique<NdfTransactionRemoveObject>();
+      change->object_name = object.name;
+      ndfbin.apply_transaction(std::move(change));
+      object_count_changed = true;
+    }
+    ImGui::SameLine();
+    if(ImGui::Button(gettext("Copy Object"))) {
+      auto change = std::make_unique<NdfTransactionCopyObject>();
+      change->object_name = object.name;
+      change->new_object_name = object.name + "_copy";
+      while(ndfbin.contains_object(change->new_object_name)) {
+        change->new_object_name += "_copy";
+      }
+      ndfbin.apply_transaction(std::move(change));
+      object_count_changed = true;
+    }
   }
 
-  static int item_current_idx = -1;
   if (ImGui::BeginListBox("##PropertyList"))
   {
     int n = 0;
 
     for(auto& property : object.properties) {
-      const bool is_selected = (item_current_idx == n);
+      const bool is_selected = (property_item_current_idx == n);
       if(ImGui::Selectable(std::format("Property {} - {}", n, property->property_name).c_str(), is_selected)) {
-        item_current_idx = n;
+        property_item_current_idx = n;
       }
 
       // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -346,14 +377,14 @@ int wgrd_files::NdfBin::render_property_list(int object_idx) {
     ImGui::EndListBox();
   }
 
-  return item_current_idx;
+  return property_item_current_idx;
 }
 
 void wgrd_files::NdfBin::render_property(int object_idx, int property_idx) {
   if(object_idx == -1 || object_idx >= ndfbin.get_object_count()) {
     return;
   }
-  auto& object = ndfbin.get_object(object_idx);
+  auto& object = ndfbin.get_object_at_index(object_idx);
   if(property_idx == -1 || property_idx >= object.properties.size()) {
     return;
   }

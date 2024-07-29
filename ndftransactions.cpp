@@ -38,7 +38,9 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
 
   this->m_ndf_parsed_promise->set_value(true);
 
-  ndf_parsing = true;
+  // change this to ndf_parsing when doing async things
+  ndf_parsed = true;
+  ndf_parsing = false;
 }
 
 

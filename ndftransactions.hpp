@@ -27,7 +27,8 @@ struct NdfTransaction {
 struct NdfTransactionAddObject : public NdfTransaction {
   std::string object_name;
   void apply(NDF& ndf) override {
-    //
+    // for this we need a class DB that contains all possible classes so we can create properties for the object
+    // or there is the GUI for adding missing properties
   }
   void undo(NDF& ndf) override {
     //
@@ -36,11 +37,19 @@ struct NdfTransactionAddObject : public NdfTransaction {
 
 struct NdfTransactionRemoveObject : public NdfTransaction {
   std::string object_name;
+  // gets copied here on delete, moved back on undo
+  NDFObject removed_object;
   void apply(NDF& ndf) override {
-    //
+    auto it = ndf.object_map.find(object_name);
+    if(it == ndf.object_map.end()) {
+      throw std::runtime_error(std::format("applying RemoveObject transaction failed! object not found: {}", object_name));
+    }
+    removed_object = std::move(it.value());
+    ndf.object_map.erase(it);
   }
   void undo(NDF& ndf) override {
-    //
+    // we need to move the object back into the object_map
+    ndf.object_map.insert({removed_object.name, std::move(removed_object)});
   }
 };
 
@@ -79,12 +88,12 @@ struct NdfTransactionChangeProperty : public NdfTransaction {
   std::string object_name;
   std::string property_name;
   void apply(NDF& ndf) override {
-    auto& object = ndf.get_obj_ref(object_name);
+    auto& object = ndf.get_object(object_name);
     auto& property = object.get_property(property_name);
     apply_property(property);
   }
   void undo(NDF& ndf) override {
-    auto& object = ndf.get_obj_ref(object_name);
+    auto& object = ndf.get_object(object_name);
     auto& property = object.get_property(property_name);
     undo_property(property);
   }
@@ -337,24 +346,39 @@ public:
       ndf_parsing = false;
     }
   }
-  size_t get_object_count() {
-    return ndf.objects.size();
+  bool contains_object(const std::string& name) {
+    return ndf.object_map.contains(name);
   }
-  size_t get_object_count(const std::string& filter) {
-    if(filter.empty()) {
+  NDFObject& get_object(const std::string& name) {
+    auto it = ndf.object_map.find(name);
+    if(it == ndf.object_map.end()) {
+      throw std::runtime_error(std::format("object not found: {}", name));
+    }
+    return it.value();
+  }
+  NDFObject& get_object_at_index(size_t index) {
+    auto it = ndf.object_map.nth(index);
+    if(it == ndf.object_map.end()) {
+      throw std::runtime_error(std::format("object index out of bounds: {}", index));
+    }
+    return it.value();
+  }
+  size_t get_object_count() {
+    return ndf.object_map.size();
+  }
+  size_t get_object_count(const std::string& object_filter, const std::string& class_filter) {
+    if(object_filter.empty() && class_filter.empty()) {
       return get_object_count();
     }
     size_t count = 0;
-    for(auto& object : ndf.objects) {
-      if(object.class_name.contains(filter)) {
-        count++;
+    for(auto& object : ndf.object_map | std::views::values) {
+      if(class_filter.empty() || object.class_name.contains(class_filter)) {
+        if(object_filter.empty() || object.name.contains(object_filter)) {
+          count++;
+        }
       }
     }
     return count;
-  }
-
-  NDFObject& get_object(size_t index) {
-    return ndf.objects.at(index);
   }
 public:
   std::vector<std::unique_ptr<NdfTransaction>> applied_transactions;
