@@ -165,7 +165,7 @@ struct NdfTransactionChangeProperty_UInt32 : public NdfTransactionChangeProperty
   }
 };
 
-struct NdfTransactoinChangeProperty_Float32 : public NdfTransactionChangeProperty {
+struct NdfTransactionChangeProperty_Float32 : public NdfTransactionChangeProperty {
   float value;
   float previous_value;
   void apply_property(std::unique_ptr<NDFProperty>& prop) override {
@@ -258,6 +258,53 @@ struct NdfTransactionChangeProperty_ImportReference : public NdfTransactionChang
     assert(prop->property_type == NDFPropertyType::ImportReference);
     auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyImportReference>&>(prop);
     property->import_name = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_F32_vec3 : public NdfTransactionChangeProperty {
+  float x, y, z;
+  float previous_x, previous_y, previous_z;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::F32_vec3);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec3>&>(prop);
+    previous_x = property->x;
+    previous_y = property->y;
+    previous_z = property->z;
+    property->x = x;
+    property->y = y;
+    property->z = z;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::F32_vec3);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec3>&>(prop);
+    property->x = previous_x;
+    property->y = previous_y;
+    property->z = previous_z;
+  }
+};
+
+struct NdfTransactionChangeProperty_F32_vec4 : public NdfTransactionChangeProperty {
+  float x, y, z, w;
+  float previous_x, previous_y, previous_z, previous_w;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::F32_vec4);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec4>&>(prop);
+    previous_x = property->x;
+    previous_y = property->y;
+    previous_z = property->z;
+    previous_w = property->w;
+    property->x = x;
+    property->y = y;
+    property->z = z;
+    property->w = w;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::F32_vec4);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec4>&>(prop);
+    property->x = previous_x;
+    property->y = previous_y;
+    property->z = previous_z;
+    property->w = previous_w;
   }
 };
 

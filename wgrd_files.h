@@ -1,5 +1,7 @@
 #pragma once
 
+#include <any>
+
 #include <fstream>
 #include <filesystem>
 #include <pybind11/embed.h>
@@ -103,10 +105,14 @@ private:
   
   int property_item_current_idx = -1;
 
+  // used to detect, whether object changed, to update property_temp array with cached values
+  bool object_changed = true;
+  std::vector<std::any> property_temp;
+
   NdfBinFile ndfbin;
-  int render_object_list();
-  int render_property_list(int object_idx);
-  void render_property(int object_idx, int property_idx);
+  std::string render_object_list();
+  std::string render_property_list(std::string object_name);
+  void render_property(std::string object_name, std::string property_name);
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
 public:
   explicit NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
