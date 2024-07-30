@@ -263,11 +263,6 @@ wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset
 std::string wgrd_files::NdfBin::render_object_list() {
   //static bool filter_topo = false;
   //ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
-  object_count = ndfbin.get_object_count();
-
-  if(item_current_idx >= object_count) {
-    item_current_idx = -1;
-  }
 
   ImGui::Text("Object Filter: ");
   ImGui::SameLine();
@@ -282,8 +277,14 @@ std::string wgrd_files::NdfBin::render_object_list() {
   }
 
   if(object_count_changed) {
-    object_count = ndfbin.get_object_count(object_filter, class_filter);
+    object_list.clear();
+    object_list = ndfbin.filter_objects(object_filter, class_filter);
+    item_current_idx = -1;
     object_count_changed = false;
+  }
+
+  if(item_current_idx >= object_list.size()) {
+    item_current_idx = -1;
   }
 
 
@@ -291,32 +292,21 @@ std::string wgrd_files::NdfBin::render_object_list() {
   {
 
     ImGuiListClipper clipper;
-    clipper.Begin(object_count);
+    clipper.Begin(object_list.size());
 
     while (clipper.Step()) {
-      int n = clipper.DisplayStart;
+      for(int it = clipper.DisplayStart; it < clipper.DisplayEnd; it++) {
+        const auto& object = ndfbin.get_object(object_list[it]);
 
-      for (int it = clipper.DisplayStart; it < clipper.DisplayEnd; ++it) {
-        const auto& object = ndfbin.get_object_at_index(it);
-
-        if(!class_filter.empty() && !object.class_name.contains(class_filter)) {
-          continue;
-        }
-        if(!object_filter.empty() && !object.name.contains(object_filter)) {
-          continue;
-        }
-
-        const bool is_selected = (item_current_idx == n);
+        const bool is_selected = (item_current_idx == it);
         if (ImGui::Selectable(std::format("{} - {}", object.name, object.class_name).c_str(), is_selected)) {
-          item_current_idx = n;
+          item_current_idx = it;
         }
 
         // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
         if (is_selected) {
           ImGui::SetItemDefaultFocus();
         }
-
-        n+=1;
       }
     }
     ImGui::EndListBox();
@@ -368,8 +358,18 @@ std::string wgrd_files::NdfBin::render_property_list(std::string object_name) {
   }
   auto& object = ndfbin.get_object(object_name);
 
-  for(const auto& property : object.properties) {
-    render_property(object_name, property->property_name);
+  if(ImGui::TreeNode(gettext("Object Properties"))){
+    ImGui::BeginTable("property_table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable);
+    ImGui::TableSetupColumn(gettext("Name"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("Type"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableHeadersRow();
+    for(const auto& property : object.properties) {
+      ImGui::TableNextColumn();
+      render_property(object_name, property->property_name);
+    }
+    ImGui::EndTable();
+    ImGui::TreePop();
   }
 
   /*
@@ -418,9 +418,11 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
 
   int ndf_type_id = property->property_type;
   ImGui::Text("%s", property->property_name.c_str());
+  ImGui::TableNextColumn();
+  ImGui::Text("0x%02x", property->property_type);
+  ImGui::TableNextColumn();
   switch(ndf_type_id) {
     case NDFPropertyType::Bool: {
-      ImGui::SameLine();
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(property);
       bool value = prop->value;
       if(ImGui::Checkbox("Value", &value)) {
@@ -431,7 +433,6 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case 0x1: {
-      ImGui::SameLine();
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(property);
       uint8_t val = prop->value;
       uint8_t min = 0;
@@ -444,7 +445,6 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case 0x2: {
-      ImGui::SameLine();
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyInt32>&>(property);
       int32_t val = prop->value;
       int32_t min = INT32_MIN;
@@ -457,7 +457,6 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case 0x3: {
-      ImGui::SameLine();
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyUInt32>&>(property);
       uint32_t val = prop->value;
       uint32_t min = 0;
@@ -469,8 +468,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0x5: {
-      ImGui::SameLine();
+    case NDFPropertyType::Float32: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyFloat32>&>(property);
       float val = prop->value;
       if(ImGui::DragFloat(std::format("##f32_prop_{}", property->property_name).c_str(), &val, drag_speed)) {
@@ -480,8 +478,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0x6: {
-      ImGui::SameLine();
+    case NDFPropertyType::Float64: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyFloat64>&>(property);
       double val = prop->value;
       if(ImGui::InputDouble(std::format("##f64_prop_{}", property->property_name).c_str(), &val)) {
@@ -492,10 +489,9 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case NDFPropertyType::String: {
-      ImGui::SameLine();
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(property);
       std::string value = prop->value;
-      if(ImGui::InputText("Value", &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      if(ImGui::InputText(std::format("##string_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
         spdlog::warn("changing string");
         auto change = std::make_unique<NdfTransactionChangeProperty_String>();
         change->value = value;
@@ -504,10 +500,9 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case NDFPropertyType::WideString: {
-      ImGui::SameLine();
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(property);
       std::string value = prop->value;
-      if(ImGui::InputText("Value", &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      if(ImGui::InputText(std::format("##widestring_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_WideString>();
         change->value = value;
         return change;
@@ -516,21 +511,22 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     }
     case 0x9: {
       if(property->is_object_reference()) {
-        ImGui::SameLine();
         auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(property);
         std::string value = prop->object_name;
-        if(ImGui::InputText("Value", &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        if(ImGui::InputText(std::format("##objref_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
           auto change = std::make_unique<NdfTransactionChangeProperty_ObjectReference>();
           change->value = value;
           return change;
         }
+        if(!ndfbin.contains_object(value)) {
+          ImGui::Text("Object %s does not exist", value.c_str());
+        }
         break;
       }
       if(property->is_import_reference()) {
-        ImGui::SameLine();
         auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyImportReference>&>(property);
         std::string value = prop->import_name;
-        if(ImGui::InputText("Value", &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        if(ImGui::InputText(std::format("##imprref_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
           auto change = std::make_unique<NdfTransactionChangeProperty_ImportReference>();
           change->value = value;
           return change;
@@ -540,7 +536,6 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case 0xB: {
-      ImGui::SameLine();
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec3>&>(property);
       float val[3] = {p->x, p->y, p->z};
       if(ImGui::InputFloat3(std::format("##f32_vec3_prop_{}", property->property_name).c_str(), val)) {
@@ -553,7 +548,6 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case 0xC: {
-      ImGui::SameLine();
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec4>&>(property);
       float val[4] = {p->x, p->y, p->z, p->w};
       if(ImGui::InputFloat3(std::format("##f32_vec4_prop_{}", property->property_name).c_str(), val)) {
@@ -572,9 +566,16 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       ImGui::Text("Value: %d %d %d %d", p->r, p->g, p->b, p->a);
     }
     case 0xE: {
-      ImGui::Text("Type: S32_vec3");
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(property);
-      ImGui::Text("Value: %d %d %d", p->x, p->y, p->z);
+      int32_t val[3] = {p->x, p->y, p->z};
+      if(ImGui::InputInt3(std::format("##f32_vec3_prop_{}", property->property_name).c_str(), val)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_S32_vec3>();
+        change->x = val[0];
+        change->y = val[1];
+        change->z = val[2];
+        return change;
+      }
+      break;
     }
     case 0x11: {
       ImGui::Text("Type: List");

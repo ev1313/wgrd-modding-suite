@@ -308,6 +308,29 @@ struct NdfTransactionChangeProperty_F32_vec4 : public NdfTransactionChangeProper
   }
 };
 
+struct NdfTransactionChangeProperty_S32_vec3 : public NdfTransactionChangeProperty {
+  int32_t x, y, z;
+  int32_t previous_x, previous_y, previous_z;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::S32_vec3);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(prop);
+    previous_x = property->x;
+    previous_y = property->y;
+    previous_z = property->z;
+    property->x = x;
+    property->y = y;
+    property->z = z;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::S32_vec3);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(prop);
+    property->x = previous_x;
+    property->y = previous_y;
+    property->z = previous_z;
+  }
+};
+
+
 struct NdfTransactionChangeProperty_AddListItem : public NdfTransactionChangeProperty {
   // when initializing, this needs to be created
   // when applying, this gets moved into the object
@@ -413,19 +436,22 @@ public:
   size_t get_object_count() {
     return ndf.object_map.size();
   }
-  size_t get_object_count(const std::string& object_filter, const std::string& class_filter) {
+
+  std::vector<std::string> filter_objects(const std::string& object_filter, const std::string& class_filter) {
     if(object_filter.empty() && class_filter.empty()) {
-      return get_object_count();
+      auto it = ndf.object_map | std::views::keys;
+      std::vector<std::string> result(std::begin(it), std::end(it));
+      return result;
     }
-    size_t count = 0;
+    std::vector<std::string> result;
     for(auto& object : ndf.object_map | std::views::values) {
       if(class_filter.empty() || object.class_name.contains(class_filter)) {
         if(object_filter.empty() || object.name.contains(object_filter)) {
-          count++;
+          result.push_back(object.name);
         }
       }
     }
-    return count;
+    return result;
   }
 public:
   std::vector<std::unique_ptr<NdfTransaction>> applied_transactions;
