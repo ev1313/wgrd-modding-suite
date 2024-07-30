@@ -287,10 +287,8 @@ std::string wgrd_files::NdfBin::render_object_list() {
     item_current_idx = -1;
   }
 
-
   if (ImGui::BeginListBox("##ObjectList", ImVec2(-FLT_MIN, 20*ImGui::GetTextLineHeightWithSpacing())))
   {
-
     ImGuiListClipper clipper;
     clipper.Begin(object_list.size());
 
@@ -321,14 +319,41 @@ std::string wgrd_files::NdfBin::render_object_list() {
   if(!object_name.empty() && ndfbin.contains_object(object_name)){
     auto& object = ndfbin.get_object(object_name);
 
+    ImGui::BeginTable("object_prop_table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders);
+    ImGui::TableSetupColumn(gettext("##OptionName"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableNextColumn();
     ImGui::Text("Object Name: ");
-    ImGui::SameLine();
+    ImGui::TableNextColumn();
     if(ImGui::InputText("##ObjectName", &object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
       auto change = std::make_unique<NdfTransactionChangeObjectName>();
       change->previous_name = object.name;
       change->name = object_name;
       ndfbin.apply_transaction(std::move(change));
     }
+    ImGui::TableNextColumn();
+    ImGui::Text("Export Path: ");
+    ImGui::TableNextColumn();
+    std::string export_path = object.export_path;
+    if(ImGui::InputText("##ExportPath", &export_path, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      auto change = std::make_unique<NdfTransactionChangeObjectExportPath>();
+      change->object_name = object.name;
+      change->previous_export_path = object.export_path;
+      change->export_path = export_path;
+      ndfbin.apply_transaction(std::move(change));
+    }
+    ImGui::TableNextColumn();
+    ImGui::Text("Is Top Object: ");
+    ImGui::TableNextColumn();
+    bool is_top_object = object.is_top_object;
+    if(ImGui::Checkbox("##IsTopObject", &is_top_object)) {
+      auto change = std::make_unique<NdfTransactionChangeObjectTopObject>();
+      change->object_name = object.name;
+      change->top_object = is_top_object;
+      ndfbin.apply_transaction(std::move(change));
+    }
+
+    ImGui::EndTable();
 
     if(ImGui::Button(gettext("Remove Object"))) {
       auto change = std::make_unique<NdfTransactionRemoveObject>();
@@ -365,6 +390,10 @@ std::string wgrd_files::NdfBin::render_property_list(std::string object_name) {
     ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
     for(const auto& property : object.properties) {
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", property->property_name.c_str());
+      ImGui::TableNextColumn();
+      ImGui::Text("0x%02x", property->property_type);
       ImGui::TableNextColumn();
       render_property(object_name, property->property_name);
     }
@@ -417,15 +446,11 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
   const float drag_speed = 0.2f;
 
   int ndf_type_id = property->property_type;
-  ImGui::Text("%s", property->property_name.c_str());
-  ImGui::TableNextColumn();
-  ImGui::Text("0x%02x", property->property_type);
-  ImGui::TableNextColumn();
   switch(ndf_type_id) {
     case NDFPropertyType::Bool: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyBool>&>(property);
       bool value = prop->value;
-      if(ImGui::Checkbox("Value", &value)) {
+      if(ImGui::Checkbox(std::format("##bool_prop_{}", property->property_name).c_str(), &value)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_Bool>();
         change->value = value;
         return change;
@@ -564,6 +589,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       ImGui::Text("Type: Color");
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(property);
       ImGui::Text("Value: %d %d %d %d", p->r, p->g, p->b, p->a);
+      break;
     }
     case 0xE: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(property);
@@ -577,9 +603,26 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0x11: {
-      ImGui::Text("Type: List");
+    case NDFPropertyType::List: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(property);
+      if(ImGui::BeginTable(std::format("list_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
+        ImGui::TableSetupColumn(gettext("List Index"), ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn(gettext("List Items"), ImGuiTableColumnFlags_WidthStretch);
+        for(const auto& [idx, item] : p->values | std::views::enumerate) {
+          ImGui::TableNextColumn();
+          ImGui::Text("%d", (unsigned int)idx);
+          ImGui::TableNextColumn();
+          auto change = render_ndf_type(item);
+          if(change) {
+            auto list_change = std::make_unique<NdfTransactionChangeProperty_ChangeListItem>();
+            list_change->index = idx;
+            list_change->change = std::move(change.value());
+            return list_change;
+          }
+        }
+        ImGui::EndTable();
+      }
+      break;
     }
     default:{
       ImGui::Text("Unknown type %02x", ndf_type_id);

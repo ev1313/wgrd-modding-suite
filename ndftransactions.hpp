@@ -84,6 +84,32 @@ struct NdfTransactionChangeObjectName : public NdfTransaction {
   }
 };
 
+struct NdfTransactionChangeObjectExportPath : public NdfTransaction {
+  std::string object_name;
+  std::string export_path;
+  std::string previous_export_path;
+  void apply(NDF& ndf) override {
+    previous_export_path = ndf.get_object(object_name).export_path;
+    ndf.get_object(object_name).export_path = export_path;
+  }
+  void undo(NDF& ndf) override {
+    ndf.get_object(object_name).export_path = previous_export_path;
+  }
+};
+
+struct NdfTransactionChangeObjectTopObject : public NdfTransaction {
+  std::string object_name;
+  bool top_object;
+  bool previous_top_object;
+  void apply(NDF& ndf) override {
+    previous_top_object = ndf.get_object(object_name).is_top_object;
+    ndf.get_object(object_name).is_top_object = top_object;
+  }
+  void undo(NDF& ndf) override {
+    ndf.get_object(object_name).is_top_object = previous_top_object;
+  }
+};
+
 struct NdfTransactionChangeProperty : public NdfTransaction {
   std::string object_name;
   std::string property_name;
