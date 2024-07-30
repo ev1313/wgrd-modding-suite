@@ -143,18 +143,50 @@ struct NdfTransactionChangeProperty_Bool : public NdfTransactionChangeProperty {
   }
 };
 
-struct NdfTransactionChangeProperty_Int8 : public NdfTransactionChangeProperty {
+struct NdfTransactionChangeProperty_UInt8 : public NdfTransactionChangeProperty {
   int8_t value;
   int8_t previous_value;
   void apply_property(std::unique_ptr<NDFProperty>& prop) override {
-    assert(prop->property_type == NDFPropertyType::Int8);
-    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(prop);
+    assert(prop->property_type == NDFPropertyType::UInt8);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyUInt8>&>(prop);
     previous_value = property->value;
     property->value = value;
   }
   void undo_property(std::unique_ptr<NDFProperty>& prop) override {
-    assert(prop->property_type == NDFPropertyType::Int8);
-    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(prop);
+    assert(prop->property_type == NDFPropertyType::UInt8);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyUInt8>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_UInt16 : public NdfTransactionChangeProperty {
+  uint16_t value;
+  uint16_t previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::UInt16);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyUInt16>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::UInt16);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyUInt16>&>(prop);
+    property->value = previous_value;
+  }
+};
+
+struct NdfTransactionChangeProperty_Int16 : public NdfTransactionChangeProperty {
+  uint16_t value;
+  uint16_t previous_value;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Int16);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt16>&>(prop);
+    previous_value = property->value;
+    property->value = value;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Int16);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyInt16>&>(prop);
     property->value = previous_value;
   }
 };
@@ -255,6 +287,23 @@ struct NdfTransactionChangeProperty_WideString : public NdfTransactionChangeProp
   }
 };
 
+struct NdfTransactionChangeProperty_PathReference : public NdfTransactionChangeProperty {
+  std::string path;
+  std::string previous_path;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::PathReference);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyPathReference>&>(prop);
+    previous_path = property->path;
+    property->path = path;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::String);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyPathReference>&>(prop);
+    property->path = previous_path;
+  }
+};
+
+
 struct NdfTransactionChangeProperty_ObjectReference : public NdfTransactionChangeProperty {
   std::string value;
   std::string previous_value;
@@ -286,6 +335,26 @@ struct NdfTransactionChangeProperty_ImportReference : public NdfTransactionChang
     property->import_name = previous_value;
   }
 };
+
+struct NdfTransactionChangeProperty_F32_vec2 : public NdfTransactionChangeProperty {
+  float x, y;
+  float previous_x, previous_y;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::F32_vec2);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec2>&>(prop);
+    previous_x = property->x;
+    previous_y = property->y;
+    property->x = x;
+    property->y = y;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::F32_vec2);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec2>&>(prop);
+    property->x = previous_x;
+    property->y = previous_y;
+  }
+};
+
 
 struct NdfTransactionChangeProperty_F32_vec3 : public NdfTransactionChangeProperty {
   float x, y, z;
@@ -333,6 +402,26 @@ struct NdfTransactionChangeProperty_F32_vec4 : public NdfTransactionChangeProper
     property->w = previous_w;
   }
 };
+
+struct NdfTransactionChangeProperty_S32_vec2 : public NdfTransactionChangeProperty {
+  int32_t x, y;
+  int32_t previous_x, previous_y;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::S32_vec2);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec2>&>(prop);
+    previous_x = property->x;
+    previous_y = property->y;
+    property->x = x;
+    property->y = y;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::S32_vec2);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec2>&>(prop);
+    property->x = previous_x;
+    property->y = previous_y;
+  }
+};
+
 
 struct NdfTransactionChangeProperty_S32_vec3 : public NdfTransactionChangeProperty {
   int32_t x, y, z;

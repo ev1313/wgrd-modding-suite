@@ -261,20 +261,27 @@ wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset
 }
 
 std::string wgrd_files::NdfBin::render_object_list() {
-  //static bool filter_topo = false;
-  //ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
-
-  ImGui::Text("Object Filter: ");
-  ImGui::SameLine();
-  if(ImGui::InputText("##ObjectFilter", &object_filter)) {
-    object_count_changed = true;
+  if(ImGui::BeginTable("filters", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn(gettext("Filter"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("Action"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableNextColumn();
+    ImGui::Text("Object Filter: ");
+    ImGui::TableNextColumn();
+    if(ImGui::InputText("##ObjectFilter", &object_filter)) {
+      object_count_changed = true;
+    }
+    ImGui::TableNextColumn();
+    ImGui::Text("Class Filter: ");
+    ImGui::TableNextColumn();
+    if(ImGui::InputText("##ClassFilter", &class_filter)) {
+      object_count_changed = true;
+    }
+    ImGui::TableNextColumn();
+    //static bool filter_topo = false;
+    //ImGui::Checkbox(gettext("Filter Top Objects"), &filter_topo);
+    ImGui::EndTable();
   }
 
-  ImGui::Text("Class Filter: ");
-  ImGui::SameLine();
-  if(ImGui::InputText("##ClassFilter", &class_filter)) {
-    object_count_changed = true;
-  }
 
   if(object_count_changed) {
     object_list.clear();
@@ -457,19 +464,43 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0x1: {
-      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyInt8>&>(property);
+    case NDFPropertyType::UInt8: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyUInt8>&>(property);
       uint8_t val = prop->value;
       uint8_t min = 0;
       uint8_t max = UINT8_MAX;
       if(ImGui::DragScalar(std::format("##u8_prop_{}", property->property_name).c_str(), ImGuiDataType_U8, &val, drag_speed, &min, &max)) {
-        auto change = std::make_unique<NdfTransactionChangeProperty_Int8>();
+        auto change = std::make_unique<NdfTransactionChangeProperty_UInt8>();
         change->value = val;
         return change;
       }
       break;
     }
-    case 0x2: {
+    case NDFPropertyType::Int16: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyInt16>&>(property);
+      int16_t val = prop->value;
+      int16_t min = INT16_MIN;
+      int16_t max = INT16_MAX;
+      if(ImGui::DragScalar(std::format("##s16_prop_{}", property->property_name).c_str(), ImGuiDataType_S16, &val, drag_speed, &min, &max)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_Int16>();
+        change->value = val;
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::UInt16: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyUInt16>&>(property);
+      uint16_t val = prop->value;
+      uint16_t min = 0;
+      uint16_t max = UINT16_MAX;
+      if(ImGui::DragScalar(std::format("##u16_prop_{}", property->property_name).c_str(), ImGuiDataType_U16, &val, drag_speed, &min, &max)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_UInt16>();
+        change->value = val;
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::Int32: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyInt32>&>(property);
       int32_t val = prop->value;
       int32_t min = INT32_MIN;
@@ -481,7 +512,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0x3: {
+    case NDFPropertyType::UInt32: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyUInt32>&>(property);
       uint32_t val = prop->value;
       uint32_t min = 0;
@@ -534,7 +565,18 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0x9: {
+    case NDFPropertyType::PathReference: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyPathReference>&>(property);
+      std::string path = prop->path;
+      if(ImGui::InputText(std::format("##string_prop_{}", property->property_name).c_str(), &path, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        spdlog::warn("changing string");
+        auto change = std::make_unique<NdfTransactionChangeProperty_PathReference>();
+        change->path = path;
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::ObjectReference: {
       if(property->is_object_reference()) {
         auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(property);
         std::string value = prop->object_name;
@@ -543,8 +585,23 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
           change->value = value;
           return change;
         }
+        ImGui::SameLine();
         if(!ndfbin.contains_object(value)) {
           ImGui::Text("Object %s does not exist", value.c_str());
+        } else {
+          if(ImGui::Button(gettext("Jump"))) {
+            // FIXME: maybe reset object / class filters and then just use normal way of finding it?
+            int idx = -1;
+            for(const auto& [i, obj] : object_list | std::views::enumerate) {
+              if(obj == value) {
+                idx = i;
+                break;
+              }
+            }
+            if(idx != -1) {
+              item_current_idx = idx;
+            }
+          }
         }
         break;
       }
@@ -560,7 +617,18 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0xB: {
+    case NDFPropertyType::F32_vec2: {
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec2>&>(property);
+      float val[2] = {p->x, p->y};
+      if(ImGui::InputFloat3(std::format("##f32_vec2_prop_{}", property->property_name).c_str(), val)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_F32_vec2>();
+        change->x = val[0];
+        change->y = val[1];
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::F32_vec3: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec3>&>(property);
       float val[3] = {p->x, p->y, p->z};
       if(ImGui::InputFloat3(std::format("##f32_vec3_prop_{}", property->property_name).c_str(), val)) {
@@ -572,7 +640,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0xC: {
+    case NDFPropertyType::F32_vec4: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec4>&>(property);
       float val[4] = {p->x, p->y, p->z, p->w};
       if(ImGui::InputFloat3(std::format("##f32_vec4_prop_{}", property->property_name).c_str(), val)) {
@@ -585,13 +653,24 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
-    case 0xD: {
+    case NDFPropertyType::Color: {
       ImGui::Text("Type: Color");
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(property);
       ImGui::Text("Value: %d %d %d %d", p->r, p->g, p->b, p->a);
       break;
     }
-    case 0xE: {
+    case NDFPropertyType::S32_vec2: {
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec2>&>(property);
+      int32_t val[2] = {p->x, p->y};
+      if(ImGui::InputInt2(std::format("##f32_vec2_prop_{}", property->property_name).c_str(), val)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_S32_vec2>();
+        change->x = val[0];
+        change->y = val[1];
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::S32_vec3: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(property);
       int32_t val[3] = {p->x, p->y, p->z};
       if(ImGui::InputInt3(std::format("##f32_vec3_prop_{}", property->property_name).c_str(), val)) {
