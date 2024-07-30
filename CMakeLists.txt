@@ -18,6 +18,7 @@ execute_process(COMMAND_ECHO STDOUT COMMAND ${Python_EXECUTABLE} -m venv ${VENV}
 execute_process(COMMAND_ECHO STDOUT COMMAND ${PYDIR}/python -m pip install wgrd-cons-parsers wgrd-cons-tools)
 
 add_subdirectory(deps/wgrd-tools/)
+add_subdirectory(deps/magic_enum)
 
 add_library(imgui
   deps/imgui/imgui.cpp
@@ -54,6 +55,7 @@ target_link_libraries(modding_suite
 	${LibEpoxy_LIBRARIES}
   imgui
   ndf
+  magic_enum::magic_enum
 )
 
 target_include_directories(modding_suite

@@ -14,6 +14,8 @@
 
 #include <libintl.h>
 
+#include "magic_enum.hpp"
+
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -400,35 +402,13 @@ std::string wgrd_files::NdfBin::render_property_list(std::string object_name) {
       ImGui::TableNextColumn();
       ImGui::Text("%s", property->property_name.c_str());
       ImGui::TableNextColumn();
-      ImGui::Text("0x%02x", property->property_type);
+      ImGui::Text("%s(0x%02x)", std::string(magic_enum::enum_name((NDFPropertyType)property->property_type)).c_str(), property->property_type);
       ImGui::TableNextColumn();
       render_property(object_name, property->property_name);
     }
     ImGui::EndTable();
     ImGui::TreePop();
   }
-
-  /*
-  if (ImGui::BeginListBox("##PropertyList"))
-  {
-    int n = 0;
-
-    for(auto& property : object.properties) {
-      const bool is_selected = (property_item_current_idx == n);
-      if(ImGui::Selectable(std::format("Property {} - {}", n, property->property_name).c_str(), is_selected)) {
-        property_item_current_idx = n;
-      }
-
-      // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-      if (is_selected) {
-        ImGui::SetItemDefaultFocus();
-      }
-
-      n+=1;
-    }
-    ImGui::EndListBox();
-  }
-  */
 
   return "";
 }
