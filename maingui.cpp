@@ -61,6 +61,7 @@ bool maingui::render() {
   }
   ImGui::SameLine();
     files.imgui_call(meta);
+  ImGui::PopStyleVar();
   ImGui::End();
 
   // FIXME: add something to exit the program?

@@ -91,7 +91,6 @@ bool File::copy_to_file(std::filesystem::path path) {
 }
 
 wgrd_files::EDat::EDat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
-  file_tree.init_from_path(vfs_path);
 }
 
 bool wgrd_files::EDat::imgui_call() {
