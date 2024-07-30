@@ -403,6 +403,31 @@ struct NdfTransactionChangeProperty_F32_vec4 : public NdfTransactionChangeProper
   }
 };
 
+struct NdfTransactionChangeProperty_Color : public NdfTransactionChangeProperty {
+  float r, g, b, a;
+  float previous_r, previous_g, previous_b, previous_a;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Color);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(prop);
+    previous_r = property->r;
+    previous_g = property->g;
+    previous_b = property->b;
+    previous_a = property->a;
+    property->r = r;
+    property->g = g;
+    property->b = b;
+    property->a = a;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Color);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(prop);
+    property->r = previous_r;
+    property->g = previous_g;
+    property->b = previous_b;
+    property->a = previous_a;
+  }
+};
+
 struct NdfTransactionChangeProperty_S32_vec2 : public NdfTransactionChangeProperty {
   int32_t x, y;
   int32_t previous_x, previous_y;

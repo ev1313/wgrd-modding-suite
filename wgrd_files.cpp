@@ -392,7 +392,7 @@ std::string wgrd_files::NdfBin::render_property_list(std::string object_name) {
   }
   auto& object = ndfbin.get_object(object_name);
 
-  if(ImGui::TreeNode(gettext("Object Properties"))){
+  if(ImGui::TreeNodeEx(gettext("Object Properties"), ImGuiTreeNodeFlags_DefaultOpen)){
     ImGui::BeginTable("property_table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable);
     ImGui::TableSetupColumn(gettext("Name"), ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn(gettext("Type"), ImGuiTableColumnFlags_WidthFixed);
@@ -634,9 +634,24 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case NDFPropertyType::Color: {
-      ImGui::Text("Type: Color");
-      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(property);
-      ImGui::Text("Value: %d %d %d %d", p->r, p->g, p->b, p->a);
+      if(ImGui::TreeNodeEx(gettext("Color"), ImGuiTreeNodeFlags_DefaultOpen)) {
+        auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyColor>&>(property);
+        uint8_t val[4] = {p->r, p->g, p->b, p->a};
+        float fval[4] = {p->r / 255.0f, p->g / 255.0f, p->b / 255.0f, p->a / 255.0f};
+        if(ImGui::ColorPicker4(std::format("##color_prop_{}", property->property_name).c_str(), fval)) {
+          val[0] = fval[0] * 255;
+          val[1] = fval[1] * 255;
+          val[2] = fval[2] * 255;
+          val[3] = fval[3] * 255;
+          auto change = std::make_unique<NdfTransactionChangeProperty_Color>();
+          change->r = val[0];
+          change->g = val[1];
+          change->b = val[2];
+          change->a = val[3];
+          return change;
+        }
+        ImGui::TreePop();
+      }
       break;
     }
     case NDFPropertyType::S32_vec2: {
