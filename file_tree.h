@@ -17,7 +17,7 @@ struct FileMeta {
   size_t idx;
 };
 
-class FileTree {
+class __attribute__((visibility("default"))) FileTree {
 private:
   py::dict vfs_files;
   py::dict vfs_tree;

@@ -40,7 +40,7 @@ public:
   bool copy_to_file(std::filesystem::path path);
 };
 
-class EDat : public File {
+class __attribute__((visibility("default"))) EDat : public File {
 private:
   py::object vfs_dict;
   FileTree file_tree;
