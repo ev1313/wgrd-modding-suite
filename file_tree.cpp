@@ -20,6 +20,19 @@ bool FileTree::init_from_wgrd_path(fs::path wgrd_path) {
   return true;
 }
 
+bool FileTree::init_from_dat_path(fs::path path) {
+  try {
+    py::object get_dat_paths = py::module_::import("wgrd_cons_tools.create_vfs").attr("get_dat_paths");
+    py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
+    py::object dat_paths = get_dat_paths((path).string());
+    vfs_files = create_vfs(dat_paths);
+  } catch (py::error_already_set& e) {
+    spdlog::error(e.what());
+    return false;
+  }
+  return true;
+}
+
 bool FileTree::init_from_path(fs::path path) {
   try {
     py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
@@ -29,6 +42,10 @@ bool FileTree::init_from_path(fs::path path) {
     return false;
   }
   return true;
+}
+
+bool FileTree::init_from_stream(std::ifstream& stream) {
+  return false;
 }
 
 std::optional<FileMeta> FileTree::file_list(py::dict files, const std::string& vfs_path) {

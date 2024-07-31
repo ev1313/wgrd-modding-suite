@@ -6,7 +6,6 @@
 #include "spdlog/spdlog.h"
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
-  program.add_argument("--wgrd_dir").help("Path to Wargame directory.").metavar("wgrd_dir");
 }
 
 bool maingui::init(int argc, char *argv[]) {
@@ -35,11 +34,38 @@ bool maingui::init(int argc, char *argv[]) {
   py::print(sys.attr("path"));
   py::print("python version: ", sys.attr("version_info"));
 
-  file_tree.init_from_wgrd_path(program.get("wgrd_dir"));
+  //file_tree.init_from_wgrd_path(program.get("wgrd_dir"));
 
   py::gil_scoped_release release;
 
   return true;
+}
+
+void maingui::render_menu_bar() {
+  if(ImGui::BeginMenuBar()) {
+    if(ImGui::BeginMenu(gettext("File"))) {
+      if(ImGui::MenuItem(gettext("Open workspace"), "Ctrl+O")) {
+        spdlog::info("Open file");
+      }
+      if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
+        spdlog::info("Save file");
+      }
+      if(ImGui::MenuItem(gettext("Exit"), "Alt+F4")) {
+        spdlog::info("Exit");
+      }
+      ImGui::EndMenu();
+    }
+    if(ImGui::BeginMenu(gettext("Edit"))) {
+      if(ImGui::MenuItem(gettext("Undo"), "Ctrl+Z")) {
+        spdlog::info("Undo");
+      }
+      if(ImGui::MenuItem(gettext("Redo"), "Ctrl+Y")) {
+        spdlog::info("Redo");
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
 }
 
 bool maingui::render() {
@@ -54,13 +80,26 @@ bool maingui::render() {
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 #endif
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNav);
-  auto meta = file_tree.render("Workspace 1");
-  if(meta) {
-    files.add_file(meta.value());
+  ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoNav);
+  render_menu_bar();
+
+  for(auto& workspace : workspaces) {
+    workspace.render();
   }
-  ImGui::SameLine();
-    files.imgui_call(meta);
+
+  if(workspaces.empty()) {
+    static bool show_add_workspace = false;
+    if(ImGui::Button("Add workspace")) {
+      show_add_workspace = true;
+    }
+    if(show_add_workspace) {
+      auto workspace = Workspace::render_init_workspace();
+      if(workspace) {
+        workspaces.push_back(std::move(workspace.value()));
+      }
+    }
+  }
+
   ImGui::PopStyleVar();
   ImGui::End();
 

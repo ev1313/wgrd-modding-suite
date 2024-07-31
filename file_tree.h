@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <optional>
 #include <string>
 #include <pybind11/pybind11.h>
@@ -26,6 +25,8 @@ private:
   std::optional<FileMeta> file_tree(py::dict files, const std::string& vfs_path = "$", bool open_all = false);
 public:
   bool init_from_wgrd_path(fs::path wgrd_path);
+  bool init_from_dat_path(fs::path path);
   bool init_from_path(fs::path path);
+  bool init_from_stream(std::ifstream& stream);
   std::optional<FileMeta> render(const std::string& name);
 };

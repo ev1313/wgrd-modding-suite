@@ -45,6 +45,8 @@ add_executable(modding_suite
     maingui.hpp
     ndftransactions.cpp
     ndftransactions.hpp
+    workspace.cpp
+    workspace.hpp
 )
 
 target_link_libraries(modding_suite
@@ -61,6 +63,7 @@ target_link_libraries(modding_suite
 target_include_directories(modding_suite
 PRIVATE
 deps/wgrd-tools/src
+ImGuiFileDialog/
 ${LibEpoxy_INCLUDE_DIRS}
 )
 
