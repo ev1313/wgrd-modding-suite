@@ -13,7 +13,7 @@ jobs:
           submodules: 'recursive'
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: x86_64
+          msystem: MINGW64
           update: true
           install: git mingw-w64-x86_64-gcc python make ninja cmake mingw-w64-x86_64-glfw mingw-w64-x86_64-libepoxy mingw-w64-x86_64-pybind11
       - name: CI-Build
