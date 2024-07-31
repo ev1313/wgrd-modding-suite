@@ -8,10 +8,18 @@ message(${CMAKE_MODULE_PATH})
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(Gettext REQUIRED)
-find_package(Epoxy CONFIG REQUIRED)
+find_package(Epoxy REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
 find_package(Python COMPONENTS Interpreter Development)
-find_package(pybind11 CONFIG)
+
+include(FetchContent)
+FetchContent_Declare(
+    pybind11
+    GIT_REPOSITORY https://github.com/pybind/pybind11
+    GIT_TAG        v2.13.1
+)
+FetchContent_MakeAvailable(pybind11)
+
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
