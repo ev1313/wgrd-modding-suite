@@ -4,5 +4,5 @@ find /mingw64/ -name "libepoxy-0.dll"
 find /mingw64/ -name "libglfw3.dll"
 find /mingw64/ -name "libpython*.dll"
 cp /mingw64/bin/libepoxy-0.dll build/
-cp /mingw64/bin/libglfw3.dll build/
-cp /mingw64/bin/libpython*.dll build/
+cp /mingw64/bin/glfw3.dll build/
+cp /mingw64/bin/libpython3.*.dll build/
