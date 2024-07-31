@@ -23,5 +23,6 @@ jobs:
         with:
           name: build
           path: |
+            build/*.dll
             build/venv/
             build/modding_suite.exe
