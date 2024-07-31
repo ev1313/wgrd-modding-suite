@@ -3,7 +3,7 @@ project(modding_suite)
 
 set(CMAKE_CXX_STANDARD 23)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/modules/")
 
 find_package(glfw3 REQUIRED)
 find_package(Gettext REQUIRED)
