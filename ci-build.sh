@@ -1,4 +1,2 @@
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ..
-ninja
+cmake -DCMAKE_MODULE_PATH=modules/ -B build/
+cmake --build build/ -j8
