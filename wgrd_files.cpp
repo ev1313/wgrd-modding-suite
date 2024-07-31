@@ -94,7 +94,7 @@ wgrd_files::EDat::EDat(std::string vfs_path, std::ifstream &f, size_t offset, si
 }
 
 bool wgrd_files::EDat::imgui_call() {
-  auto opened_files = file_tree.render("Edat");
+  auto opened_files = file_tree.render();
 
   //for(auto& file_meta : opened_files) {
   //  files.add_file(file_meta, offset);

@@ -50,7 +50,6 @@ bool FileTree::init_from_stream(std::ifstream& stream) {
 
 std::optional<FileMeta> FileTree::file_list(py::dict files, const std::string& vfs_path) {
   std::optional<FileMeta> ret = std::nullopt;
-  static int selected_file = -1;
   for(auto [path, value] : files) {
     std::string full_vfs_path = vfs_path + "/" + path.cast<std::string>();
     assert(py::isinstance<py::tuple>(value) || py::isinstance<py::dict>(value));
@@ -81,7 +80,6 @@ std::optional<FileMeta> FileTree::file_list(py::dict files, const std::string& v
 
 std::optional<FileMeta> FileTree::file_tree(py::dict files, const std::string& vfs_path, bool open_all) {
   std::optional<FileMeta> ret = std::nullopt;
-  static int selected_file = -1;
   for(auto [path, value] : files) {
     std::string full_vfs_path = vfs_path + "/" + path.cast<std::string>();
     assert(py::isinstance<py::tuple>(value) || py::isinstance<py::dict>(value));
@@ -122,32 +120,28 @@ std::optional<FileMeta> FileTree::file_tree(py::dict files, const std::string& v
   return ret;
 }
 
-std::optional<FileMeta> FileTree::render(const std::string& name) {
+std::optional<FileMeta> FileTree::render() {
   py::gil_scoped_acquire acquire;
   py::object create_vfs_tree = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs_tree");
   py::object search_vfs_tree = py::module_::import("wgrd_cons_tools.create_vfs").attr("search_vfs_tree");
 
-  static bool rebuild_tree = true;
+  ImGui::BeginChild("##FileTree", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Border | ImGuiChildFlags_FrameStyle);
 
-  ImGui::BeginChild(name.c_str(), ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Border | ImGuiChildFlags_FrameStyle);
-
-  static std::string search;
   ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.9f);
-  rebuild_tree |= ImGui::InputText("##file_tree_search", &search);
+  m_rebuild_tree |= ImGui::InputText("##file_tree_search", &m_search);
 
-  static bool tree_view = true;
-  ImGui::Checkbox("Tree View", &tree_view);
+  ImGui::Checkbox("Tree View", &m_tree_view);
 
   py::dict files = vfs_files;
-  if(rebuild_tree) {
-    if(!search.empty()) {
-      files = search_vfs_tree(vfs_files, search);
+  if(m_rebuild_tree) {
+    if(!m_search.empty()) {
+      files = search_vfs_tree(vfs_files, m_search);
     }
     vfs_tree = create_vfs_tree(files);
-    rebuild_tree = false;
+    m_rebuild_tree = false;
   }
   std::optional<FileMeta> ret = std::nullopt;
-  if(tree_view) {
+  if(m_tree_view) {
     ret = file_tree(vfs_tree);
   } else {
     ImGui::BeginListBox("##Filelist", ImVec2(ImGui::GetContentRegionAvail().x * 0.9f, ImGui::GetContentRegionAvail().y));

@@ -19,6 +19,12 @@ struct FileMeta {
 
 class __attribute__((visibility("default"))) FileTree {
 private:
+  bool m_rebuild_tree = true;
+  std::string m_search = "";
+  bool m_tree_view = true;
+
+  int selected_file = -1;
+private:
   py::dict vfs_files;
   py::dict vfs_tree;
   std::optional<FileMeta> file_list(py::dict files, const std::string& vfs_path = "$");
@@ -28,5 +34,5 @@ public:
   bool init_from_dat_path(fs::path path);
   bool init_from_path(fs::path path);
   bool init_from_stream(std::ifstream& stream);
-  std::optional<FileMeta> render(const std::string& name);
+  std::optional<FileMeta> render();
 };

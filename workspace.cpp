@@ -29,6 +29,11 @@ std::optional<Workspace> Workspace::render_init_workspace() {
   ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
   ImGui::Begin("Add a workspace", nullptr);
 
+  ImGui::Text(gettext("Workspace name: "));
+  ImGui::SameLine();
+  static std::string name = "Workspace";
+  ImGui::InputText("##WorkspaceName", &name);
+
   static std::string dat_path = ".";
   ImGui::InputText("##DatFilePath", &dat_path);
   ImGui::SameLine();
@@ -43,6 +48,7 @@ std::optional<Workspace> Workspace::render_init_workspace() {
 
   if(ImGui::Button(gettext("Load workspace"))) {
     Workspace w;
+    w.workspace_name = name;
     if(w.init(dat_path, out_path)) {
       ret = std::move(w);
     }
@@ -58,15 +64,18 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
     spdlog::warn("dat_path does not exist {}", dat_path.string());
     return false;
   }
-  if(!fs::create_directories(out_path / "xml")) {
+  fs::create_directories(out_path / "xml");
+  if(!fs::is_directory(out_path / "xml")) {
     spdlog::warn("could not create directories {}", (out_path / "xml").string());
     return false;
   }
-  if(!fs::create_directories(out_path / "bin")) {
+  fs::create_directories(out_path / "bin");
+  if(!fs::is_directory(out_path / "bin")) {
     spdlog::warn("could not create directories {}", (out_path / "bin").string());
     return false;
   }
-  if(!fs::create_directories(out_path / "dat")) {
+  fs::create_directories(out_path / "dat");
+  if(!fs::is_directory(out_path / "dat")) {
     spdlog::warn("could not create directories {}", (out_path / "dat").string());
     return false;
   }
@@ -76,7 +85,7 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
 }
 
 void Workspace::render() {
-  auto meta = file_tree.render("Workspace");
+  auto meta = file_tree.render();
   if(meta) {
     files.add_file(meta.value());
   }

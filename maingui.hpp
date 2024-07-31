@@ -14,6 +14,7 @@ private:
   argparse::ArgumentParser program;
   std::shared_ptr<mod_manager::logger_mt> imgui_sink;
 
+  bool show_add_workspace = false;
   std::vector<Workspace> workspaces;
   void render_menu_bar();
 public:

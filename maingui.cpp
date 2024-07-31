@@ -45,7 +45,7 @@ void maingui::render_menu_bar() {
   if(ImGui::BeginMenuBar()) {
     if(ImGui::BeginMenu(gettext("File"))) {
       if(ImGui::MenuItem(gettext("Open workspace"), "Ctrl+O")) {
-        spdlog::info("Open file");
+        show_add_workspace = true;
       }
       if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
         spdlog::info("Save file");
@@ -83,20 +83,27 @@ bool maingui::render() {
   ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoNav);
   render_menu_bar();
 
+  ImGui::BeginTabBar("Workspace Tabs", ImGuiTabBarFlags_Reorderable);
+  size_t idx = 0;
   for(auto& workspace : workspaces) {
-    workspace.render();
+    std::string name = std::format("{}##WP_{}", workspace.workspace_name, idx++);
+    if (ImGui::BeginTabItem(name.c_str())) {
+      workspace.render();
+      ImGui::EndTabItem();
+    } 
   }
+  ImGui::EndTabBar();
 
   if(workspaces.empty()) {
-    static bool show_add_workspace = false;
-    if(ImGui::Button("Add workspace")) {
+    if(ImGui::Button("Add workspace", ImGui::GetContentRegionAvail())) {
       show_add_workspace = true;
     }
-    if(show_add_workspace) {
-      auto workspace = Workspace::render_init_workspace();
-      if(workspace) {
-        workspaces.push_back(std::move(workspace.value()));
-      }
+  }
+  if(show_add_workspace) {
+    auto workspace = Workspace::render_init_workspace();
+    if(workspace) {
+      workspaces.push_back(std::move(workspace.value()));
+      show_add_workspace = false;
     }
   }
 
