@@ -5,6 +5,8 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
+#include <format>
+
 #include <libintl.h>
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
@@ -32,9 +34,8 @@ bool maingui::init(int argc, char *argv[]) {
   auto logger = std::make_shared<spdlog::logger>(test);
   spdlog::set_default_logger(logger);
 
-  py::module sys = py::module::import("sys");
-  py::print(sys.attr("path"));
-  py::print("python version: ", sys.attr("version_info"));
+  std::string foo = std::format("VIRTUAL_ENV={}", ".\\venv\\");
+  putenv(foo.data());
 
   //file_tree.init_from_wgrd_path(program.get("wgrd_dir"));
 
