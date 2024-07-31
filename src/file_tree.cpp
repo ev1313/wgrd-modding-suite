@@ -5,6 +5,8 @@
 
 #include "spdlog/spdlog.h"
 
+#include "pybind11/stl.h"
+
 bool FileTree::init_from_wgrd_path(fs::path wgrd_path) {
   try {
     py::object get_dat_paths = py::module_::import("wgrd_cons_tools.create_vfs").attr("get_dat_paths");
@@ -36,7 +38,9 @@ bool FileTree::init_from_dat_path(fs::path path) {
 bool FileTree::init_from_path(fs::path path) {
   try {
     py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
-    vfs_files = create_vfs(py::list({py::str(path)}));
+    std::vector<std::string> lst;
+    lst.push_back(path.string());
+    vfs_files = create_vfs(lst);
   } catch (py::error_already_set& e) {
     spdlog::error(e.what());
     return false;
