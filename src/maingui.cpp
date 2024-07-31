@@ -5,6 +5,8 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
+#include <libintl.h>
+
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
 }
 

@@ -5,6 +5,8 @@
 #include "imgui_stdlib.h"
 #include <ImGuiFileDialog.h>
 
+#include <libintl.h>
+
 std::optional<std::string> show_file_dialog(std::string title,
                                             std::string previous_path) {
   std::optional<std::string> ret = std::nullopt;

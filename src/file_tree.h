@@ -4,6 +4,8 @@
 #include <string>
 #include <pybind11/pybind11.h>
 
+#include <libintl.h>
+
 namespace py = pybind11;
 
 #include <filesystem>
