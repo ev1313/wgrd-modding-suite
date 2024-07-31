@@ -9,7 +9,7 @@
 
 #include "imgui_stdlib.h"
 
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "ImGuiFileDialog.h"
 #include "ndf.hpp"
 
 #include <libintl.h>

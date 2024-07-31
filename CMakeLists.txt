@@ -34,19 +34,19 @@ deps/imgui/misc/cpp/
 
 add_executable(modding_suite
 		ImGuiFileDialog/ImGuiFileDialog.cpp
-		main.cpp
-		imgui_impl_glfw.cpp
-		imgui_impl_opengl3.cpp
-		file_tree.cpp
-		file_tree.h
-		wgrd_files.cpp
-		wgrd_files.h
-    maingui.cpp
-    maingui.hpp
-    ndftransactions.cpp
-    ndftransactions.hpp
-    workspace.cpp
-    workspace.hpp
+		src/main.cpp
+		src/imgui_impl_glfw.cpp
+		src/imgui_impl_opengl3.cpp
+		src/file_tree.cpp
+		src/file_tree.h
+		src/wgrd_files.cpp
+		src/wgrd_files.h
+    src/maingui.cpp
+    src/maingui.hpp
+    src/ndftransactions.cpp
+    src/ndftransactions.hpp
+    src/workspace.cpp
+    src/workspace.hpp
 )
 
 target_link_libraries(modding_suite
