@@ -37,6 +37,7 @@ public:
   explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
   virtual bool imgui_call();
   std::vector<char> get_file();
+  std::vector<char> get_data();
   bool copy_to_file(std::filesystem::path path);
 };
 

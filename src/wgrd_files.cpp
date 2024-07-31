@@ -60,6 +60,19 @@ std::vector<char> File::get_file() {
   return ret;
 }
 
+std::vector<char> File::get_data() {
+  std::vector<char> ret;
+  ret.resize(size);
+
+  size_t old = file.tellg();
+  file.seekg(offset);
+
+  file.read(ret.data(), size);
+
+  file.seekg(old);
+  return std::move(ret);
+}
+
 bool File::copy_to_file(std::filesystem::path path) {
   fs::create_directories(path.parent_path());
 
@@ -708,10 +721,8 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
 bool wgrd_files::NdfBin::imgui_call() {
   ImGui::Text("NdfBin: %s", vfs_path.c_str());
   if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
-    if(ImGui::Button(gettext("Parse NDF"))) {
-      fs::path path = fs::path("out/") / fs::path(vfs_path);
-      copy_to_file(path);
-      ndfbin.start_parsing(path);
+    if(ImGui::Button(gettext("Parse NDF"))) { 
+      ndfbin.start_parsing(vfs_path, get_data());
     }
   }
   if(ndfbin.is_parsing()) {
@@ -719,8 +730,7 @@ bool wgrd_files::NdfBin::imgui_call() {
     ndfbin.check_parsing();
   } else if(ndfbin.is_parsed()) {
     if(ImGui::Button(gettext("Regenerate NDF"))) {
-      fs::path path = fs::path("out/") / fs::path(vfs_path);
-      ndfbin.start_parsing(path);
+      ndfbin.start_parsing(vfs_path, get_data());
     } else {
       auto object = render_object_list();
       auto property = render_property_list(object);

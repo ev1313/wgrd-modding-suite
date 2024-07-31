@@ -1,7 +1,15 @@
 #include "ndftransactions.hpp"
 
-void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
-  spdlog::warn("start_parsing {}", path.string());
+void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, fs::path file_path) {
+  std::ifstream file(file_path, std::ios::binary | std::ios::in);
+  std::vector<char> data;
+  data.resize(fs::file_size(file_path));
+  file.read(data.data(), data.size());
+  start_parsing(vfs_path, data);
+}
+
+void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> vec_data) {
+  spdlog::warn("start_parsing {}", vfs_path.string());
   ndf_parsed = false;
   assert(ndf_parsing == false);
   m_ndf_parsed_promise = std::nullopt;
@@ -13,28 +21,15 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path path) {
     
   py::gil_scoped_acquire acquire;
   py::object decompress_ndfbin = py::module_::import("wgrd_cons_parsers.decompress_ndfbin").attr("decompress_ndfbin");
-  py::object open = py::module_::import("io").attr("open");
 
-  fs::create_directories(path.parent_path());
+  py::bytes data(vec_data.data(), vec_data.size());
 
-  py::object f = open(path.string(), "rb");
-  py::object data = f.attr("read")();
-  f.attr("close")();
+  py::bytes decompressed_data = decompress_ndfbin(data);
+
+  std::stringstream decompressed_stream(decompressed_data);
+  ndf.load_from_ndfbin_stream(decompressed_stream);
   
-  py::object decompressed_data = decompress_ndfbin(data);
-
-  fs::path decompressed_path = path;
-  decompressed_path.replace_extension("decompressed.ndfbin");
-
-  py::object of = open(decompressed_path.string(), "wb");
-  of.attr("write")(decompressed_data);
-  of.attr("close")();
   py::gil_scoped_release release;
-
-  fs::path outpath_xml = decompressed_path;
-  outpath_xml.replace_extension(".xml");
-
-  ndf.load_from_ndfbin(decompressed_path);
 
   this->m_ndf_parsed_promise->set_value(true);
 
