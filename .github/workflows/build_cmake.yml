@@ -22,4 +22,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: build
-          path: build/
+          path: |
+            build/venv/
+            build/modding_suite.exe
