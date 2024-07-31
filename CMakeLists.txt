@@ -11,15 +11,7 @@ find_package(Gettext REQUIRED)
 find_package(Epoxy REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
 find_package(Python COMPONENTS Interpreter Development)
-
-include(FetchContent)
-FetchContent_Declare(
-    pybind11
-    GIT_REPOSITORY https://github.com/pybind/pybind11
-    GIT_TAG        v2.13.1
-)
-FetchContent_MakeAvailable(pybind11)
-
+find_package(pybind11 REQUIRED)
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
