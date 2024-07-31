@@ -15,7 +15,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-gcc mingw-w64-x86_64-python make ninja cmake mingw-w64-x86_64-glfw mingw-w64-x86_64-libepoxy mingw-w64-x86_64-pybind11
+          install: mingw-w64-x86_64-git mingw-w64-x86_64-gcc mingw-w64-x86_64-python mingw-w64-x86_64-make mingw-w64-x86_64-ninja mingw-w64-x86_64-cmake mingw-w64-x86_64-glfw mingw-w64-x86_64-libepoxy mingw-w64-x86_64-pybind11
       - name: CI-Build
         run: |
           ./ci-build.sh
