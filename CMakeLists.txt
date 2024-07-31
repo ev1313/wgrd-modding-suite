@@ -11,7 +11,7 @@ find_package(Gettext REQUIRED)
 find_package(Epoxy REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
 find_package(Python COMPONENTS Interpreter Development)
-find_package(pybind11 CONFIG REQUIRED HINTS /mingw64/lib/cmake/pybind11 /mingw64/include /mingw64)
+find_package(pybind11 CONFIG REQUIRED HINTS /ucrt64/lib/cmake/pybind11 /ucrt64/include /ucrt64)
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
