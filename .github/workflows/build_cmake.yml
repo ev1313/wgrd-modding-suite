@@ -1,0 +1,25 @@
+name: MSYS2
+on: [push, pull_request]
+
+jobs:
+  msys2-ucrt64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git mingw-w64-ucrt-x86_64-gcc python make ninja cmake
+      - name: CI-Build
+        run: |
+          ./ci-build.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: build/
