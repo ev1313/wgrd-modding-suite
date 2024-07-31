@@ -15,7 +15,7 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git mingw-w64-ucrt-x86_64-gcc python make ninja cmake
+          install: git mingw-w64-ucrt-x86_64-gcc python make ninja cmake mingw-w64-x86_64-glfw mingw-w64-x86_64-libepoxy mingw-w64-x86_64-pybind11
       - name: CI-Build
         run: |
           ./ci-build.sh
