@@ -55,11 +55,11 @@ target_link_libraries(modding_suite
 	PRIVATE
   ${GLFW3_LIBRARY}
 	pybind11::embed
-  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32 -static>
 	${LibEpoxy_LIBRARIES}
   imgui
   ndf
   magic_enum::magic_enum
+  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32 -static>
 )
 
 target_include_directories(modding_suite
