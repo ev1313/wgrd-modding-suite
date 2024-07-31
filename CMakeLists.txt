@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/modules/")
 message(${CMAKE_MODULE_PATH})
 
-find_package(glfw3 CONFIG REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(Gettext REQUIRED)
 find_package(Epoxy REQUIRED)
 set(Python_FIND_VIRTUALENV ONLY)
