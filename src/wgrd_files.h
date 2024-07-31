@@ -24,7 +24,7 @@ private:
   std::map<size_t, std::unique_ptr<File>> files;
 public:
   void imgui_call(std::optional<FileMeta> meta);
-  void add_file(FileMeta meta, size_t offset = 0);
+  void add_file(fs::path out_path, FileMeta meta, size_t offset = 0);
 };
 
 class File {
@@ -33,8 +33,9 @@ protected:
   std::ifstream file;
   size_t offset;
   size_t size;
+  fs::path out_path;
 public:
-  explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   virtual bool imgui_call();
   std::vector<char> get_file();
   std::vector<char> get_data();
@@ -47,49 +48,49 @@ private:
   FileTree file_tree;
   Files files;
 public:
-  explicit EDat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit EDat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
 class Ess : public File {
 public:
-  explicit Ess(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit Ess(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
 class SFormat : public File {
 public:
-  explicit SFormat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit SFormat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
 class TGV : public File {
 public:
-  explicit TGV(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit TGV(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
 class PPK : public File {
 public:
-  explicit PPK(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit PPK(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
 class Scenario : public File {
 public:
-  explicit Scenario(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit Scenario(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
 class Dic : public File {
 public:
-  explicit Dic(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit Dic(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
@@ -116,7 +117,7 @@ private:
   void render_property(std::string object_name, std::string property_name);
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
 public:
-  explicit NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size);
+  explicit NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };

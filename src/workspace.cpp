@@ -81,13 +81,15 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
   }
   
   file_tree.init_from_dat_path(dat_path);
+  workspace_dat_path = dat_path;
+  workspace_out_path = out_path;
   return true;
 }
 
 void Workspace::render() {
   auto meta = file_tree.render();
   if(meta) {
-    files.add_file(meta.value());
+    files.add_file(workspace_out_path, meta.value());
   }
   ImGui::SameLine();
   files.imgui_call(meta);

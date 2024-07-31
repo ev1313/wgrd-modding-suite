@@ -622,6 +622,12 @@ public:
     applied_transactions.push_back(std::move(transaction));
     undone_transactions.pop_back();
   }
+  void save_ndf_xml_to_file(fs::path path) {
+    ndf.save_as_ndf_xml(path);
+  }
+  void save_ndfbin_to_file(fs::path path) {
+    ndf.save_as_ndfbin(path);
+  }
 };
 
 }

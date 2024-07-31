@@ -46,8 +46,8 @@ bool wgrd_files::File::imgui_call() {
   return true;
 }
 
-wgrd_files::File::File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size)
-: vfs_path(std::move(vfs_path)), file(std::move(f)), offset(offset), size(size) {
+wgrd_files::File::File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path)
+: vfs_path(std::move(vfs_path)), file(std::move(f)), offset(offset), size(size), out_path(out_path) {
 }
 
 std::vector<char> File::get_file() {
@@ -103,7 +103,7 @@ bool File::copy_to_file(std::filesystem::path path) {
   return true;
 }
 
-wgrd_files::EDat::EDat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::EDat::EDat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::EDat::imgui_call() {
@@ -133,7 +133,7 @@ bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f, size_t of
   return false;
 }
 
-wgrd_files::Ess::Ess(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::Ess::Ess(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::Ess::imgui_call() {
@@ -157,7 +157,7 @@ bool wgrd_files::Ess::is_file(std::string vfs_path, std::ifstream &f, size_t off
   return false;
 }
 
-wgrd_files::SFormat::SFormat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::SFormat::SFormat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::SFormat::imgui_call() {
@@ -175,7 +175,7 @@ bool wgrd_files::SFormat::is_file(std::string vfs_path, std::ifstream &f, size_t
   return false;
 }
 
-wgrd_files::TGV::TGV(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::TGV::TGV(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::TGV::imgui_call() {
@@ -199,7 +199,7 @@ bool wgrd_files::TGV::is_file(std::string vfs_path, std::ifstream &f, size_t off
   return false;
 }
 
-wgrd_files::PPK::PPK(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::PPK::PPK(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::PPK::imgui_call() {
@@ -223,7 +223,7 @@ bool wgrd_files::PPK::is_file(std::string vfs_path, std::ifstream &f, size_t off
   return false;
 }
 
-wgrd_files::Scenario::Scenario(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::Scenario::Scenario(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::Scenario::imgui_call() {
@@ -247,7 +247,7 @@ bool wgrd_files::Scenario::is_file(std::string vfs_path, std::ifstream &f, size_
   return false;
 }
 
-wgrd_files::Dic::Dic(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::Dic::Dic(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 bool wgrd_files::Dic::imgui_call() {
@@ -271,7 +271,7 @@ bool wgrd_files::Dic::is_file(std::string vfs_path, std::ifstream &f, size_t off
   return false;
 }
 
-wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size) : File(vfs_path, f, offset, size) {
+wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
 }
 
 std::string wgrd_files::NdfBin::render_object_list() {
@@ -731,11 +731,19 @@ bool wgrd_files::NdfBin::imgui_call() {
   } else if(ndfbin.is_parsed()) {
     if(ImGui::Button(gettext("Regenerate NDF"))) {
       ndfbin.start_parsing(vfs_path, get_data());
-    } else {
-      auto object = render_object_list();
-      auto property = render_property_list(object);
-      //render_property(object, property);
     }
+    ImGui::SameLine();
+    if(ImGui::Button(gettext("Save XML"))) {
+      ndfbin.save_ndf_xml_to_file(out_path / "xml" / vfs_path);
+    }
+    ImGui::SameLine();
+    if(ImGui::Button(gettext("Save ndfbin"))) {
+      ndfbin.save_ndfbin_to_file(out_path / "bin" / vfs_path);
+    }
+  }
+  if(ndfbin.is_parsed()) {
+    auto object = render_object_list();
+    auto property = render_property_list(object);
   }
   return true;
 }
@@ -776,7 +784,7 @@ void wgrd_files::Files::imgui_call(std::optional<FileMeta> meta) {
   ImGui::EndChild();
 }
 
-void wgrd_files::Files::add_file(FileMeta meta, size_t file_offset) {
+void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_offset) {
   if(files.find(meta.idx) != files.end()) {
     return;
   }
@@ -786,26 +794,26 @@ void wgrd_files::Files::add_file(FileMeta meta, size_t file_offset) {
   auto size = meta.size;
 
   if(EDat::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<EDat>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<EDat>(vfs_path, f, offset, size, out_path);
   } else
   if(Ess::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<Ess>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<Ess>(vfs_path, f, offset, size, out_path);
   } else
   if(SFormat::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<SFormat>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<SFormat>(vfs_path, f, offset, size, out_path);
   } else
   if(TGV::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<TGV>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<TGV>(vfs_path, f, offset, size, out_path);
   } else
   if(PPK::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<PPK>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<PPK>(vfs_path, f, offset, size, out_path);
   } else
   if(Scenario::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<Scenario>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<Scenario>(vfs_path, f, offset, size, out_path);
   } else
   if(NdfBin::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<NdfBin>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<NdfBin>(vfs_path, f, offset, size, out_path);
   } else {
-    files[meta.idx] = std::make_unique<File>(vfs_path, f, offset, size);
+    files[meta.idx] = std::make_unique<File>(vfs_path, f, offset, size, out_path);
   }
 }
