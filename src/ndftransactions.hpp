@@ -19,7 +19,7 @@ namespace py = pybind11;
 
 namespace wgrd_files {
 
-std::string str_tolower(std::string s)
+inline std::string str_tolower(std::string s)
 {
     std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c){ return std::tolower(c); } // correct
