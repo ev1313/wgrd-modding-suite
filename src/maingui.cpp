@@ -34,11 +34,6 @@ bool maingui::init(int argc, char *argv[]) {
   auto logger = std::make_shared<spdlog::logger>(test);
   spdlog::set_default_logger(logger);
 
-  std::string foo = std::format("VIRTUAL_ENV={}", ".\\venv\\");
-  putenv(foo.data());
-  foo = std::format("PYTHONPATH={}", ".\\venv\\bin\\python3.11");
-  putenv(foo.data());
-
   //file_tree.init_from_wgrd_path(program.get("wgrd_dir"));
 
   py::gil_scoped_release release;
