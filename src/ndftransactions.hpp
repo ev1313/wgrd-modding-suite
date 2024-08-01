@@ -625,8 +625,19 @@ public:
   void save_ndf_xml_to_file(fs::path path) {
     ndf.save_as_ndf_xml(path);
   }
+  void save_ndfbin_to_stream(std::ostream& stream) {
+    std::stringstream tmp;
+    ndf.save_as_ndfbin_stream(tmp);
+    py::gil_scoped_acquire acquire{};
+    py::object compress_ndfbin = py::module_::import("wgrd_cons_parsers.compress_ndfbin").attr("compress_ndfbin");
+    py::bytes bytes(tmp.str());
+    py::bytes compressed = compress_ndfbin(bytes);
+    stream.write(compressed.cast<std::string>().data(), compressed.cast<std::string>().size());
+    py::gil_scoped_release release{};
+  }
   void save_ndfbin_to_file(fs::path path) {
-    ndf.save_as_ndfbin(path);
+    std::ofstream ofs(path, std::ios::binary | std::ios::out | std::ios::trunc);
+    save_ndfbin_to_stream(ofs);
   }
 };
 
