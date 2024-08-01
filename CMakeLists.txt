@@ -63,7 +63,7 @@ target_link_libraries(modding_suite
   ndf
   magic_enum::magic_enum
   toml11::toml11
-  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32>
+  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32 python3>
 )
 
 target_include_directories(modding_suite

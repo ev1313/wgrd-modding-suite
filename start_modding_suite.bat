@@ -1,4 +1,4 @@
-set PYTHONLEGACYWINDOWSDLLLOADING=1 
-set PYTHONHOME=./venv/
-set PYTHONPATH=./venv/bin/
+if not exist ".\venv\" python -m venv venv
+call .\venv\Scripts\activate
+pip install wgrd-cons-tools
 modding_suite.exe
