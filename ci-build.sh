@@ -1,5 +1,5 @@
 mkdir build
-python3 -m venv build/venv/
+python3 -m venv --copies build/venv/
 source build/venv/bin/activate
 pip install wgrd-cons-parsers wgrd-cons-tools
 
