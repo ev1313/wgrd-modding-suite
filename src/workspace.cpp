@@ -11,14 +11,15 @@ std::optional<std::string> show_file_dialog(std::string title,
                                             std::string previous_path,
                                             std::string dialogkey) {
   std::optional<std::string> ret = std::nullopt;
-  if (ImGui::Button(gettext("Open File Dialog"))) {
+  std::string button_text = gettext("Open File Dialog##") + dialogkey;
+  if (ImGui::Button(button_text.c_str())) {
     IGFD::FileDialogConfig config;
     config.path = previous_path;
-    ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", title, nullptr, config);
+    ImGuiFileDialog::Instance()->OpenDialog(dialogkey, title, nullptr, config);
   }
 
   if (ImGuiFileDialog::Instance()->Display(
-    "ChooseDirDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    dialogkey, ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       ret = ImGuiFileDialog::Instance()->GetCurrentPath();
     }
