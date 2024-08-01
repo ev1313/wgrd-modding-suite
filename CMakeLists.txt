@@ -9,7 +9,7 @@ message(${CMAKE_MODULE_PATH})
 find_package(GLFW3 REQUIRED)
 find_package(Gettext REQUIRED)
 find_package(Epoxy REQUIRED)
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 3.11 COMPONENTS Interpreter Development REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)

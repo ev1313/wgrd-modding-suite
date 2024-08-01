@@ -37,12 +37,16 @@ std::optional<Workspace> Workspace::render_init_workspace() {
   static std::string name = "Workspace";
   ImGui::InputText("##WorkspaceName", &name);
 
+  ImGui::Text(gettext("Path to dat files: "));
+  ImGui::SameLine();
   static std::string dat_path = ".";
   ImGui::InputText("##DatFilePath", &dat_path);
   ImGui::SameLine();
   auto dat_path_ret = show_file_dialog(gettext("Path to dat files"), "", "dat_path_dialog");
   dat_path = dat_path_ret.value_or(dat_path);
   
+  ImGui::Text(gettext("Path to output folder: "));
+  ImGui::SameLine();
   static std::string out_path = "out/";
   ImGui::InputText("##OutFilePath", &out_path);
   ImGui::SameLine();
