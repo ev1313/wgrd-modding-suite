@@ -16,22 +16,25 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> 
   m_ndf_parsed_future = std::nullopt;
   ndf.clear();
 
-  m_ndf_parsed_promise = std::promise<bool>();
-  m_ndf_parsed_future = m_ndf_parsed_promise->get_future();
+  //m_ndf_parsed_promise = std::promise<bool>();
+  //m_ndf_parsed_future = m_ndf_parsed_promise->get_future();
     
   py::gil_scoped_acquire acquire;
-  py::object decompress_ndfbin = py::module_::import("wgrd_cons_parsers.decompress_ndfbin").attr("decompress_ndfbin");
+  try {
+    py::object decompress_ndfbin = py::module_::import("wgrd_cons_parsers.decompress_ndfbin").attr("decompress_ndfbin");
 
-  py::bytes data(vec_data.data(), vec_data.size());
+    py::bytes data(vec_data.data(), vec_data.size());
 
-  py::bytes decompressed_data = decompress_ndfbin(data);
+    py::bytes decompressed_data = decompress_ndfbin(data);
 
-  std::stringstream decompressed_stream(decompressed_data);
-  ndf.load_from_ndfbin_stream(decompressed_stream);
-  
+    std::stringstream decompressed_stream(decompressed_data);
+    ndf.load_from_ndfbin_stream(decompressed_stream);
+  } catch (py::error_already_set &e) {
+    spdlog::error("Error parsing NDF: {}", e.what());
+  }
   py::gil_scoped_release release;
 
-  this->m_ndf_parsed_promise->set_value(true);
+  //this->m_ndf_parsed_promise->set_value(true);
 
   // change this to ndf_parsing when doing async things
   ndf_parsed = true;

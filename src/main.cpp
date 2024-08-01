@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-  // Main loop
-  while (!glfwWindowShouldClose(window))
+  bool exit_now = false;
+  while(!exit_now && !glfwWindowShouldClose(window))
   {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     ImGui::NewFrame();
     
     // render the main gui
-    bool exit_now = main_gui.render();
+    exit_now = main_gui.render();
 
     // Rendering
     ImGui::Render();
@@ -130,9 +130,6 @@ int main(int argc, char* argv[])
 
     glfwSwapBuffers(window);
   }
-#ifdef __EMSCRIPTEN__
-  EMSCRIPTEN_MAINLOOP_END;
-#endif
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();

@@ -137,12 +137,16 @@ std::optional<FileMeta> FileTree::render() {
   ImGui::Checkbox("Tree View", &m_tree_view);
 
   py::dict files = vfs_files;
-  if(m_rebuild_tree) {
-    if(!m_search.empty()) {
-      files = search_vfs_tree(vfs_files, m_search);
+  try {
+    if(m_rebuild_tree) {
+      if(!m_search.empty()) {
+        files = search_vfs_tree(vfs_files, m_search);
+      }
+      vfs_tree = create_vfs_tree(files);
+      m_rebuild_tree = false;
     }
-    vfs_tree = create_vfs_tree(files);
-    m_rebuild_tree = false;
+  } catch (py::error_already_set& e) {
+    spdlog::error(e.what());
   }
   std::optional<FileMeta> ret = std::nullopt;
   if(m_tree_view) {

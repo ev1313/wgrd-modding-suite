@@ -629,10 +629,15 @@ public:
     std::stringstream tmp;
     ndf.save_as_ndfbin_stream(tmp);
     py::gil_scoped_acquire acquire{};
-    py::object compress_ndfbin = py::module_::import("wgrd_cons_parsers.compress_ndfbin").attr("compress_ndfbin");
-    py::bytes bytes(tmp.str());
-    py::bytes compressed = compress_ndfbin(bytes);
-    stream.write(compressed.cast<std::string>().data(), compressed.cast<std::string>().size());
+    try {
+      py::object compress_ndfbin = py::module_::import("wgrd_cons_parsers.compress_ndfbin").attr("compress_ndfbin");
+      py::bytes bytes(tmp.str());
+      py::bytes compressed = compress_ndfbin(bytes);
+      stream.write(compressed.cast<std::string>().data(), compressed.cast<std::string>().size());
+
+    } catch (py::error_already_set &e) {
+      spdlog::error("Error saving NDF: {}", e.what());
+    }
     py::gil_scoped_release release{};
   }
   void save_ndfbin_to_file(fs::path path) {

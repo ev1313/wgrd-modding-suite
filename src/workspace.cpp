@@ -8,7 +8,8 @@
 #include <libintl.h>
 
 std::optional<std::string> show_file_dialog(std::string title,
-                                            std::string previous_path) {
+                                            std::string previous_path,
+                                            std::string dialogkey) {
   std::optional<std::string> ret = std::nullopt;
   if (ImGui::Button(gettext("Open File Dialog"))) {
     IGFD::FileDialogConfig config;
@@ -39,13 +40,13 @@ std::optional<Workspace> Workspace::render_init_workspace() {
   static std::string dat_path = ".";
   ImGui::InputText("##DatFilePath", &dat_path);
   ImGui::SameLine();
-  auto dat_path_ret = show_file_dialog(gettext("Path to dat files"), "");
+  auto dat_path_ret = show_file_dialog(gettext("Path to dat files"), "", "dat_path_dialog");
   dat_path = dat_path_ret.value_or(dat_path);
   
   static std::string out_path = "out/";
   ImGui::InputText("##OutFilePath", &out_path);
   ImGui::SameLine();
-  auto out_path_ret = show_file_dialog(gettext("Path to output directory"), "");
+  auto out_path_ret = show_file_dialog(gettext("Path to output directory"), "", "out_path_dialog");
   out_path = out_path_ret.value_or(out_path);
 
   if(ImGui::Button(gettext("Load workspace"))) {
