@@ -55,7 +55,8 @@ add_executable(modding_suite
 target_link_libraries(modding_suite
 	PRIVATE
   ${GLFW3_LIBRARY}
-	pybind11::embed
+  ${Python_LIBRARIES}
+	pybind11::pybind11
 	${LibEpoxy_LIBRARIES}
   imgui
   ndf
