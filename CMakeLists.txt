@@ -15,13 +15,15 @@ find_package(pybind11 CONFIG REQUIRED HINTS /ucrt64/lib/cmake/pybind11 /ucrt64/i
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
-if(!${WIN32})
+
+if(${LINUX})
 execute_process(COMMAND_ECHO STDOUT COMMAND ${Python_EXECUTABLE} -m venv ${VENV})
 execute_process(COMMAND_ECHO STDOUT COMMAND ${PYDIR}/python -m pip install wgrd-cons-parsers wgrd-cons-tools)
 endif()
 
 add_subdirectory(deps/wgrd-tools/)
 add_subdirectory(deps/magic_enum)
+add_subdirectory(deps/toml11)
 
 add_library(imgui
   deps/imgui/imgui.cpp
@@ -60,6 +62,7 @@ target_link_libraries(modding_suite
   imgui
   ndf
   magic_enum::magic_enum
+  toml11::toml11
   $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32>
 )
 
