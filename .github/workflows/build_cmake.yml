@@ -27,4 +27,3 @@ jobs:
             build/*.dll
             build/*.exe
             build/fonts/
-            build/venv/
