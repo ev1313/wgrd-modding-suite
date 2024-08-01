@@ -303,7 +303,6 @@ struct NdfTransactionChangeProperty_PathReference : public NdfTransactionChangeP
   }
 };
 
-
 struct NdfTransactionChangeProperty_ObjectReference : public NdfTransactionChangeProperty {
   std::string value;
   std::string previous_value;

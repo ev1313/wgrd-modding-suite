@@ -296,7 +296,6 @@ std::string wgrd_files::NdfBin::render_object_list() {
     ImGui::EndTable();
   }
 
-
   if(object_count_changed) {
     object_list.clear();
     object_list = ndfbin.filter_objects(object_filter, class_filter);
@@ -335,7 +334,7 @@ std::string wgrd_files::NdfBin::render_object_list() {
     return "";
   }
 
-  std::string object_name = ndfbin.get_object_at_index(item_current_idx).name;
+  std::string object_name = object_list[item_current_idx];
 
   if(!object_name.empty() && ndfbin.contains_object(object_name)){
     auto& object = ndfbin.get_object(object_name);
