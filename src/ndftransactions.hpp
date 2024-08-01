@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cctype>
 #include <memory>
 
 #include <future>
@@ -17,6 +18,14 @@ namespace py = pybind11;
 #include "ndf.hpp"
 
 namespace wgrd_files {
+
+std::string str_tolower(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c){ return std::tolower(c); } // correct
+                  );
+    return s;
+}
 
 struct NdfTransaction {
   virtual ~NdfTransaction() = default;
@@ -585,8 +594,8 @@ public:
     }
     std::vector<std::string> result;
     for(auto& object : ndf.object_map | std::views::values) {
-      if(class_filter.empty() || object.class_name.contains(class_filter)) {
-        if(object_filter.empty() || object.name.contains(object_filter)) {
+      if(class_filter.empty() || str_tolower(object.class_name).contains(str_tolower(class_filter))) {
+        if(object_filter.empty() || str_tolower(object.name).contains(str_tolower(object_filter))) {
           result.push_back(object.name);
         }
       }
