@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
   // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
   // - Our Emscripten build process allows embedding fonts to be accessible at runtime from the "fonts/" folder. See Makefile.emscripten for details.
   //io.Fonts->AddFontDefault();
-  io.Fonts->AddFontFromFileTTF("../fonts/NotoSansMono-Regular.ttf", 24.0f);
+  io.Fonts->AddFontFromFileTTF("./fonts/NotoSansMono-Regular.ttf", 24.0f);
   //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
   //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
   //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);

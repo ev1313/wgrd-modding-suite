@@ -26,4 +26,5 @@ jobs:
             build/*.bat
             build/*.dll
             build/*.exe
+            build/fonts/
             build/venv/
