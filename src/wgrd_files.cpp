@@ -734,7 +734,7 @@ bool wgrd_files::NdfBin::imgui_call() {
     }
     ImGui::SameLine();
     if(ImGui::Button(gettext("Save XML"))) {
-      ndfbin.save_ndf_xml_to_file(out_path / "xml" / vfs_path.replace_extension(".ndf.xml"));
+      ndfbin.save_ndf_xml_to_file(out_path / "xml" / fs::path(vfs_path).replace_extension(".ndf.xml"));
     }
     ImGui::SameLine();
     if(ImGui::Button(gettext("Save ndfbin"))) {

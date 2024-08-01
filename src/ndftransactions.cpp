@@ -38,4 +38,3 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> 
   ndf_parsing = false;
 }
 
-
