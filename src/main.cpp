@@ -24,7 +24,8 @@ int main(int argc, char* argv[])
   textdomain("wgrd_mod_manager");
 
   py::scoped_interpreter guard{};
-  py::module::import("sys").attr("path").cast<py::list>().append("venv/lib64/python3.12/site-packages/");
+  py::print(py::module::import("sys").attr("path"));
+  //py::module::import("sys").attr("path").cast<py::list>().append("venv/lib64/python3.12/site-packages/");
 
   maingui main_gui;
   main_gui.init(argc, argv);
