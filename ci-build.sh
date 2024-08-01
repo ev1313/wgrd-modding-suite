@@ -5,8 +5,8 @@ pip install wgrd-cons-parsers wgrd-cons-tools
 
 cmake -DCMAKE_PREFIX_PATH="/mingw64/" -DCMAKE_MODULE_PATH="$(pwd)/modules/" -DWIN32=ON -B build/
 cmake --build build/ -j8
-find . -name "*.py" | xargs -I% mkdir -p build/venv/$(dirname %)
-find . -name "*.py" | xargs -I% cp % build/venv/%
+find /ucrt64/lib/python3.11/ -name "*.py" | xargs -I% mkdir -p build/venv/$(dirname %)
+find /ucrt64/lib/python3.11/ -name "*.py" | xargs -I% cp % build/venv/lib/python3.11/%
 cp /ucrt64/bin/libgcc_s_seh-1.dll build/
 cp /ucrt64/bin/libwinpthread-1.dll build/
 cp /ucrt64/bin/libstdc++-6.dll build/
