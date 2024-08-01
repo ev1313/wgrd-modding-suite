@@ -9,9 +9,8 @@ message(${CMAKE_MODULE_PATH})
 find_package(GLFW3 REQUIRED)
 find_package(Gettext REQUIRED)
 find_package(Epoxy REQUIRED)
-set(Python_FIND_VIRTUALENV ONLY)
-find_package(Python COMPONENTS Interpreter Development)
-find_package(pybind11 CONFIG REQUIRED HINTS /ucrt64/lib/cmake/pybind11 /ucrt64/include /ucrt64)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
 
 set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
@@ -57,13 +56,14 @@ add_executable(modding_suite
 target_link_libraries(modding_suite
 	PRIVATE
   ${GLFW3_LIBRARY}
-	pybind11::embed
+  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32>
+  Python3::Python
+	pybind11::pybind11
 	${LibEpoxy_LIBRARIES}
   imgui
   ndf
   magic_enum::magic_enum
   toml11::toml11
-  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32 python3>
 )
 
 target_include_directories(modding_suite
