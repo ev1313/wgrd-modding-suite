@@ -23,6 +23,7 @@ jobs:
         with:
           name: build
           path: |
+            build/*.bat
             build/*.dll
             build/*.exe
             build/venv/

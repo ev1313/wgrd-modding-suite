@@ -14,3 +14,4 @@ cp /ucrt64/bin/libiconv-2.dll build/
 cp /ucrt64/bin/libepoxy-0.dll build/
 cp /ucrt64/bin/glfw3.dll build/
 cp /ucrt64/bin/libpython3*.dll build/
+cp start_modding_suite.bat build/
