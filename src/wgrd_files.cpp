@@ -739,6 +739,35 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
+    case NDFPropertyType::Pair: {
+      auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyPair>&>(property);
+      if(ImGui::BeginTable(std::format("list_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
+        ImGui::TableSetupColumn(gettext("First"), ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn(gettext("Second"), ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableNextColumn();
+        {
+          auto change = render_ndf_type(p->first);
+          if(change) {
+            auto first_change = std::make_unique<NdfTransactionChangeProperty_ChangePairItem>();
+            first_change->first = true;
+            first_change->change = std::move(change.value());
+            return first_change;
+          }
+        }
+        ImGui::TableNextColumn();
+        {
+          auto change = render_ndf_type(p->second);
+          if(change) {
+            auto list_change = std::make_unique<NdfTransactionChangeProperty_ChangePairItem>();
+            list_change->first = false;
+            list_change->change = std::move(change.value());
+            return list_change;
+          }
+        }
+        ImGui::EndTable();
+      }
+      break;
+    }
     default:{
       ImGui::Text("Unknown type %02x", ndf_type_id);
       break;

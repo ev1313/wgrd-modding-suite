@@ -582,6 +582,30 @@ struct NdfTransactionChangeProperty_ChangeListItem : public NdfTransactionChange
   }
 };
 
+struct NdfTransactionChangeProperty_ChangePairItem : public NdfTransactionChangeProperty {
+  bool first;
+  std::unique_ptr<NdfTransactionChangeProperty> change;
+  
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Pair);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyPair>&>(prop);
+    if(first) {
+      change->apply_property(property->first);
+    } else {
+      change->apply_property(property->second);
+    }
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Pair);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyPair>&>(prop);
+    if(first) {
+      change->undo_property(property->first);
+    } else {
+      change->undo_property(property->second);
+    }
+  }
+};
+
 class NdfBinFile {
 private:
   bool ndf_parsed = false;
