@@ -38,6 +38,7 @@ deps/imgui/
 deps/imgui/misc/cpp/
 deps/imgui/backends/
 )
+target_link_libraries(imgui PUBLIC ${GLFW3_LIBRARY} ${LibEpoxy_LIBRARIES})
 
 add_executable(modding_suite
 		ImGuiFileDialog/ImGuiFileDialog.cpp
@@ -56,8 +57,7 @@ add_executable(modding_suite
 
 target_link_libraries(modding_suite
 	PRIVATE
-  ${GLFW3_LIBRARY}
-  $<$<BOOL:${WIN32}>:intl iconv kernel32 opengl32 glu32>
+  $<$<BOOL:${WIN32}>:intl iconv>
   Python3::Python
 	pybind11::pybind11
 	${LibEpoxy_LIBRARIES}
