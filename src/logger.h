@@ -30,9 +30,10 @@ namespace mod_manager {
         }
 
     public:
+        bool open_log = false;
         void render_log() {
-            ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
-            ImGui::Begin(gettext("Log"));
+            ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
+            ImGui::Begin(gettext("Log"), &open_log);
             ImGui::TextWrapped("%s", log.str().c_str());
 
             ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 2.0f);

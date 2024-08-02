@@ -34,6 +34,10 @@ bool maingui::init(int argc, char *argv[]) {
   auto logger = std::make_shared<spdlog::logger>(test);
   spdlog::set_default_logger(logger);
 
+  spdlog::flush_every(std::chrono::seconds(3));
+
+  imgui_sink->open_log = false;
+
   //file_tree.init_from_wgrd_path(program.get("wgrd_dir"));
 
   py::gil_scoped_release release;
@@ -61,11 +65,11 @@ void maingui::render_menu_bar() {
       ImGui::EndMenu();
     }
     if(ImGui::BeginMenu(gettext("Settings"))) {
-      if(ImGui::MenuItem(gettext("Undo"), "Ctrl+Z")) {
-        spdlog::info("Undo");
+      if(ImGui::MenuItem(gettext("Style Editor"))) {
+        spdlog::info("Style Editor");
       }
-      if(ImGui::MenuItem(gettext("Redo"), "Ctrl+Y")) {
-        spdlog::info("Redo");
+      if(ImGui::MenuItem(gettext("Log"), "Ctrl+L")) {
+        imgui_sink->open_log = true;
       }
       ImGui::EndMenu();
     }
