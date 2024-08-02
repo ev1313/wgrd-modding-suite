@@ -30,17 +30,18 @@ add_library(imgui
   deps/imgui/imgui_draw.cpp
   deps/imgui/imgui_widgets.cpp
   deps/imgui/misc/cpp/imgui_stdlib.cpp
+  deps/imgui/backends/imgui_impl_glfw.cpp
+  deps/imgui/backends/imgui_impl_opengl3.cpp
 )
 target_include_directories(imgui PUBLIC 
 deps/imgui/
 deps/imgui/misc/cpp/
+deps/imgui/backends/
 )
 
 add_executable(modding_suite
 		ImGuiFileDialog/ImGuiFileDialog.cpp
 		src/main.cpp
-		src/imgui_impl_glfw.cpp
-		src/imgui_impl_opengl3.cpp
 		src/file_tree.cpp
 		src/file_tree.h
 		src/wgrd_files.cpp
