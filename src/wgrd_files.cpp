@@ -719,6 +719,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       break;
     }
     case NDFPropertyType::List: {
+      std::optional<std::unique_ptr<NdfTransactionChangeProperty>> ret = std::nullopt;
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(property);
       if(ImGui::BeginTable(std::format("list_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn(gettext("List Index"), ImGuiTableColumnFlags_WidthFixed);
@@ -732,14 +733,16 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
             auto list_change = std::make_unique<NdfTransactionChangeProperty_ChangeListItem>();
             list_change->index = idx;
             list_change->change = std::move(change.value());
-            return list_change;
+            ret = std::move(list_change);
           }
         }
         ImGui::EndTable();
       }
+      return ret;
       break;
     }
     case NDFPropertyType::Map: {
+      std::optional<std::unique_ptr<NdfTransactionChangeProperty>> ret = std::nullopt;
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(property);
       if(ImGui::BeginTable(std::format("map_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn(gettext("Map Key"), ImGuiTableColumnFlags_WidthStretch);
@@ -753,7 +756,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
               key_change->index = idx;
               key_change->key = true;
               key_change->change = std::move(change.value());
-              return key_change;
+              ret = std::move(key_change);
             }
           }
           ImGui::TableNextColumn();
@@ -764,15 +767,17 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
               value_change->index = idx;
               value_change->key = false;
               value_change->change = std::move(change.value());
-              return value_change;
+              ret = std::move(value_change);
             }
           }
         }
         ImGui::EndTable();
+        return ret;
       }
       break;
     }
     case NDFPropertyType::Pair: {
+      std::optional<std::unique_ptr<NdfTransactionChangeProperty>> ret = std::nullopt;
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyPair>&>(property);
       if(ImGui::BeginTable(std::format("pair_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn(gettext("First"), ImGuiTableColumnFlags_WidthStretch);
@@ -784,7 +789,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
             auto first_change = std::make_unique<NdfTransactionChangeProperty_ChangePairItem>();
             first_change->first = true;
             first_change->change = std::move(change.value());
-            return first_change;
+            ret = std::move(first_change);
           }
         }
         ImGui::TableNextColumn();
@@ -794,11 +799,12 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
             auto second_change = std::make_unique<NdfTransactionChangeProperty_ChangePairItem>();
             second_change->first = false;
             second_change->change = std::move(change.value());
-            return second_change;
+            ret = std::move(second_change);
           }
         }
         ImGui::EndTable();
       }
+      return ret;
       break;
     }
     default:{
