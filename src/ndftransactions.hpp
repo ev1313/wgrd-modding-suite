@@ -296,6 +296,54 @@ struct NdfTransactionChangeProperty_WideString : public NdfTransactionChangeProp
   }
 };
 
+struct NdfTransactionChangeProperty_GUID : public NdfTransactionChangeProperty {
+  std::string guid;
+  std::string previous_guid;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::NDFGUID);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyGUID>&>(prop);
+    previous_guid = property->guid;
+    property->guid = guid;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::NDFGUID);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyGUID>&>(prop);
+    property->guid = previous_guid;
+  }
+};
+
+struct NdfTransactionChangeProperty_LocalisationHash : public NdfTransactionChangeProperty {
+  std::string hash;
+  std::string previous_hash;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::LocalisationHash);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyLocalisationHash>&>(prop);
+    previous_hash = property->hash;
+    property->hash = hash;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::LocalisationHash);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyLocalisationHash>&>(prop);
+    property->hash = previous_hash;
+  }
+};
+
+struct NdfTransactionChangeProperty_Hash : public NdfTransactionChangeProperty {
+  std::string hash;
+  std::string previous_hash;
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Hash);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyHash>&>(prop);
+    previous_hash = property->hash;
+    property->hash = hash;
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Hash);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyHash>&>(prop);
+    property->hash = previous_hash;
+  }
+};
+
 struct NdfTransactionChangeProperty_PathReference : public NdfTransactionChangeProperty {
   std::string path;
   std::string previous_path;

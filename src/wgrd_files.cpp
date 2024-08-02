@@ -665,6 +665,36 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       }
       break;
     }
+    case NDFPropertyType::NDFGUID: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyGUID>&>(property);
+      std::string value = prop->guid;
+      if(ImGui::InputText(std::format("##guid_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_GUID>();
+        change->guid = value;
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::LocalisationHash: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyLocalisationHash>&>(property);
+      std::string value = prop->hash;
+      if(ImGui::InputText(std::format("##lochash_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_LocalisationHash>();
+        change->hash = value;
+        return change;
+      }
+      break;
+    }
+    case NDFPropertyType::Hash: {
+      auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyHash>&>(property);
+      std::string value = prop->hash;
+      if(ImGui::InputText(std::format("##hash_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_Hash>();
+        change->hash = value;
+        return change;
+      }
+      break;
+    }
     case NDFPropertyType::S32_vec2: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec2>&>(property);
       int32_t val[2] = {p->x, p->y};
