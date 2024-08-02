@@ -728,6 +728,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
           ImGui::TableNextColumn();
           ImGui::Text("%d", (unsigned int)idx);
           ImGui::TableNextColumn();
+          item->property_name = std::to_string(idx);
           auto change = render_ndf_type(item);
           if(change) {
             auto list_change = std::make_unique<NdfTransactionChangeProperty_ChangeListItem>();
@@ -750,6 +751,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
         for(const auto& [idx, item] : p->values | std::views::enumerate) {
           ImGui::TableNextColumn();
           {
+            item.first->property_name = "Key_" + std::to_string(idx);
             auto change = render_ndf_type(item.first);
             if(change) {
               auto key_change = std::make_unique<NdfTransactionChangeProperty_ChangeMapItem>();
@@ -761,6 +763,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
           }
           ImGui::TableNextColumn();
           {
+            item.second->property_name = "Value_" + std::to_string(idx);
             auto change = render_ndf_type(item.second);
             if(change) {
               auto value_change = std::make_unique<NdfTransactionChangeProperty_ChangeMapItem>();
@@ -784,6 +787,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
         ImGui::TableSetupColumn(gettext("Second"), ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableNextColumn();
         {
+          p->first->property_name = "First";
           auto change = render_ndf_type(p->first);
           if(change) {
             auto first_change = std::make_unique<NdfTransactionChangeProperty_ChangePairItem>();
@@ -794,6 +798,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
         }
         ImGui::TableNextColumn();
         {
+          p->second->property_name = "Second";
           auto change = render_ndf_type(p->second);
           if(change) {
             auto second_change = std::make_unique<NdfTransactionChangeProperty_ChangePairItem>();
