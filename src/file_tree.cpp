@@ -131,7 +131,7 @@ std::optional<FileMeta> FileTree::render() {
 
   ImGui::BeginChild("##FileTree", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Border | ImGuiChildFlags_FrameStyle);
 
-  ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.9f);
+  ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
   m_rebuild_tree |= ImGui::InputText("##file_tree_search", &m_search);
 
   ImGui::Checkbox("Tree View", &m_tree_view);
@@ -152,7 +152,7 @@ std::optional<FileMeta> FileTree::render() {
   if(m_tree_view) {
     ret = file_tree(vfs_tree);
   } else {
-    ImGui::BeginListBox("##Filelist", ImVec2(ImGui::GetContentRegionAvail().x * 0.9f, ImGui::GetContentRegionAvail().y));
+    ImGui::BeginListBox("##Filelist", ImGui::GetContentRegionAvail());
     ret = file_list(vfs_tree);
     ImGui::EndListBox();
   }

@@ -70,35 +70,40 @@ void maingui::render_menu_bar() {
 
 bool maingui::render() {
   // render main window
-#ifdef IMGUI_HAS_VIEWPORT
   ImGuiViewport* viewport = ImGui::GetMainViewport();
-  ImGui::SetNextWindowPos(viewport->GetWorkPos());
-  ImGui::SetNextWindowSize(viewport->GetWorkSize());
+  ImGui::SetNextWindowPos(viewport->WorkPos);
+  ImGui::SetNextWindowSize(viewport->WorkSize);
   ImGui::SetNextWindowViewport(viewport->ID);
-#else 
-  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-#endif
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoNav);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking);
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar(2);
+        
+  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
   render_menu_bar();
 
-  ImGui::BeginTabBar("Workspace Tabs", ImGuiTabBarFlags_Reorderable);
+  ImGui::End();
+
   size_t idx = 0;
   for(auto& workspace : workspaces) {
     std::string name = std::format("{}##WP_{}", workspace.workspace_name, idx++);
-    if (ImGui::BeginTabItem(name.c_str())) {
+    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(name.c_str(), nullptr)) {
       workspace.render();
-      ImGui::EndTabItem();
+      ImGui::End();
     } 
   }
-  ImGui::EndTabBar();
 
+  /*
   if(workspaces.empty()) {
     if(ImGui::Button("Add workspace", ImGui::GetContentRegionAvail())) {
       show_add_workspace = true;
     }
   }
+*/
   if(show_add_workspace) {
     auto workspace = Workspace::render_init_workspace();
     if(workspace) {
@@ -106,9 +111,6 @@ bool maingui::render() {
       show_add_workspace = false;
     }
   }
-
-  ImGui::PopStyleVar();
-  ImGui::End();
 
   // FIXME: add something to exit the program?
   return false;
