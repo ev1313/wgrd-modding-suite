@@ -42,6 +42,11 @@ bool maingui::init(int argc, char *argv[]) {
 }
 
 void maingui::render_menu_bar() {
+  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
+    show_add_workspace = true;
+  }
+
+
   if(ImGui::BeginMenuBar()) {
     if(ImGui::BeginMenu(gettext("File"))) {
       if(ImGui::MenuItem(gettext("Open workspace"), "Ctrl+O")) {
@@ -55,7 +60,7 @@ void maingui::render_menu_bar() {
       }
       ImGui::EndMenu();
     }
-    if(ImGui::BeginMenu(gettext("Edit"))) {
+    if(ImGui::BeginMenu(gettext("Settings"))) {
       if(ImGui::MenuItem(gettext("Undo"), "Ctrl+Z")) {
         spdlog::info("Undo");
       }
