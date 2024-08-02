@@ -582,6 +582,31 @@ struct NdfTransactionChangeProperty_ChangeListItem : public NdfTransactionChange
   }
 };
 
+struct NdfTransactionChangeProperty_ChangeMapItem : public NdfTransactionChangeProperty {
+  uint32_t index;
+  bool key;
+  std::unique_ptr<NdfTransactionChangeProperty> change;
+  
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Map);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(prop);
+    if(key) {
+      change->apply_property(property->values.at(index).first);
+    } else {
+      change->apply_property(property->values.at(index).second);
+    }
+  }
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Map);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(prop);
+    if(key) {
+      change->undo_property(property->values.at(index).first);
+    } else {
+      change->undo_property(property->values.at(index).second);
+    }
+  }
+};
+
 struct NdfTransactionChangeProperty_ChangePairItem : public NdfTransactionChangeProperty {
   bool first;
   std::unique_ptr<NdfTransactionChangeProperty> change;
