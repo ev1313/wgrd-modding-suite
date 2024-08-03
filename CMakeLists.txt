@@ -53,6 +53,9 @@ add_executable(modding_suite
     src/ndftransactions.hpp
     src/workspace.cpp
     src/workspace.hpp
+    src/helpers.hpp
+    src/imgui_helpers.hpp
+    src/imgui_helpers.cpp
 )
 
 target_link_libraries(modding_suite
