@@ -30,8 +30,6 @@ protected:
   }
 
   void flush_() override {
-    log << py_redirect->stdoutString();
-    log << py_redirect->stderrString();
   }
 
 public:
@@ -43,8 +41,11 @@ public:
     if(!open_log) {
       return;
     }
+    py_redirect->update_log();
+
     ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if(ImGui::Begin(gettext("Log"))) {
+
       ImGui::TextWrapped("%s", log.str().c_str());
 
       ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 2.0f);

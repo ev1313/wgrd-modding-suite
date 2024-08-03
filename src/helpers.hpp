@@ -3,6 +3,9 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
+#include <ranges>
+#include "spdlog/spdlog.h"
+
 // Based on:
 // https://stackoverflow.com/questions/58758429/pybind11-redirect-python-sys-stdout-to-c-from-print
 class __attribute__((visibility("default"))) PyStdErrOutStreamRedirect {
@@ -40,6 +43,14 @@ public:
     last_offset_stderr = py::int_(_stderr_buffer.attr("tell")());
     py::gil_scoped_release release;
     return ret;
+  }
+  void update_log() {
+    for(const auto line : stdoutString() | std::views::split('\n')) {
+      spdlog::info(std::string_view(line));
+    }
+    for(const auto line : stderrString() | std::views::split('\n')) {
+      spdlog::error(std::string_view(line));
+    }
   }
   ~PyStdErrOutStreamRedirect() {
     py::gil_scoped_acquire acquire;

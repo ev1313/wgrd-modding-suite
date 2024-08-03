@@ -25,8 +25,7 @@ bool maingui::init(int argc, char *argv[]) {
     py::print(py_path);
     python_works = true;
   } catch(const py::error_already_set& e) {
-    PyErr_Print();
-    PyErr_Clear();
+    spdlog::error(e.what());
     python_works = false;
   }
 
@@ -69,8 +68,7 @@ bool maingui::init(int argc, char *argv[]) {
 
     python_works = true;
   } catch(const py::error_already_set& e) {
-    PyErr_Print();
-    PyErr_Clear();
+    spdlog::error(e.what());
     python_works = false;
   }
 
