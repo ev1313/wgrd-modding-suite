@@ -20,9 +20,9 @@ bool maingui::init(int argc, char *argv[]) {
   py::gil_scoped_acquire acquire;
   try {
     py::str py_exec = (py::module::import("sys").attr("executable"));
-    py::print(py_exec);
+    spdlog::info(std::string(py_exec));
     py::str py_path = (py::module::import("sys").attr("path"));
-    py::print(py_path);
+    spdlog::info(std::string(py_path));
     python_works = true;
   } catch(const py::error_already_set& e) {
     spdlog::error(e.what());
@@ -62,9 +62,9 @@ bool maingui::init(int argc, char *argv[]) {
   py::gil_scoped_acquire acquire2;
   try {
     py::str wgrd_cons_parsers = py::module::import("wgrd_cons_parsers");
-    py::print(wgrd_cons_parsers);
+    spdlog::info(std::string(wgrd_cons_parsers));
     py::str wgrd_cons_tools = py::module::import("wgrd_cons_tools");
-    py::print(wgrd_cons_tools);
+    spdlog::info(std::string(wgrd_cons_tools));
 
     python_works = true;
   } catch(const py::error_already_set& e) {

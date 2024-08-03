@@ -38,13 +38,16 @@ public:
   }
   bool open_log = false;
   void render_log() {
+    if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L)) {
+      open_log = true;
+    }
     if(!open_log) {
       return;
     }
     py_redirect->update_log();
 
     ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-    if(ImGui::Begin(gettext("Log"))) {
+    if(ImGui::Begin(gettext("Log"), &open_log)) {
 
       ImGui::TextWrapped("%s", log.str().c_str());
 
