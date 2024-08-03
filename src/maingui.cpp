@@ -30,7 +30,7 @@ bool maingui::init(int argc, char *argv[]) {
   }
 
   if(!python_works) {
-    spdlog::error("Python does not work, exiting");
+    spdlog::error(gettext("Python does not work, exiting"));
     return false;
   }
   py::gil_scoped_release release;
@@ -134,7 +134,7 @@ bool maingui::render() {
   ImGui::PopStyleVar();
   ImGui::PopStyleVar(2);
         
-  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+  ImGuiID dockspace_id = ImGui::GetID("ModdingSuiteDockSpace");
   ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
   render_menu_bar();
 

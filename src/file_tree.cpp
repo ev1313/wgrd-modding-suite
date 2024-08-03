@@ -134,7 +134,7 @@ std::optional<FileMeta> FileTree::render() {
   ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
   m_rebuild_tree |= ImGui::InputText("##file_tree_search", &m_search);
 
-  ImGui::Checkbox("Tree View", &m_tree_view);
+  ImGui::Checkbox(gettext("VFS Tree"), &m_tree_view);
 
   py::dict files = vfs_files;
   try {

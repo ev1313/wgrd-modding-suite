@@ -19,7 +19,7 @@ private:
   std::shared_ptr<mod_manager::logger_mt> imgui_sink;
 
   bool show_add_workspace = false;
-  bool show_style_editor = true;
+  bool show_style_editor = false;
   std::vector<Workspace> workspaces;
   void render_menu_bar();
 public:

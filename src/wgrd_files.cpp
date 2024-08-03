@@ -876,7 +876,7 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
 }
 
 void wgrd_files::Files::imgui_call(std::optional<FileMeta> meta) {
-  ImGui::BeginChild(gettext("Files##Files"),  ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
+  ImGui::BeginChild(gettext("Files"),  ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
   if(meta) {
     auto& m = meta.value();
     if(files.find(m.idx) != files.end()) {
