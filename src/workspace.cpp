@@ -102,3 +102,22 @@ void Workspace::render() {
   ImGui::SameLine();
   files.imgui_call(meta);
 }
+
+void Workspaces::render() {
+  size_t idx = 0;
+  for(auto& workspace : workspaces) {
+    std::string name = std::format("{}##WP_{}", workspace.workspace_name, idx++);
+    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(name.c_str(), nullptr)) {
+      workspace.render();
+      ImGui::End();
+    } 
+  }
+  if(show_add_workspace) {
+    auto workspace = Workspace::render_init_workspace(&show_add_workspace);
+    if(workspace) {
+      workspaces.push_back(std::move(workspace.value()));
+      show_add_workspace = false;
+    }
+  }
+}

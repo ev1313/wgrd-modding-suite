@@ -6,8 +6,6 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
-#include <format>
-
 #include <libintl.h>
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
@@ -50,7 +48,7 @@ bool maingui::init(int argc, char *argv[]) {
   imgui_sink = std::make_shared<mod_manager::logger_mt>();
   imgui_sink->set_pattern(logpattern);
 
-  spdlog::logger test("Mod Manager", {console_sink, file_sink, imgui_sink});
+  spdlog::logger test(gettext("Mod Manager"), {console_sink, file_sink, imgui_sink});
   auto logger = std::make_shared<spdlog::logger>(test);
   spdlog::set_default_logger(logger);
 
@@ -81,13 +79,13 @@ bool maingui::init(int argc, char *argv[]) {
 
 void maingui::render_menu_bar() {
   if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
-    show_add_workspace = true;
+    workspaces.show_add_workspace = true;
   }
 
   if(ImGui::BeginMenuBar()) {
     if(ImGui::BeginMenu(gettext("File"))) {
       if(ImGui::MenuItem(gettext("Open workspace"), "Ctrl+O")) {
-        show_add_workspace = true;
+        workspaces.show_add_workspace = true;
       }
       if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
         spdlog::info("Save file");
@@ -140,22 +138,7 @@ bool maingui::render() {
 
   ImGui::End();
 
-  size_t idx = 0;
-  for(auto& workspace : workspaces) {
-    std::string name = std::format("{}##WP_{}", workspace.workspace_name, idx++);
-    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(name.c_str(), nullptr)) {
-      workspace.render();
-      ImGui::End();
-    } 
-  }
-  if(show_add_workspace) {
-    auto workspace = Workspace::render_init_workspace(&show_add_workspace);
-    if(workspace) {
-      workspaces.push_back(std::move(workspace.value()));
-      show_add_workspace = false;
-    }
-  }
+  workspaces.render();
 
   if(show_style_editor) {
     ImGui::ShowStyleEditor(&show_style_editor, nullptr);
