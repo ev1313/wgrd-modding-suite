@@ -28,10 +28,10 @@ std::optional<std::string> show_file_dialog(std::string title,
   return ret;
 }
 
-std::optional<Workspace> Workspace::render_init_workspace() {
+std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) {
   std::optional<Workspace> ret = std::nullopt;
   ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-  ImGui::Begin("Add a workspace", nullptr);
+  ImGui::Begin("Add a workspace", show_workspace);
 
   ImGui::Text(gettext("Workspace name: "));
   ImGui::SameLine();

@@ -46,9 +46,9 @@ bool ImGui::ShowStyleSelector(const char* label)
   return false;
 }
 
-void ImGui::ShowStyleEditor(ImGuiStyle* ref)
+void ImGui::ShowStyleEditor(bool* show_window, ImGuiStyle* ref)
 {
-  ImGui::Begin(gettext("ImGui Style Editor"));
+  ImGui::Begin(gettext("ImGui Style Editor"), show_window);
   // You can pass in a reference ImGuiStyle structure to compare to, revert to and save to
   // (without a reference style pointer, we will use one compared locally as a reference)
   ImGuiStyle& style = ImGui::GetStyle();
@@ -78,11 +78,11 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
   { bool border = (style.PopupBorderSize > 0.0f);  if (ImGui::Checkbox("PopupBorder",  &border)) { style.PopupBorderSize  = border ? 1.0f : 0.0f; } }
 
   // Save/Revert button
-  if (ImGui::Button("Save Ref"))
-    *ref = ref_saved_style = style;
-  ImGui::SameLine();
-  if (ImGui::Button("Revert Ref"))
-    style = *ref;
+  //if (ImGui::Button("Save Ref"))
+  //  *ref = ref_saved_style = style;
+  //ImGui::SameLine();
+  //if (ImGui::Button("Revert Ref"))
+  //  style = *ref;
 
   ImGui::Separator();
 

@@ -42,7 +42,7 @@ bool maingui::init(int argc, char *argv[]) {
 
   auto max_size = 1048576 * 5;
   auto max_files = 10;
-  std::string filename = "logs/mod_manager_log.txt";
+  std::string filename = "logs/modding_suite_log.txt";
   auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
       filename, max_size, max_files);
   file_sink->set_pattern(logpattern);
@@ -150,7 +150,7 @@ bool maingui::render() {
     } 
   }
   if(show_add_workspace) {
-    auto workspace = Workspace::render_init_workspace();
+    auto workspace = Workspace::render_init_workspace(&show_add_workspace);
     if(workspace) {
       workspaces.push_back(std::move(workspace.value()));
       show_add_workspace = false;
@@ -158,9 +158,12 @@ bool maingui::render() {
   }
 
   if(show_style_editor) {
-    ImGui::ShowStyleEditor();
+    ImGui::ShowStyleEditor(&show_style_editor, nullptr);
   }
 
+  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L)) {
+    imgui_sink->open_log = true;
+  }
   imgui_sink->render_log();
 
   // FIXME: add something to exit the program?

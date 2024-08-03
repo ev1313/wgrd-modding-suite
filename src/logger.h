@@ -38,9 +38,6 @@ public:
   }
   bool open_log = false;
   void render_log() {
-    if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L)) {
-      open_log = true;
-    }
     if(!open_log) {
       return;
     }
