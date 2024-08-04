@@ -5,6 +5,8 @@
 #include "imgui_stdlib.h"
 #include <ImGuiFileDialog.h>
 
+#include <toml.hpp>
+
 #include <libintl.h>
 
 std::optional<std::string> show_file_dialog(std::string title,
@@ -103,6 +105,14 @@ void Workspace::render() {
   files.imgui_call(meta);
 }
 
+toml::table Workspace::to_toml() {
+  toml::table table;
+  table["name"] = workspace_name;
+  table["dat_path"] = workspace_dat_path.string();
+  table["out_path"] = workspace_out_path.string();
+  return table;
+}
+
 void Workspaces::render() {
   size_t idx = 0;
   for(auto& workspace : workspaces) {
@@ -118,6 +128,31 @@ void Workspaces::render() {
     if(workspace) {
       workspaces.push_back(std::move(workspace.value()));
       show_add_workspace = false;
+    }
+  }
+}
+
+void Workspaces::save_workspaces(fs::path path) {
+  toml::array arr;
+  for(auto& workspace : workspaces) {
+    auto data = workspace.to_toml();
+    arr.push_back(data);
+  }
+  toml::table table;
+  table["workspaces"] = arr;
+  std::fstream out(path, std::ios::out);
+  out << toml::format(toml::value(table)) << std::endl;
+}
+
+void Workspaces::load_workspaces(fs::path path) {
+  if(fs::exists(path)) {
+    auto data = toml::parse(path.string());
+    auto workspaces = data["workspaces"].as_array();
+    for(auto& workspace : workspaces) {
+      Workspace w;
+      w.workspace_name = workspace["name"].as_string();
+      w.init(workspace["dat_path"].as_string(), workspace["out_path"].as_string());
+      this->workspaces.push_back(std::move(w));
     }
   }
 }
