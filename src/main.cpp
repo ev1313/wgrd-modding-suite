@@ -71,6 +71,9 @@ int main(int argc, char* argv[])
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable Docking
+#ifdef WIN32
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;    // Enable Multi-Viewport / Platform Windows
+#endif
     //io.ConfigDockingWithShift = true;
     io.ConfigDockingAlwaysTabBar = true;
 
