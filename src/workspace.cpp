@@ -3,32 +3,12 @@
 #include <filesystem>
 #include <imgui.h>
 #include "imgui_stdlib.h"
-#include <ImGuiFileDialog.h>
+
+#include "imgui_helpers.hpp"
 
 #include <toml.hpp>
 
 #include <libintl.h>
-
-std::optional<std::string> show_file_dialog(std::string title,
-                                            std::string previous_path,
-                                            std::string dialogkey) {
-  std::optional<std::string> ret = std::nullopt;
-  std::string button_text = gettext("Open File Dialog##") + dialogkey;
-  if (ImGui::Button(button_text.c_str())) {
-    IGFD::FileDialogConfig config;
-    config.path = previous_path;
-    ImGuiFileDialog::Instance()->OpenDialog(dialogkey, title, nullptr, config);
-  }
-
-  if (ImGuiFileDialog::Instance()->Display(
-    dialogkey, ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      ret = ImGuiFileDialog::Instance()->GetCurrentPath();
-    }
-    ImGuiFileDialog::Instance()->Close();
-  }
-  return ret;
-}
 
 std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) {
   std::optional<Workspace> ret = std::nullopt;
@@ -45,7 +25,7 @@ std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) 
   static std::string dat_path = ".";
   ImGui::InputText("##DatFilePath", &dat_path);
   ImGui::SameLine();
-  auto dat_path_ret = show_file_dialog(gettext("Path to dat files"), "", "dat_path_dialog");
+  auto dat_path_ret = show_file_dialog_input(gettext("Path to dat files"), "", "dat_path_dialog");
   dat_path = dat_path_ret.value_or(dat_path);
   
   ImGui::Text(gettext("Path to output folder: "));
@@ -53,7 +33,7 @@ std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) 
   static std::string out_path = "out/";
   ImGui::InputText("##OutFilePath", &out_path);
   ImGui::SameLine();
-  auto out_path_ret = show_file_dialog(gettext("Path to output directory"), "", "out_path_dialog");
+  auto out_path_ret = show_file_dialog_input(gettext("Path to output directory"), "", "out_path_dialog");
   out_path = out_path_ret.value_or(out_path);
 
   if(ImGui::Button(gettext("Load workspace"))) {

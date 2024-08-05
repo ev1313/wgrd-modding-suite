@@ -6,6 +6,8 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
+#include "ImGuiFileDialog.h"
+
 #include <libintl.h>
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
@@ -84,12 +86,24 @@ void maingui::render_menu_bar() {
 
   if(ImGui::BeginMenuBar()) {
     if(ImGui::BeginMenu(gettext("File"))) {
-      if(ImGui::MenuItem(gettext("Open workspace"), "Ctrl+O")) {
+      if(ImGui::MenuItem(gettext("Open new workspace"), "Ctrl+O")) {
         workspaces.show_add_workspace = true;
       }
       if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
         spdlog::info("Save file");
       }
+      ImGui::Separator();
+      if(ImGui::MenuItem(gettext("Load project file"))) {
+        IGFD::FileDialogConfig config;
+        config.path = ".";
+        ImGuiFileDialog::Instance()->OpenDialog("Load project file", gettext("Load project file"), nullptr, config);
+      }
+      if(ImGui::MenuItem(gettext("Save project file"))) {
+        IGFD::FileDialogConfig config;
+        config.path = ".";
+        ImGuiFileDialog::Instance()->OpenDialog("Save project file", gettext("Save project file"), nullptr, config);
+      }
+      ImGui::Separator();
       if(ImGui::MenuItem(gettext("Exit"), "Alt+F4")) {
         spdlog::info("Exit");
       }
@@ -106,14 +120,29 @@ void maingui::render_menu_bar() {
     }
     ImGui::EndMenuBar();
   }
+
+  if (ImGuiFileDialog::Instance()->Display(
+    "Load project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      fs::path ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
+  if (ImGuiFileDialog::Instance()->Display(
+    "Save project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      fs::path ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
 }
 
 bool maingui::render() {
   if(!python_works) {
-    ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::Text("Python does not work, see the logfile, exiting.");
-    ImGui::Text("If you are on Windows, you need to start the start_modding_suite.bat instead of directly the modding_suite.exe file!");
-    ImGui::Text("Also check you installed Python 3.11 into your PATH.");
+    ImGui::Begin(gettext("Error"), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text(gettext("Python does not work, see the logfile, exiting."));
+    ImGui::Text(gettext("If you are on Windows, you need to start the start_modding_suite.bat instead of directly the modding_suite.exe file!"));
+    ImGui::Text(gettext("Also check you installed Python 3.11 into your PATH."));
     ImGui::End();
     imgui_sink->open_log = true;
     imgui_sink->render_log();

@@ -4,6 +4,29 @@
 
 #include "math.h"
 
+#include <ImGuiFileDialog.h>
+
+std::optional<std::string> show_file_dialog_input(std::string title,
+                                            std::string previous_path,
+                                            std::string dialogkey) {
+  std::optional<std::string> ret = std::nullopt;
+  std::string button_text = gettext("Open File Dialog##") + dialogkey;
+  if (ImGui::Button(button_text.c_str())) {
+    IGFD::FileDialogConfig config;
+    config.path = previous_path;
+    ImGuiFileDialog::Instance()->OpenDialog(dialogkey, title, nullptr, config);
+  }
+
+  if (ImGuiFileDialog::Instance()->Display(
+    dialogkey, ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
+  return ret;
+}
+
 // Forward declare ShowFontAtlas() which isn't worth putting in public API yet
 namespace ImGui { IMGUI_API void ShowFontAtlas(ImFontAtlas* atlas); }
 
