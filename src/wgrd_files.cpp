@@ -397,9 +397,9 @@ std::string wgrd_files::NdfBin::render_object_list() {
   return object_name;
 }
 
-std::string wgrd_files::NdfBin::render_property_list(std::string object_name) {
+void wgrd_files::NdfBin::render_property_list(std::string object_name) {
   if(object_name.empty() || !ndfbin.contains_object(object_name)){
-    return "";
+    return;
   }
   auto& object = ndfbin.get_object(object_name);
 
@@ -420,8 +420,6 @@ std::string wgrd_files::NdfBin::render_property_list(std::string object_name) {
     ImGui::EndTable();
     ImGui::TreePop();
   }
-
-  return "";
 }
 
 void wgrd_files::NdfBin::render_property(std::string object_name, std::string property_name) {
@@ -845,8 +843,23 @@ bool wgrd_files::NdfBin::imgui_call() {
     }
   }
   if(ndfbin.is_parsed()) {
-    auto object = render_object_list();
-    auto property = render_property_list(object);
+    {
+      std::string object = render_object_list();
+      if(!object.empty()) {
+        open_object_windows.insert(object);
+      }
+    }
+    for(std::string object_name : open_object_windows) {
+      ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
+      bool close = false;
+      if(ImGui::Begin(object_name.c_str(), &close)) {
+        render_property_list(object_name);
+        ImGui::End();
+      }
+      if(close) {
+        open_object_windows.erase(object_name);
+      }
+    }
   }
   return true;
 }

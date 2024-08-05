@@ -111,9 +111,11 @@ private:
   bool object_changed = true;
   std::vector<std::any> property_temp;
 
+  std::set<std::string> open_object_windows;
+
   NdfBinFile ndfbin;
   std::string render_object_list();
-  std::string render_property_list(std::string object_name);
+  void render_property_list(std::string object_name);
   void render_property(std::string object_name, std::string property_name);
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
 public:
