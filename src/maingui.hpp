@@ -15,7 +15,7 @@ private:
 
   Workspaces workspaces;
   bool show_style_editor = false;
-  void render_menu_bar();
+  bool render_menu_bar();
 public:
   maingui();
   ~maingui() {

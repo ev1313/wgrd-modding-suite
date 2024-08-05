@@ -79,7 +79,7 @@ bool maingui::init(int argc, char *argv[]) {
   return true;
 }
 
-void maingui::render_menu_bar() {
+bool maingui::render_menu_bar() {
   if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
     workspaces.show_add_workspace = true;
   }
@@ -105,7 +105,7 @@ void maingui::render_menu_bar() {
       }
       ImGui::Separator();
       if(ImGui::MenuItem(gettext("Exit"), "Alt+F4")) {
-        spdlog::info("Exit");
+        return true;
       }
       ImGui::EndMenu();
     }
@@ -125,6 +125,7 @@ void maingui::render_menu_bar() {
     "Load project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       fs::path ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+      workspaces.load_workspaces(ret);
     }
     ImGuiFileDialog::Instance()->Close();
   }
@@ -132,9 +133,12 @@ void maingui::render_menu_bar() {
     "Save project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       fs::path ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+      workspaces.save_workspaces(ret);
     }
     ImGuiFileDialog::Instance()->Close();
   }
+
+  return false;
 }
 
 bool maingui::render() {
@@ -158,12 +162,11 @@ bool maingui::render() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking);
-  ImGui::PopStyleVar();
-  ImGui::PopStyleVar(2);
+  ImGui::PopStyleVar(3);
         
   ImGuiID dockspace_id = ImGui::GetID("ModdingSuiteDockSpace");
   ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-  render_menu_bar();
+  bool exit_now = render_menu_bar();
 
   ImGui::End();
 
@@ -178,6 +181,5 @@ bool maingui::render() {
   }
   imgui_sink->render_log();
 
-  // FIXME: add something to exit the program?
-  return false;
+  return exit_now;
 }
