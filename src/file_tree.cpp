@@ -5,9 +5,8 @@
 
 #include "spdlog/spdlog.h"
 
-#include "pybind11/stl.h"
-
 bool FileTree::init_from_wgrd_path(fs::path wgrd_path) {
+  py::gil_scoped_acquire acquire;
   try {
     py::object get_dat_paths = py::module_::import("wgrd_cons_tools.create_vfs").attr("get_dat_paths");
     py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
@@ -19,10 +18,12 @@ bool FileTree::init_from_wgrd_path(fs::path wgrd_path) {
     spdlog::error(e.what());
     return false;
   }
+  py::gil_scoped_release release;
   return true;
 }
 
 bool FileTree::init_from_dat_path(fs::path path) {
+  py::gil_scoped_acquire acquire;
   try {
     py::object get_dat_paths = py::module_::import("wgrd_cons_tools.create_vfs").attr("get_dat_paths");
     py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
@@ -32,10 +33,12 @@ bool FileTree::init_from_dat_path(fs::path path) {
     spdlog::error(e.what());
     return false;
   }
+  py::gil_scoped_release release;
   return true;
 }
 
 bool FileTree::init_from_path(fs::path path) {
+  py::gil_scoped_acquire acquire;
   try {
     py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
     std::vector<std::string> lst;
@@ -45,10 +48,12 @@ bool FileTree::init_from_path(fs::path path) {
     spdlog::error(e.what());
     return false;
   }
+  py::gil_scoped_release release;
   return true;
 }
 
 bool FileTree::init_from_stream(std::ifstream& stream) {
+  throw std::runtime_error("Not implemented");
   return false;
 }
 

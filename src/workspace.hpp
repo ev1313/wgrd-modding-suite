@@ -12,6 +12,7 @@ private:
   fs::path workspace_dat_path;
   fs::path workspace_out_path;
 public:
+  bool is_open = true;
   std::string workspace_name;
   static std::optional<Workspace> render_init_workspace(bool* show_workspace);
   bool init(fs::path dat_path, fs::path out_path);

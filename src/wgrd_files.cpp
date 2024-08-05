@@ -35,10 +35,9 @@ bool wgrd_files::File::imgui_call() {
   {
     if (ImGuiFileDialog::Instance()->IsOk())
     {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+      std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
 
-      copy_to_file(filePathName);
+      copy_to_file(filePath);
     }
 
     ImGuiFileDialog::Instance()->Close();
@@ -403,23 +402,20 @@ void wgrd_files::NdfBin::render_property_list(std::string object_name) {
   }
   auto& object = ndfbin.get_object(object_name);
 
-  if(ImGui::TreeNodeEx(gettext("Object Properties"), ImGuiTreeNodeFlags_DefaultOpen)){
-    ImGui::BeginTable("property_table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable);
-    ImGui::TableSetupColumn(gettext("Name"), ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn(gettext("Type"), ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableHeadersRow();
-    for(const auto& property : object.properties) {
-      ImGui::TableNextColumn();
-      ImGui::Text("%s", property->property_name.c_str());
-      ImGui::TableNextColumn();
-      ImGui::Text("%s(0x%02x)", std::string(magic_enum::enum_name((NDFPropertyType)property->property_type)).c_str(), property->property_type);
-      ImGui::TableNextColumn();
-      render_property(object_name, property->property_name);
-    }
-    ImGui::EndTable();
-    ImGui::TreePop();
+  ImGui::BeginTable("property_table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable);
+  ImGui::TableSetupColumn(gettext("Name"), ImGuiTableColumnFlags_WidthFixed);
+  ImGui::TableSetupColumn(gettext("Type"), ImGuiTableColumnFlags_WidthFixed);
+  ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
+  ImGui::TableHeadersRow();
+  for(const auto& property : object.properties) {
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", property->property_name.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("%s(0x%02x)", std::string(magic_enum::enum_name((NDFPropertyType)property->property_type)).c_str(), property->property_type);
+    ImGui::TableNextColumn();
+    render_property(object_name, property->property_name);
   }
+  ImGui::EndTable();
 }
 
 void wgrd_files::NdfBin::render_property(std::string object_name, std::string property_name) {
@@ -850,7 +846,7 @@ bool wgrd_files::NdfBin::imgui_call() {
       ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
       bool* ptr = &p_open;
-      
+
       if(object == object_name) {
         ptr = nullptr;
       }
@@ -881,7 +877,7 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
 
   f.clear();
   f.seekg(offset);
-  
+
   if(strncmp(magic, "EUG0", 4)) {
     return false;
   }

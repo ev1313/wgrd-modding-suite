@@ -97,11 +97,15 @@ void Workspaces::render() {
   size_t idx = 0;
   for(auto& workspace : workspaces) {
     std::string name = std::format("{}##WP_{}", workspace.workspace_name, idx++);
-    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(name.c_str(), nullptr)) {
+    ImGui::SetNextWindowSize(ImVec2(800, 800), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(name.c_str(), &workspace.is_open)) {
       workspace.render();
       ImGui::End();
-    } 
+    }
+    
+    if(!workspace.is_open) {
+      workspaces.erase(workspaces.begin() + idx);
+    }
   }
   if(show_add_workspace) {
     auto workspace = Workspace::render_init_workspace(&show_add_workspace);
@@ -129,10 +133,14 @@ void Workspaces::load_workspaces(fs::path path) {
     auto data = toml::parse(path.string());
     auto workspaces = data["workspaces"].as_array();
     for(auto& workspace : workspaces) {
+      py::gil_scoped_acquire acquire;
       Workspace w;
       w.workspace_name = workspace["name"].as_string();
       w.init(workspace["dat_path"].as_string(), workspace["out_path"].as_string());
       this->workspaces.push_back(std::move(w));
+      py::gil_scoped_release release;
     }
+  } else {
+    spdlog::info("Could not load project file from {}", path.string());
   }
 }

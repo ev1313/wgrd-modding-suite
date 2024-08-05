@@ -18,7 +18,7 @@ std::optional<std::string> show_file_dialog_input(std::string title,
   }
 
   if (ImGuiFileDialog::Instance()->Display(
-    dialogkey, ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    dialogkey, ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       ret = ImGuiFileDialog::Instance()->GetCurrentPath();
     }

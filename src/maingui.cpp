@@ -11,6 +11,8 @@
 #include <libintl.h>
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
+  program.add_argument("-p").help(gettext("Load a project file")).default_value(std::string{"project.toml"})
+  ;
 }
 
 bool maingui::init(int argc, char *argv[]) {
@@ -72,16 +74,20 @@ bool maingui::init(int argc, char *argv[]) {
     python_works = false;
   }
 
-  //file_tree.init_from_wgrd_path(program.get("wgrd_dir"));
-
   py::gil_scoped_release release2;
+  
+  workspaces.load_workspaces(program.get("-p"));
 
   return true;
 }
 
 bool maingui::render_menu_bar() {
+  bool ret = false;
   if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
     workspaces.show_add_workspace = true;
+  }
+  if(ImGui::Shortcut(ImGuiMod_Alt | ImGuiKey_F4)) {
+    ret = true;
   }
 
   if(ImGui::BeginMenuBar()) {
@@ -96,16 +102,17 @@ bool maingui::render_menu_bar() {
       if(ImGui::MenuItem(gettext("Load project file"))) {
         IGFD::FileDialogConfig config;
         config.path = ".";
-        ImGuiFileDialog::Instance()->OpenDialog("Load project file", gettext("Load project file"), nullptr, config);
+        
+        ImGuiFileDialog::Instance()->OpenDialog("Load project file", gettext("Load project file"), ".toml", config);
       }
       if(ImGui::MenuItem(gettext("Save project file"))) {
         IGFD::FileDialogConfig config;
         config.path = ".";
-        ImGuiFileDialog::Instance()->OpenDialog("Save project file", gettext("Save project file"), nullptr, config);
+        ImGuiFileDialog::Instance()->OpenDialog("Save project file", gettext("Save project file"), ".toml", config);
       }
       ImGui::Separator();
       if(ImGui::MenuItem(gettext("Exit"), "Alt+F4")) {
-        return true;
+        ret = true;
       }
       ImGui::EndMenu();
     }
@@ -122,23 +129,25 @@ bool maingui::render_menu_bar() {
   }
 
   if (ImGuiFileDialog::Instance()->Display(
-    "Load project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    "Load project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
-      fs::path ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+      fs::path ret = ImGuiFileDialog::Instance()->GetFilePathName();
+      spdlog::info("Load project file {}", ret.string());
       workspaces.load_workspaces(ret);
     }
     ImGuiFileDialog::Instance()->Close();
   }
   if (ImGuiFileDialog::Instance()->Display(
-    "Save project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 400))) {
+    "Save project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
-      fs::path ret = ImGuiFileDialog::Instance()->GetCurrentPath();
+      fs::path ret = ImGuiFileDialog::Instance()->GetFilePathName();
+      spdlog::info("Save project file {}", ret.string());
       workspaces.save_workspaces(ret);
     }
     ImGuiFileDialog::Instance()->Close();
   }
 
-  return false;
+  return ret;
 }
 
 bool maingui::render() {
