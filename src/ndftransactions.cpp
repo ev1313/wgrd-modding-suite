@@ -9,7 +9,7 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, fs::path file_path
 }
 
 void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> vec_data) {
-  spdlog::warn("start_parsing {}", vfs_path.string());
+  spdlog::info("start_parsing {}", vfs_path.string());
   ndf_parsed = false;
   assert(ndf_parsing == false);
   m_ndf_parsed_promise = std::nullopt;

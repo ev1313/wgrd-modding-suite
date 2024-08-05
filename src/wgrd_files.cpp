@@ -423,7 +423,6 @@ void wgrd_files::NdfBin::render_property_list(std::string object_name) {
 }
 
 void wgrd_files::NdfBin::render_property(std::string object_name, std::string property_name) {
-  spdlog::info("rendering property {} {}", object_name, property_name);
   auto& object = ndfbin.get_object(object_name);
   auto& property_idx = object.property_map.at(property_name);
   auto& property = object.properties.at(property_idx);
