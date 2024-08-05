@@ -843,20 +843,25 @@ bool wgrd_files::NdfBin::imgui_call() {
     }
   }
   if(ndfbin.is_parsed()) {
-    {
-      std::string object = render_object_list();
-      if(!object.empty()) {
-        open_object_windows.insert(object);
-      }
+    std::string object = render_object_list();
+    if(!object.empty()) {
+      open_object_windows.insert({object, true});
     }
-    for(std::string object_name : open_object_windows) {
+    for(auto& [object_name, p_open] : open_object_windows) {
       ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-      bool close = false;
-      if(ImGui::Begin(object_name.c_str(), &close)) {
+
+      bool* ptr = &p_open;
+      
+      if(object == object_name) {
+        ptr = nullptr;
+      }
+
+      if(ImGui::Begin(object_name.c_str(), ptr)) {
         render_property_list(object_name);
         ImGui::End();
       }
-      if(close) {
+
+      if(!p_open) {
         open_object_windows.erase(object_name);
       }
     }

@@ -111,7 +111,7 @@ private:
   bool object_changed = true;
   std::vector<std::any> property_temp;
 
-  std::set<std::string> open_object_windows;
+  std::map<std::string, bool> open_object_windows;
 
   NdfBinFile ndfbin;
   std::string render_object_list();
