@@ -1,6 +1,6 @@
 # WG: RD Modding Suite
 
-This modding suite uses the new tools found at [wgrd-tools](https://github.com/ev1313/wgrd-tools), [wgrd-cons-tools](https://github.com/ev1313/wgrd-cons-tools), [wgrd-cons-parsers](https://github.com/ev1313/wgrd-cons-parsers).
+This modding suite for the game Wargame: Red Dragon uses the new tools found at [wgrd-tools](https://github.com/ev1313/wgrd-tools), [wgrd-cons-tools](https://github.com/ev1313/wgrd-cons-tools), [wgrd-cons-parsers](https://github.com/ev1313/wgrd-cons-parsers).
 
 ## Installation
 

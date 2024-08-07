@@ -1,11 +1,14 @@
 #pragma once
 
 #include <cctype>
+#include <iterator>
 #include <memory>
 
 #include <future>
 #include <optional>
 #include <pugixml.hpp>
+
+#include <iterator>
 
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -528,6 +531,7 @@ struct NdfTransactionChangeProperty_S32_vec3 : public NdfTransactionChangeProper
 
 
 struct NdfTransactionChangeProperty_AddListItem : public NdfTransactionChangeProperty {
+  uint32_t index;
   // when initializing, this needs to be created
   // when applying, this gets moved into the object
   // when undoing, this gets moved back into the transaction
@@ -536,33 +540,44 @@ struct NdfTransactionChangeProperty_AddListItem : public NdfTransactionChangePro
   void apply_property(std::unique_ptr<NDFProperty>& prop) override {
     assert(prop->property_type == NDFPropertyType::List);
     auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
-    property->values.push_back(std::move(value));
+    auto it = property->values.begin(); 
+    std::advance(it, index);
+    property->values.insert(it, std::move(value));
   }
 
   void undo_property(std::unique_ptr<NDFProperty>& prop) override {
     assert(prop->property_type == NDFPropertyType::List);
     auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
-    value = std::move(property->values.back());
-    property->values.pop_back();
+    // value shouldn't have changed? maybe just assert it instead of moving?
+    value = std::move(property->values.at(index));
+    auto it = property->values.begin();
+    std::advance(it, index);
+    property->values.erase(it);
   }
 };
 
 struct NdfTransactionChangeProperty_RemoveListItem : public NdfTransactionChangeProperty {
+  uint32_t index;
   // needs no initialization
   // when applying, this gets moved into the transaction
   // when undoing, this gets moved back into the object
   std::unique_ptr<NDFProperty> previous_value;
+
   void apply_property(std::unique_ptr<NDFProperty>& prop) override {
     assert(prop->property_type == NDFPropertyType::List);
     auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
-    previous_value = std::move(property->values.back());
-    property->values.pop_back();
+    previous_value = std::move(property->values.at(index));
+    auto it = property->values.begin();
+    std::advance(it, index);
+    property->values.erase(it);
   }
 
   void undo_property(std::unique_ptr<NDFProperty>& prop) override {
     assert(prop->property_type == NDFPropertyType::List);
     auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
-    property->values.push_back(std::move(previous_value));
+    auto it = property->values.begin();
+    std::advance(it, index);
+    property->values.insert(it, std::move(previous_value));
   }
 };
 
@@ -579,6 +594,57 @@ struct NdfTransactionChangeProperty_ChangeListItem : public NdfTransactionChange
     assert(prop->property_type == NDFPropertyType::List);
     auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(prop);
     change->undo_property(property->values.at(index));
+  }
+};
+
+struct NdfTransactionChangeProperty_AddMapItem : public NdfTransactionChangeProperty {
+  uint32_t index;
+  // when initializing, this needs to be created
+  // when applying, this gets moved into the object
+  // when undoing, this gets moved back into the transaction
+  std::unique_ptr<NDFProperty> value;
+
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Map);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(prop);
+    auto it = property->values.begin(); 
+    std::advance(it, index);
+    property->values.insert(it, std::move(value));
+  }
+
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Map);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(prop);
+    // value shouldn't have changed? maybe just assert it instead of moving?
+    value = std::move(property->values.at(index));
+    auto it = property->values.begin();
+    std::advance(it, index);
+    property->values.erase(it);
+  }
+};
+
+struct NdfTransactionChangeProperty_RemoveMapItem : public NdfTransactionChangeProperty {
+  uint32_t index;
+  // needs no initialization
+  // when applying, this gets moved into the transaction
+  // when undoing, this gets moved back into the object
+  std::unique_ptr<NDFProperty> previous_value;
+
+  void apply_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Map);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(prop);
+    previous_value = std::move(property->values.at(index));
+    auto it = property->values.begin();
+    std::advance(it, index);
+    property->values.erase(it);
+  }
+
+  void undo_property(std::unique_ptr<NDFProperty>& prop) override {
+    assert(prop->property_type == NDFPropertyType::Map);
+    auto& property = reinterpret_cast<std::unique_ptr<NDFPropertyMap>&>(prop);
+    auto it = property->values.begin();
+    std::advance(it, index);
+    property->values.insert(it, std::move(previous_value));
   }
 };
 
