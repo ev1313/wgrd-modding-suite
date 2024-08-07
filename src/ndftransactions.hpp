@@ -706,9 +706,9 @@ private:
   NDF ndf;
 
 public:
-  void start_parsing(fs::path vfs_path, fs::path file_path);
-  void start_parsing(fs::path vfs_path, std::vector<char> vec_data);
-  bool load_from_file(fs::path path);
+  void start_parsing(fs::path vfs_path, fs::path file_path, fs::path out_path);
+  void start_parsing(fs::path vfs_path, std::vector<char> vec_data, fs::path out_path);
+  void load_from_xml_file(fs::path path);
 
   bool is_parsing() {
     return ndf_parsing;

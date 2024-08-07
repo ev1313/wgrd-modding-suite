@@ -115,6 +115,8 @@ private:
 
   std::map<std::string, bool> open_object_windows;
 
+  fs::path xml_path;
+
   NdfBinFile ndfbin;
   std::string render_object_list();
   void render_property_list(std::string object_name);

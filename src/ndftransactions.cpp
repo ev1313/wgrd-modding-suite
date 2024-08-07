@@ -1,14 +1,14 @@
 #include "ndftransactions.hpp"
 
-void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, fs::path file_path) {
+void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, fs::path file_path, fs::path out_path) {
   std::ifstream file(file_path, std::ios::binary | std::ios::in);
   std::vector<char> data;
   data.resize(fs::file_size(file_path));
   file.read(data.data(), data.size());
-  start_parsing(vfs_path, data);
+  start_parsing(vfs_path, data, out_path);
 }
 
-void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> vec_data) {
+void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> vec_data, fs::path out_path) {
   spdlog::info("start_parsing {}", vfs_path.string());
   ndf_parsed = false;
   assert(ndf_parsing == false);
@@ -29,6 +29,7 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> 
 
     std::stringstream decompressed_stream(decompressed_data);
     ndf.load_from_ndfbin_stream(decompressed_stream);
+    ndf.save_as_ndf_xml(out_path);
   } catch (py::error_already_set &e) {
     spdlog::error("Error parsing NDF: {}", e.what());
   }
@@ -41,3 +42,9 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> 
   ndf_parsing = false;
 }
 
+void wgrd_files::NdfBinFile::load_from_xml_file(fs::path path) {
+  spdlog::info("load_from_xml_file {}", path.string());
+  ndf.load_from_ndf_xml(path);
+  ndf_parsed = true;
+  ndf_parsing = false;
+}

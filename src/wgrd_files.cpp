@@ -272,6 +272,12 @@ bool wgrd_files::Dic::is_file(std::string vfs_path, std::ifstream &f, size_t off
 }
 
 wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
+  xml_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ndf.xml");
+  if(fs::exists(xml_path)) {
+    ndfbin.load_from_xml_file(xml_path);
+  } else {
+    spdlog::info("No ndf xml file found at {}", xml_path.string());
+  }
 }
 
 std::string wgrd_files::NdfBin::render_object_list() {
@@ -857,8 +863,8 @@ bool wgrd_files::NdfBin::imgui_call() {
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
   ImGui::Begin(vfs_path.c_str(), &window_opened);
   if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
-    if(ImGui::Button(gettext("Parse NDF"))) { 
-      ndfbin.start_parsing(vfs_path, get_data());
+    if(ImGui::Button(gettext("Parse NDF"))) {
+      ndfbin.start_parsing(vfs_path, get_data(), xml_path);
     }
   }
   if(ndfbin.is_parsing()) {
@@ -866,7 +872,7 @@ bool wgrd_files::NdfBin::imgui_call() {
     ndfbin.check_parsing();
   } else if(ndfbin.is_parsed()) {
     if(ImGui::Button(gettext("Regenerate NDF"))) {
-      ndfbin.start_parsing(vfs_path, get_data());
+      ndfbin.start_parsing(vfs_path, get_data(), xml_path);
     }
     ImGui::SameLine();
     if(ImGui::Button(gettext("Save XML"))) {
