@@ -719,6 +719,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       if(ImGui::BeginTable(std::format("list_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn(gettext("List Index"), ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn(gettext("List Items"), ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("##ItemButtons", ImGuiTableColumnFlags_WidthStretch);
         for(const auto& [idx, item] : p->values | std::views::enumerate) {
           ImGui::PushID(idx);
           ImGui::TableNextColumn();
@@ -732,19 +733,19 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
             list_change->change = std::move(change.value());
             ret = std::move(list_change);
           }
-          ImGui::SameLine();
+          ImGui::TableNextColumn();
           if(ImGui::Button(gettext("Add"))) {
             auto list_change = std::make_unique<NdfTransactionChangeProperty_AddListItem>();
             list_change->index = idx;
             list_change->value = item->get_copy();
-            spdlog::warn("Adding item to list @{}", idx);
+            spdlog::debug("Adding item to list @{}", idx);
             ret = std::move(list_change);
           }
           ImGui::SameLine();
           if(ImGui::Button(gettext("Remove"))) {
             auto list_change = std::make_unique<NdfTransactionChangeProperty_RemoveListItem>();
             list_change->index = idx;
-            spdlog::warn("Removing item from list @{}", idx);
+            spdlog::debug("Removing item from list @{}", idx);
             ret = std::move(list_change);
           }
           ImGui::PopID();
@@ -760,7 +761,9 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       if(ImGui::BeginTable(std::format("map_table_{}", property->property_name).c_str(), 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn(gettext("Map Key"), ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn(gettext("Map Value"), ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("##ItemButtons", ImGuiTableColumnFlags_WidthStretch);
         for(const auto& [idx, item] : p->values | std::views::enumerate) {
+          ImGui::PushID(idx);
           ImGui::TableNextColumn();
           {
             item.first->property_name = "Key_" + std::to_string(idx);
@@ -786,7 +789,21 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
             }
           }
           ImGui::TableNextColumn();
-
+          if(ImGui::Button(gettext("Add"))) {
+            auto map_change = std::make_unique<NdfTransactionChangeProperty_AddMapItem>();
+            map_change->index = idx;
+            map_change->value = std::make_pair(item.first->get_copy(), item.second->get_copy());
+            spdlog::debug("Adding item to map @{}", idx);
+            ret = std::move(map_change);
+          }
+          ImGui::SameLine();
+          if(ImGui::Button(gettext("Remove"))) {
+            auto map_change = std::make_unique<NdfTransactionChangeProperty_RemoveMapItem>();
+            map_change->index = idx;
+            spdlog::debug("Removing item from map @{}", idx);
+            ret = std::move(map_change);
+          }
+          ImGui::PopID();
         }
         ImGui::EndTable();
         return ret;

@@ -602,7 +602,7 @@ struct NdfTransactionChangeProperty_AddMapItem : public NdfTransactionChangeProp
   // when initializing, this needs to be created
   // when applying, this gets moved into the object
   // when undoing, this gets moved back into the transaction
-  std::unique_ptr<NDFProperty> value;
+  std::pair<std::unique_ptr<NDFProperty>, std::unique_ptr<NDFProperty>> value;
 
   void apply_property(std::unique_ptr<NDFProperty>& prop) override {
     assert(prop->property_type == NDFPropertyType::Map);
@@ -628,7 +628,7 @@ struct NdfTransactionChangeProperty_RemoveMapItem : public NdfTransactionChangeP
   // needs no initialization
   // when applying, this gets moved into the transaction
   // when undoing, this gets moved back into the object
-  std::unique_ptr<NDFProperty> previous_value;
+  std::pair<std::unique_ptr<NDFProperty>, std::unique_ptr<NDFProperty>> previous_value;
 
   void apply_property(std::unique_ptr<NDFProperty>& prop) override {
     assert(prop->property_type == NDFPropertyType::Map);
