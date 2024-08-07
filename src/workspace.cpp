@@ -77,12 +77,16 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
 }
 
 void Workspace::render() {
-  auto meta = file_tree.render();
-  if(meta) {
-    files.add_file(workspace_out_path, meta.value());
+  if (ImGui::Begin(workspace_name.c_str(), &is_open)) {
+    auto meta = file_tree.render();
+    if(meta) {
+      files.add_file(workspace_out_path, meta.value());
+      files.open_window(meta.value());
+    }
   }
-  ImGui::SameLine();
-  files.imgui_call(meta);
+  ImGui::End();
+
+  files.imgui_call();
 }
 
 toml::table Workspace::to_toml() {
@@ -96,13 +100,9 @@ toml::table Workspace::to_toml() {
 void Workspaces::render() {
   size_t idx = 0;
   for(auto& workspace : workspaces) {
-    std::string name = std::format("{}##WP_{}", workspace.workspace_name, idx++);
     ImGui::SetNextWindowSize(ImVec2(800, 800), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(name.c_str(), &workspace.is_open)) {
-      workspace.render();
-      ImGui::End();
-    }
-    
+    workspace.render();
+
     if(!workspace.is_open) {
       workspaces.erase(workspaces.begin() + idx);
     }

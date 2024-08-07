@@ -134,8 +134,6 @@ std::optional<FileMeta> FileTree::render() {
   py::object create_vfs_tree = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs_tree");
   py::object search_vfs_tree = py::module_::import("wgrd_cons_tools.create_vfs").attr("search_vfs_tree");
 
-  ImGui::BeginChild("##FileTree", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Border | ImGuiChildFlags_FrameStyle);
-
   ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
   m_rebuild_tree |= ImGui::InputText("##file_tree_search", &m_search);
 
@@ -161,7 +159,7 @@ std::optional<FileMeta> FileTree::render() {
     ret = file_list(vfs_tree);
     ImGui::EndListBox();
   }
-  ImGui::EndChild();
+
   py::gil_scoped_release release;
   return ret;
 }

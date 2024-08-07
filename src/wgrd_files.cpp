@@ -339,41 +339,42 @@ std::string wgrd_files::NdfBin::render_object_list() {
   if(!object_name.empty() && ndfbin.contains_object(object_name)){
     auto& object = ndfbin.get_object(object_name);
 
-    ImGui::BeginTable("object_prop_table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders);
-    ImGui::TableSetupColumn(gettext("##OptionName"), ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableNextColumn();
-    ImGui::Text("Object Name: ");
-    ImGui::TableNextColumn();
-    if(ImGui::InputText("##ObjectName", &object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
-      auto change = std::make_unique<NdfTransactionChangeObjectName>();
-      change->previous_name = object.name;
-      change->name = object_name;
-      ndfbin.apply_transaction(std::move(change));
-    }
-    ImGui::TableNextColumn();
-    ImGui::Text("Export Path: ");
-    ImGui::TableNextColumn();
-    std::string export_path = object.export_path;
-    if(ImGui::InputText("##ExportPath", &export_path, ImGuiInputTextFlags_EnterReturnsTrue)) {
-      auto change = std::make_unique<NdfTransactionChangeObjectExportPath>();
-      change->object_name = object.name;
-      change->previous_export_path = object.export_path;
-      change->export_path = export_path;
-      ndfbin.apply_transaction(std::move(change));
-    }
-    ImGui::TableNextColumn();
-    ImGui::Text("Is Top Object: ");
-    ImGui::TableNextColumn();
-    bool is_top_object = object.is_top_object;
-    if(ImGui::Checkbox("##IsTopObject", &is_top_object)) {
-      auto change = std::make_unique<NdfTransactionChangeObjectTopObject>();
-      change->object_name = object.name;
-      change->top_object = is_top_object;
-      ndfbin.apply_transaction(std::move(change));
-    }
+    if(ImGui::BeginTable("object_prop_table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+      ImGui::TableSetupColumn(gettext("##OptionName"), ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableNextColumn();
+      ImGui::Text("Object Name: ");
+      ImGui::TableNextColumn();
+      if(ImGui::InputText("##ObjectName", &object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto change = std::make_unique<NdfTransactionChangeObjectName>();
+        change->previous_name = object.name;
+        change->name = object_name;
+        ndfbin.apply_transaction(std::move(change));
+      }
+      ImGui::TableNextColumn();
+      ImGui::Text("Export Path: ");
+      ImGui::TableNextColumn();
+      std::string export_path = object.export_path;
+      if(ImGui::InputText("##ExportPath", &export_path, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto change = std::make_unique<NdfTransactionChangeObjectExportPath>();
+        change->object_name = object.name;
+        change->previous_export_path = object.export_path;
+        change->export_path = export_path;
+        ndfbin.apply_transaction(std::move(change));
+      }
+      ImGui::TableNextColumn();
+      ImGui::Text("Is Top Object: ");
+      ImGui::TableNextColumn();
+      bool is_top_object = object.is_top_object;
+      if(ImGui::Checkbox("##IsTopObject", &is_top_object)) {
+        auto change = std::make_unique<NdfTransactionChangeObjectTopObject>();
+        change->object_name = object.name;
+        change->top_object = is_top_object;
+        ndfbin.apply_transaction(std::move(change));
+      }
 
-    ImGui::EndTable();
+      ImGui::EndTable();
+    }
 
     if(ImGui::Button(gettext("Remove Object"))) {
       auto change = std::make_unique<NdfTransactionRemoveObject>();
@@ -403,20 +404,21 @@ void wgrd_files::NdfBin::render_property_list(std::string object_name) {
   }
   auto& object = ndfbin.get_object(object_name);
 
-  ImGui::BeginTable("property_table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable);
-  ImGui::TableSetupColumn(gettext("Name"), ImGuiTableColumnFlags_WidthFixed);
-  ImGui::TableSetupColumn(gettext("Type"), ImGuiTableColumnFlags_WidthFixed);
-  ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
-  ImGui::TableHeadersRow();
-  for(const auto& property : object.properties) {
-    ImGui::TableNextColumn();
-    ImGui::Text("%s", property->property_name.c_str());
-    ImGui::TableNextColumn();
-    ImGui::Text("%s(0x%02x)", std::string(magic_enum::enum_name((NDFPropertyType)property->property_type)).c_str(), property->property_type);
-    ImGui::TableNextColumn();
-    render_property(object_name, property->property_name);
+  if(ImGui::BeginTable("property_table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn(gettext("Name"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("Type"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableHeadersRow();
+    for(const auto& property : object.properties) {
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", property->property_name.c_str());
+      ImGui::TableNextColumn();
+      ImGui::Text("%s(0x%02x)", std::string(magic_enum::enum_name((NDFPropertyType)property->property_type)).c_str(), property->property_type);
+      ImGui::TableNextColumn();
+      render_property(object_name, property->property_name);
+    }
+    ImGui::EndTable();
   }
-  ImGui::EndTable();
 }
 
 void wgrd_files::NdfBin::render_property(std::string object_name, std::string property_name) {
@@ -716,7 +718,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::List: {
       std::optional<std::unique_ptr<NdfTransactionChangeProperty>> ret = std::nullopt;
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyList>&>(property);
-      if(ImGui::BeginTable(std::format("list_table_{}", property->property_name).c_str(), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
+      if(ImGui::BeginTable(std::format("list_table_{}", property->property_name).c_str(), 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn(gettext("List Index"), ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn(gettext("List Items"), ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("##ItemButtons", ImGuiTableColumnFlags_WidthStretch);
@@ -852,7 +854,8 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
 }
 
 bool wgrd_files::NdfBin::imgui_call() {
-  ImGui::Text("NdfBin: %s", vfs_path.c_str());
+  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+  ImGui::Begin(vfs_path.c_str(), &window_opened);
   if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
     if(ImGui::Button(gettext("Parse NDF"))) { 
       ndfbin.start_parsing(vfs_path, get_data());
@@ -874,11 +877,16 @@ bool wgrd_files::NdfBin::imgui_call() {
       ndfbin.save_ndfbin_to_file(out_path / "bin" / vfs_path);
     }
   }
+  std::string object = "";
   if(ndfbin.is_parsed()) {
-    std::string object = render_object_list();
+    object = render_object_list();
     if(!object.empty()) {
       open_object_windows.insert({object, true});
     }
+  }
+  ImGui::End();
+
+  if(ndfbin.is_parsed()) {
     for(auto& [object_name, p_open] : open_object_windows) {
       ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
@@ -890,15 +898,16 @@ bool wgrd_files::NdfBin::imgui_call() {
 
       if(ImGui::Begin(object_name.c_str(), ptr)) {
         render_property_list(object_name);
-        ImGui::End();
       }
+      ImGui::End();
 
       if(!p_open) {
         open_object_windows.erase(object_name);
       }
     }
   }
-  return true;
+
+  return window_opened;
 }
 
 bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {
@@ -926,15 +935,21 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
   return true;
 }
 
-void wgrd_files::Files::imgui_call(std::optional<FileMeta> meta) {
-  ImGui::BeginChild(gettext("Files"),  ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
-  if(meta) {
-    auto& m = meta.value();
-    if(files.find(m.idx) != files.end()) {
-      files[m.idx]->imgui_call();
+void wgrd_files::Files::imgui_call() {
+  for(auto &[idx, file] : files) {
+    if(file->window_opened) {
+      file->imgui_call();
     }
   }
-  ImGui::EndChild();
+}
+
+void wgrd_files::Files::open_window(FileMeta meta) {
+  auto file = files.find(meta.idx);
+  if(file == files.end()) {
+    spdlog::error("Trying to open window for not loaded file");
+    return;
+  }
+  file->second->window_opened = true;
 }
 
 void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_offset) {

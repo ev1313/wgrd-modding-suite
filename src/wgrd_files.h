@@ -23,8 +23,9 @@ class Files {
 private:
   std::map<size_t, std::unique_ptr<File>> files;
 public:
-  void imgui_call(std::optional<FileMeta> meta);
+  void imgui_call();
   void add_file(fs::path out_path, FileMeta meta, size_t offset = 0);
+  void open_window(FileMeta meta);
 };
 
 class File {
@@ -35,6 +36,7 @@ protected:
   size_t size;
   fs::path out_path;
 public:
+  bool window_opened = true;
   explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   virtual bool imgui_call();
   std::vector<char> get_file();
