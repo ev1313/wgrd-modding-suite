@@ -11,12 +11,20 @@
 #include <libintl.h>
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
-  program.add_argument("-p").help(gettext("Load a project file")).default_value(std::string{"project.toml"})
-  ;
+  program.add_argument("-p").help(gettext("Load a project file")).default_value(std::string{"project.toml"});
+  program.add_argument("-v", "--verbose").help(gettext("Shows debug logs")).default_value(false).implicit_value(true);
 }
 
 bool maingui::init(int argc, char *argv[]) {
   program.parse_args(argc, argv);
+
+  if(program.get<bool>("-v")) {
+    spdlog::set_level(spdlog::level::debug);
+  } else {
+    spdlog::set_level(spdlog::level::info);
+  }
+
+  spdlog::debug("checking python");
 
   // this checks the most basic things about whether python works at all
   py::gil_scoped_acquire acquire;
