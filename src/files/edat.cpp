@@ -3,13 +3,14 @@
 #include <imgui.h>
 
 wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path) : File(meta, out_path) {
-  workspace.init_from_file(fs_path, out_path);
+  workspace.workspace_name = vfs_path;
+  copy_to_file(out_path / "bin" / vfs_path);
+  workspace.init_from_file(out_path / "bin" / vfs_path, out_path);
 }
 
 bool wgrd_files::EDat::imgui_call() {
+  workspace.render();
 
-
-  ImGui::Text("EDat: %s", vfs_path.c_str());
   return true;
 }
 

@@ -41,8 +41,8 @@ bool FileTree::init_from_path(fs::path path) {
   py::gil_scoped_acquire acquire;
   try {
     py::object create_vfs = py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
-    std::vector<std::string> lst;
-    lst.push_back(path.string());
+    py::list lst;
+    lst.attr("append")(py::str(path.string()));
     vfs_files = create_vfs(lst);
   } catch (py::error_already_set& e) {
     spdlog::error(e.what());
