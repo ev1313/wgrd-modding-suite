@@ -46,7 +46,9 @@ public:
     ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if(ImGui::Begin(gettext("Log"), &open_log)) {
 
+      ImGui::BeginChild("##LogScrolling", ImVec2(0,0), true, ImGuiChildFlags_ResizeX | ImGuiChildFlags_ResizeY);
       ImGui::TextWrapped("%s", log.str().c_str());
+      ImGui::EndChild();
 
       ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 2.0f);
       ImGui::Separator();

@@ -23,12 +23,14 @@ std::string wgrd_files::NdfBin::render_object_list() {
     ImGui::TableNextColumn();
     ImGui::Text("Object Filter: ");
     ImGui::TableNextColumn();
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     if(ImGui::InputText("##ObjectFilter", &object_filter)) {
       object_count_changed = true;
     }
     ImGui::TableNextColumn();
     ImGui::Text("Class Filter: ");
     ImGui::TableNextColumn();
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     if(ImGui::InputText("##ClassFilter", &class_filter)) {
       object_count_changed = true;
     }
@@ -87,6 +89,7 @@ std::string wgrd_files::NdfBin::render_object_list() {
       ImGui::TableNextColumn();
       ImGui::Text("Object Name: ");
       ImGui::TableNextColumn();
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText("##ObjectName", &object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeObjectName>();
         change->previous_name = object.name;
@@ -97,6 +100,7 @@ std::string wgrd_files::NdfBin::render_object_list() {
       ImGui::Text("Export Path: ");
       ImGui::TableNextColumn();
       std::string export_path = object.export_path;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText("##ExportPath", &export_path, ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeObjectExportPath>();
         change->object_name = object.name;
@@ -279,6 +283,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::String: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyString>&>(property);
       std::string value = prop->value;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText(std::format("##string_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
         spdlog::warn("changing string");
         auto change = std::make_unique<NdfTransactionChangeProperty_String>();
@@ -290,6 +295,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::WideString: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyWideString>&>(property);
       std::string value = prop->value;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText(std::format("##widestring_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_WideString>();
         change->value = value;
@@ -300,6 +306,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::PathReference: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyPathReference>&>(property);
       std::string path = prop->path;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText(std::format("##string_prop_{}", property->property_name).c_str(), &path, ImGuiInputTextFlags_EnterReturnsTrue)) {
         spdlog::warn("changing string");
         auto change = std::make_unique<NdfTransactionChangeProperty_PathReference>();
@@ -312,6 +319,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       if(property->is_object_reference()) {
         auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(property);
         std::string value = prop->object_name;
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
         if(ImGui::InputText(std::format("##objref_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
           auto change = std::make_unique<NdfTransactionChangeProperty_ObjectReference>();
           change->value = value;
@@ -340,6 +348,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       if(property->is_import_reference()) {
         auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyImportReference>&>(property);
         std::string value = prop->import_name;
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
         if(ImGui::InputText(std::format("##imprref_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
           auto change = std::make_unique<NdfTransactionChangeProperty_ImportReference>();
           change->value = value;
@@ -409,6 +418,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::NDFGUID: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyGUID>&>(property);
       std::string value = prop->guid;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText(std::format("##guid_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_GUID>();
         change->guid = value;
@@ -419,6 +429,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::LocalisationHash: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyLocalisationHash>&>(property);
       std::string value = prop->hash;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText(std::format("##lochash_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_LocalisationHash>();
         change->hash = value;
@@ -429,6 +440,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::Hash: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyHash>&>(property);
       std::string value = prop->hash;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputText(std::format("##hash_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_Hash>();
         change->hash = value;
