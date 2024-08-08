@@ -26,6 +26,7 @@ public:
   void imgui_call();
   void add_file(fs::path out_path, FileMeta meta, size_t offset = 0);
   void open_window(FileMeta meta);
+  void copy_bin_changes(fs::path dat_path, fs::path out_folder_path);
 };
 
 class File {
@@ -36,13 +37,20 @@ protected:
   size_t size;
   fs::path out_path;
   bool m_is_changed = false;
+  fs::path fs_path;
+
+  friend class Files;
 public:
   bool window_opened = true;
   explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   virtual bool imgui_call();
   std::vector<char> get_file();
   std::vector<char> get_data();
-  bool copy_to_file(std::filesystem::path path);
+  bool copy_to_file(fs::path path);
+  virtual bool save_bin(fs::path path) {
+    spdlog::error("cannot save bin file {} into {}", vfs_path, path.string());
+    return false;
+  }
   bool is_changed() {
     return m_is_changed;
   }
@@ -130,6 +138,7 @@ public:
   explicit NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
   bool imgui_call() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
+  bool save_bin(fs::path path) override;
 };
 
 }

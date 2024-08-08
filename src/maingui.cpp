@@ -84,7 +84,7 @@ bool maingui::init(int argc, char *argv[]) {
 
   py::gil_scoped_release release2;
   
-  workspaces.load_workspaces(program.get("-p"));
+  workspaces.load_project_file(program.get("-p"));
 
   return true;
 }
@@ -104,7 +104,7 @@ bool maingui::render_menu_bar() {
         workspaces.show_add_workspace = true;
       }
       if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
-        spdlog::info("Save file");
+        workspaces.save_workspaces();
       }
       ImGui::Separator();
       if(ImGui::MenuItem(gettext("Load project file"))) {
@@ -141,7 +141,7 @@ bool maingui::render_menu_bar() {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       fs::path ret = ImGuiFileDialog::Instance()->GetFilePathName();
       spdlog::info("Load project file {}", ret.string());
-      workspaces.load_workspaces(ret);
+      workspaces.load_project_file(ret);
     }
     ImGuiFileDialog::Instance()->Close();
   }
@@ -150,7 +150,7 @@ bool maingui::render_menu_bar() {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       fs::path ret = ImGuiFileDialog::Instance()->GetFilePathName();
       spdlog::info("Save project file {}", ret.string());
-      workspaces.save_workspaces(ret);
+      workspaces.save_project_file(ret);
     }
     ImGuiFileDialog::Instance()->Close();
   }

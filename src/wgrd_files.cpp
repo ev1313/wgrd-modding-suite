@@ -17,6 +17,8 @@
 
 #include "magic_enum.hpp"
 
+#include "helpers.hpp"
+
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -947,6 +949,11 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
   return true;
 }
 
+bool wgrd_files::NdfBin::save_bin(fs::path path) {
+  ndfbin.save_ndfbin_to_file(path);
+  return true;
+}
+
 void wgrd_files::Files::imgui_call() {
   for(auto &[idx, file] : files) {
     if(file->window_opened) {
@@ -995,5 +1002,20 @@ void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_o
     files[meta.idx] = std::make_unique<NdfBin>(vfs_path, f, offset, size, out_path);
   } else {
     files[meta.idx] = std::make_unique<File>(vfs_path, f, offset, size, out_path);
+  }
+  // FIXME: just change all constructors to take FileMeta instead at this point
+  files[meta.idx]->fs_path = meta.fs_path;
+}
+
+void wgrd_files::Files::copy_bin_changes(fs::path dat_path, fs::path out_folder_path) {
+  for(auto &[idx, file] : files) {
+    if(file->is_changed()) {
+      if(file->fs_path == dat_path) {
+        // vfs_path contains $/ at the beginning, drop it
+        fs::path bin_path = out_folder_path / remove_dollar(file->vfs_path);
+        spdlog::info("Saving binary for {} to {}", file->vfs_path, bin_path.string());
+        file->save_bin(bin_path);
+      }
+    }
   }
 }

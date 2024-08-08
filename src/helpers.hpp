@@ -61,3 +61,10 @@ public:
   }
 };
 
+// used for vfs paths, as the contain $/ at the beginning, which is omitted in dat files
+inline std::string remove_dollar(const std::string& str) {
+  if(str.size() >= 2 && str[0] == '$' && str[1] == '/') {
+    return str.substr(2);
+  }
+  return str;
+}
