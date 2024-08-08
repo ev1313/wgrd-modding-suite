@@ -7,7 +7,7 @@ using namespace wgrd_files;
 
 #include "magic_enum.hpp"
 
-wgrd_files::NdfBin::NdfBin(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
+wgrd_files::NdfBin::NdfBin(FileMeta meta, fs::path out_path) : File(meta, out_path) {
   xml_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ndf.xml");
   if(fs::exists(xml_path)) {
     ndfbin.load_from_xml_file(xml_path);

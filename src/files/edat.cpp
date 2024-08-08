@@ -2,8 +2,8 @@
 
 #include <imgui.h>
 
-wgrd_files::EDat::EDat(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
-
+wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path) : File(meta, out_path) {
+  workspace.init_from_file(fs_path, out_path);
 }
 
 bool wgrd_files::EDat::imgui_call() {

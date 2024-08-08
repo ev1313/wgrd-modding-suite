@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-wgrd_files::TGV::TGV(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path) : File(vfs_path, f, offset, size, out_path) {
+wgrd_files::TGV::TGV(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
 bool wgrd_files::TGV::imgui_call() {

@@ -76,6 +76,33 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
   return true;
 }
 
+bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
+  if(!fs::exists(file_path)) {
+    spdlog::warn("file_path does not exist {}", file_path.string());
+    return false;
+  }
+  fs::create_directories(out_path / "xml");
+  if(!fs::is_directory(out_path / "xml")) {
+    spdlog::warn("could not create directories {}", (out_path / "xml").string());
+    return false;
+  }
+  fs::create_directories(out_path / "bin");
+  if(!fs::is_directory(out_path / "bin")) {
+    spdlog::warn("could not create directories {}", (out_path / "bin").string());
+    return false;
+  }
+  fs::create_directories(out_path / "dat");
+  if(!fs::is_directory(out_path / "dat")) {
+    spdlog::warn("could not create directories {}", (out_path / "dat").string());
+    return false;
+  }
+
+  file_tree.init_from_path(file_path);
+  workspace_dat_path = file_path.parent_path();
+  workspace_out_path = out_path;
+  return true;
+}
+
 void Workspace::render() {
   if (ImGui::Begin(workspace_name.c_str(), &is_open)) {
     auto meta = file_tree.render();

@@ -52,8 +52,13 @@ bool wgrd_files::File::imgui_call() {
   return true;
 }
 
-wgrd_files::File::File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path)
-: vfs_path(std::move(vfs_path)), file(std::move(f)), offset(offset), size(size), out_path(out_path) {
+wgrd_files::File::File(FileMeta meta, fs::path out_path)
+: out_path(out_path) {
+  vfs_path = meta.vfs_path;
+  file.open(meta.fs_path, std::ios::in | std::ios::binary);
+  offset = meta.offset;
+  size = meta.size;
+  fs_path = meta.fs_path;
 }
 
 std::vector<char> File::get_file() {
@@ -131,35 +136,31 @@ void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_o
     return;
   }
   std::ifstream f(meta.fs_path, std::ios::in | std::ios::binary);
-  auto vfs_path = meta.vfs_path;
-  size_t offset = file_offset + meta.offset;
-  auto size = meta.size;
+  meta.offset += file_offset;
 
-  if(EDat::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<EDat>(vfs_path, f, offset, size, out_path);
+  if(EDat::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<EDat>(meta, out_path);
   } else
-  if(Ess::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<Ess>(vfs_path, f, offset, size, out_path);
+  if(Ess::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<Ess>(meta, out_path);
   } else
-  if(SFormat::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<SFormat>(vfs_path, f, offset, size, out_path);
+  if(SFormat::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<SFormat>(meta, out_path);
   } else
-  if(TGV::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<TGV>(vfs_path, f, offset, size, out_path);
+  if(TGV::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<TGV>(meta, out_path);
   } else
-  if(PPK::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<PPK>(vfs_path, f, offset, size, out_path);
+  if(PPK::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<PPK>(meta, out_path);
   } else
-  if(Scenario::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<Scenario>(vfs_path, f, offset, size, out_path);
+  if(Scenario::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<Scenario>(meta, out_path);
   } else
-  if(NdfBin::is_file(vfs_path, f, offset)) {
-    files[meta.idx] = std::make_unique<NdfBin>(vfs_path, f, offset, size, out_path);
+  if(NdfBin::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<NdfBin>(meta, out_path);
   } else {
-    files[meta.idx] = std::make_unique<File>(vfs_path, f, offset, size, out_path);
+    files[meta.idx] = std::make_unique<File>(meta, out_path);
   }
-  // FIXME: just change all constructors to take FileMeta instead at this point
-  files[meta.idx]->fs_path = meta.fs_path;
 }
 
 void wgrd_files::Files::copy_bin_changes(fs::path dat_path, fs::path out_folder_path) {

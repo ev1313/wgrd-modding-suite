@@ -44,7 +44,7 @@ protected:
   friend class Files;
 public:
   bool window_opened = true;
-  explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
+  explicit File(FileMeta meta, fs::path out_path);
   virtual bool imgui_call();
   std::vector<char> get_file();
   std::vector<char> get_data();

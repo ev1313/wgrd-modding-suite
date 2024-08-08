@@ -17,6 +17,7 @@ public:
   std::string workspace_name;
   static std::optional<Workspace> render_init_workspace(bool* show_workspace);
   bool init(fs::path dat_path, fs::path out_path);
+  bool init_from_file(fs::path file_path, fs::path out_path);
   void render();
   toml::table to_toml();
   void save_changes_to_dat(bool save_to_fs_path);
