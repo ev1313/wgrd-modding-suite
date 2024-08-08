@@ -44,7 +44,7 @@ bool wgrd_files::Dic::save_xml(fs::path path) {
     py_dic_data["entries"] = py::list();
     for(auto& [hash, str] : dic_data) {
       py::bytes hash_bytes;
-      hash_bytes.attr("fromhex")(py::str(hash));
+      hash_bytes=hash_bytes.attr("fromhex")(py::str(hash));
       py::dict entry;
       entry["hash"] = hash_bytes;
       entry["string"] = py::str(str);
@@ -77,7 +77,7 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
     py_dic_data["entries"] = py::list();
     for(auto& [hash, str] : dic_data) {
       py::bytes hash_bytes;
-      hash_bytes.attr("fromhex")(py::str(hash));
+      hash_bytes=hash_bytes.attr("fromhex")(py::str(hash));
       py::dict entry;
       entry["hash"] = hash_bytes;
       entry["string"] = py::str(str);
@@ -85,7 +85,10 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
     }
 
     py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
-    dic.attr("build_file")(py_dic_data, path.string());
+    py::tuple preprocessed_tuple = dic.attr("preprocess")(py_dic_data);
+    py::object preprocessed = preprocessed_tuple[0];
+    fs::create_directories(path.parent_path());
+    dic.attr("build_file")(preprocessed, path.string());
   } catch(const py::error_already_set &e) {
     spdlog::error("Error parsing Dic: {}", e.what());
     return false;
