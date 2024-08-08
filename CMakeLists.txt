@@ -45,8 +45,26 @@ add_executable(modding_suite
 		src/main.cpp
 		src/file_tree.cpp
 		src/file_tree.h
+
 		src/wgrd_files.cpp
 		src/wgrd_files.h
+    src/files/dic.hpp
+    src/files/dic.cpp
+    src/files/edat.hpp
+    src/files/edat.cpp
+    src/files/ess.hpp
+    src/files/ess.cpp
+    src/files/ndfbin.hpp
+    src/files/ndfbin.cpp
+    src/files/ppk.hpp
+    src/files/ppk.cpp
+    src/files/scenario.hpp
+    src/files/scenario.cpp
+    src/files/sformat.hpp
+    src/files/sformat.cpp
+    src/files/tgv.hpp
+    src/files/tgv.cpp
+
     src/maingui.cpp
     src/maingui.hpp
     src/ndftransactions.cpp
@@ -73,6 +91,7 @@ target_link_libraries(modding_suite
 target_include_directories(modding_suite
 PRIVATE
 deps/wgrd-tools/src
+src/
 ImGuiFileDialog/
 ${LibEpoxy_INCLUDE_DIRS}
 )

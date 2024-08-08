@@ -13,6 +13,16 @@
 static void glfw_error_callback(int error, const char* description)
 {
   std::cerr << std::vformat(gettext("GLFW Error {}: {}\n"), std::make_format_args(error, description));
+  spdlog::error(std::vformat(gettext("GLFW Error {}: {}\n"), std::make_format_args(error, description)));
+}
+
+static bool exit_now = false;
+static void window_close_callback(GLFWwindow* window)
+{
+  spdlog::info(gettext("Window close callback"));
+  return;
+  if (!exit_now)
+    glfwSetWindowShouldClose(window, GLFW_FALSE);
 }
 
 // Main code
@@ -98,15 +108,25 @@ int main(int argc, char* argv[])
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
+    glfwSetWindowCloseCallback(window, window_close_callback);
 
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    bool exit_now = false;
     while(!exit_now && !glfwWindowShouldClose(window))
     {
+      /*
+      if(!exit_now && glfwWindowShouldClose(window)) {
+        glfwDestroyWindow(window);
+        GLFWwindow* window = glfwCreateWindow(1280, 720, gettext("WG: RD Modding Suite"), nullptr, nullptr);
+        if (window == nullptr)
+          throw std::runtime_error("could not recreate window");
+        glfwMakeContextCurrent(window);
+        glfwSwapInterval(1); // Enable vsync
+      }
+      */
       // Poll and handle events (inputs, window resize, etc.)
       // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
       // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
