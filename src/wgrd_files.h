@@ -35,6 +35,7 @@ protected:
   size_t offset;
   size_t size;
   fs::path out_path;
+  bool m_is_changed = false;
 public:
   bool window_opened = true;
   explicit File(std::string vfs_path, std::ifstream &f, size_t offset, size_t size, fs::path out_path);
@@ -42,6 +43,9 @@ public:
   std::vector<char> get_file();
   std::vector<char> get_data();
   bool copy_to_file(std::filesystem::path path);
+  bool is_changed() {
+    return m_is_changed;
+  }
 };
 
 class __attribute__((visibility("default"))) EDat : public File {

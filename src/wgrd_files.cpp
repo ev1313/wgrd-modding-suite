@@ -439,8 +439,9 @@ void wgrd_files::NdfBin::render_property(std::string object_name, std::string pr
     auto transaction_change = std::move(transaction_opt.value());
     transaction_change->object_name = object.name;
     transaction_change->property_name = property->property_name;
-    spdlog::warn("Applying transaction {} {}", object.name, property->property_name);
+    spdlog::debug("Applying transaction {} {}", object.name, property->property_name);
     ndfbin.apply_transaction(std::move(transaction_change));
+    m_is_changed = true;
   }
 }
 
@@ -861,8 +862,12 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
 }
 
 bool wgrd_files::NdfBin::imgui_call() {
+  ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
+  if(is_changed()) {
+    wndflags |= ImGuiWindowFlags_UnsavedDocument;
+  }
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-  ImGui::Begin(vfs_path.c_str(), &window_opened);
+  ImGui::Begin(vfs_path.c_str(), &window_opened, wndflags);
   if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
     if(ImGui::Button(gettext("Parse NDF"))) {
       ndfbin.start_parsing(vfs_path, get_data(), xml_path);
