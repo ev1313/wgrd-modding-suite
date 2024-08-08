@@ -138,6 +138,9 @@ void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_o
   std::ifstream f(meta.fs_path, std::ios::in | std::ios::binary);
   meta.offset += file_offset;
 
+  if(Dic::is_file(meta.vfs_path, f, meta.offset)) {
+    files[meta.idx] = std::make_unique<Dic>(meta, out_path);
+  } else
   if(EDat::is_file(meta.vfs_path, f, meta.offset)) {
     files[meta.idx] = std::make_unique<EDat>(meta, out_path);
   } else
