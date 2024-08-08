@@ -15,6 +15,7 @@ private:
 
   Workspaces workspaces;
   bool show_style_editor = false;
+  bool save_to_fs_path = false;
   bool render_menu_bar();
 public:
   maingui();

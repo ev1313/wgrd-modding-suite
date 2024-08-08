@@ -94,6 +94,9 @@ bool maingui::render_menu_bar() {
   if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
     workspaces.show_add_workspace = true;
   }
+  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S)) {
+    workspaces.save_workspaces(save_to_fs_path);
+  }
   if(ImGui::Shortcut(ImGuiMod_Alt | ImGuiKey_F4)) {
     ret = true;
   }
@@ -104,8 +107,9 @@ bool maingui::render_menu_bar() {
         workspaces.show_add_workspace = true;
       }
       if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
-        workspaces.save_workspaces();
+        workspaces.save_workspaces(save_to_fs_path);
       }
+      ImGui::Checkbox(gettext("Save dat files to input path"), &save_to_fs_path);
       ImGui::Separator();
       if(ImGui::MenuItem(gettext("Load project file"))) {
         IGFD::FileDialogConfig config;
