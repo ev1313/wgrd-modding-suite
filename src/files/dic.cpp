@@ -131,6 +131,7 @@ bool wgrd_files::Dic::imgui_call() {
           trans->previous_hash = hash;
           trans->new_hash = hash_str;
           transactions.push_back(std::move(trans));
+          transactions.back()->apply(dic_data);
           m_is_changed = true;
         }
         ImGui::TableNextColumn();
@@ -141,6 +142,7 @@ bool wgrd_files::Dic::imgui_call() {
           trans->hash = hash;
           trans->new_value = value_str;
           transactions.push_back(std::move(trans));
+          transactions.back()->apply(dic_data);
           m_is_changed = true;
         }
         ImGui::TableNextColumn();
@@ -151,6 +153,7 @@ bool wgrd_files::Dic::imgui_call() {
   }
 
   ImGui::End();
+
   return true;
 }
 
