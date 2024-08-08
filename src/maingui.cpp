@@ -135,6 +135,11 @@ bool maingui::render_menu_bar() {
       if(ImGui::MenuItem(gettext("Log"), "Ctrl+L")) {
         imgui_sink->open_log = true;
       }
+      if(ImGui::MenuItem(gettext("Lag Test"))) {
+        spdlog::info("Lag Test");
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        spdlog::info("Lag Test done");
+      }
       ImGui::EndMenu();
     }
     ImGui::EndMenuBar();
