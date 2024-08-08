@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
+using namespace pybind11::literals;
+
 wgrd_files::Dic::Dic(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
@@ -34,26 +36,27 @@ bool wgrd_files::Dic::parse_file() {
 }
 
 bool wgrd_files::Dic::save_xml(fs::path path) {
-  spdlog::info("Saving Dic XML: {}", vfs_path);
+  spdlog::info("Saving Dic XML: {} to {}", vfs_path, path.string());
   py::gil_scoped_acquire acquire;
 
   try {
-    py::dict dic_data;
-    dic_data["entries"] = py::list();
+    py::dict py_dic_data;
+    py_dic_data["entries"] = py::list();
     for(auto& [hash, str] : dic_data) {
       py::bytes hash_bytes;
-      hash_bytes.attr("fromhex")(hash);
+      hash_bytes.attr("fromhex")(py::str(hash));
       py::dict entry;
       entry["hash"] = hash_bytes;
-      entry["string"] = str;
-      dic_data["entries"].attr("append")(entry);
+      entry["string"] = py::str(str);
+      py_dic_data["entries"].attr("append")(entry);
     }
 
     py::module ET = py::module::import("xml.etree.ElementTree");
     py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
-    py::object xml = dic.attr("toET")(dic_data, "Dic", true);
-    ET.attr("indent")(xml, "  ", 0);
+    py::object xml = dic.attr("toET")(py_dic_data, "name"_a="Dic", "is_root"_a=false);
+    ET.attr("indent")(xml, "space"_a="  ", "level"_a=0);
     py::str xml_string = ET.attr("tostring")(xml).attr("decode")("utf-8");
+    fs::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | std::ios::trunc);
     file << xml_string.cast<std::string>();
   } catch(const py::error_already_set &e) {
@@ -70,19 +73,19 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
   py::gil_scoped_acquire acquire;
 
   try {
-    py::dict dic_data;
-    dic_data["entries"] = py::list();
+    py::dict py_dic_data;
+    py_dic_data["entries"] = py::list();
     for(auto& [hash, str] : dic_data) {
       py::bytes hash_bytes;
-      hash_bytes.attr("fromhex")(hash);
+      hash_bytes.attr("fromhex")(py::str(hash));
       py::dict entry;
       entry["hash"] = hash_bytes;
-      entry["string"] = str;
-      dic_data["entries"].attr("append")(entry);
+      entry["string"] = py::str(str);
+      py_dic_data["entries"].attr("append")(entry);
     }
 
     py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
-    dic.attr("build_file")(dic_data, path.string());
+    dic.attr("build_file")(py_dic_data, path.string());
   } catch(const py::error_already_set &e) {
     spdlog::error("Error parsing Dic: {}", e.what());
     return false;
@@ -99,12 +102,17 @@ bool wgrd_files::Dic::imgui_call() {
       return false;
     }
   }
+
   ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
   if(is_changed()) {
     wndflags |= ImGuiWindowFlags_UnsavedDocument;
   }
   ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
   if(ImGui::Begin(vfs_path.c_str(), &window_opened, wndflags)) {
+
+    if(ImGui::Button(gettext("Save XML"))) {
+      save_xml(out_path / "xml" / vfs_path);
+    }
 
     if(ImGui::BeginTable(gettext("Dictionary entries"), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
       ImGui::TableSetupColumn(gettext("Hash"), ImGuiTableColumnFlags_WidthStretch);
