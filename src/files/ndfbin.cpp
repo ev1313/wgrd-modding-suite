@@ -8,12 +8,6 @@ using namespace wgrd_files;
 #include "magic_enum.hpp"
 
 wgrd_files::NdfBin::NdfBin(FileMeta meta, fs::path out_path) : File(meta, out_path) {
-  xml_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ndf.xml");
-  if(fs::exists(xml_path)) {
-    ndfbin.load_from_xml_file(xml_path);
-  } else {
-    spdlog::info("No ndf xml file found at {}", xml_path.string());
-  }
 }
 
 std::string wgrd_files::NdfBin::render_object_list() {
@@ -692,6 +686,20 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
     return false;
   }
 
+  return true;
+}
+
+bool wgrd_files::NdfBin::load_xml(fs::path path) {
+  if(fs::exists(xml_path)) {
+    ndfbin.load_from_xml_file(xml_path);
+    return true;
+  }
+  spdlog::info("No ndf xml file found at {}", xml_path.string());
+  return false;
+}
+
+bool wgrd_files::NdfBin::save_xml(fs::path path) {
+  ndfbin.save_ndf_xml_to_file(path);
   return true;
 }
 

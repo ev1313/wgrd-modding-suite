@@ -164,6 +164,16 @@ void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_o
   } else {
     files[meta.idx] = std::make_unique<File>(meta, out_path);
   }
+  // if a xml file already exists, load the file from it instead of the dat file
+  std::string new_ext = fs::path(meta.vfs_path).extension();
+  new_ext += ".xml";
+  fs::path xml_path = out_path / "xml" / fs::path(meta.vfs_path).replace_extension(new_ext);
+  files[meta.idx]->xml_path = xml_path;
+  if(fs::exists(xml_path)) {
+    files[meta.idx]->load_xml(xml_path);
+  } else {
+    spdlog::info("No ndf xml file found at {}", xml_path.string());
+  }
 }
 
 void wgrd_files::Files::copy_bin_changes(fs::path dat_path, fs::path out_folder_path) {

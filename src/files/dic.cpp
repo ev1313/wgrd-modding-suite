@@ -43,7 +43,7 @@ bool wgrd_files::Dic::load_xml(fs::path path) {
     py::module ET = py::module::import("xml.etree.ElementTree");
     py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
     py::object xml = ET.attr("parse")(path.string());
-    py::dict py_dic_data = dic.attr("fromET")(xml);
+    py::dict py_dic_data = dic.attr("fromET")(xml.attr("getroot")());
     for(auto& entry : py_dic_data["entries"]) {
       std::string hash = py::str(entry["hash"].attr("hex")()).cast<std::string>();
       std::string str = py::str(entry["string"]).cast<std::string>();
@@ -138,7 +138,7 @@ bool wgrd_files::Dic::render() {
   if(ImGui::Begin(vfs_path.c_str(), &window_opened, wndflags)) {
 
     if(ImGui::Button(gettext("Save XML"))) {
-      save_xml(out_path / "xml" / vfs_path);
+      save_xml(xml_path);
     }
 
     if(ImGui::BeginTable(gettext("Dictionary entries"), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {

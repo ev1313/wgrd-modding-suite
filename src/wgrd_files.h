@@ -38,6 +38,7 @@ protected:
   size_t offset;
   size_t size;
   fs::path out_path;
+  fs::path xml_path;
   bool m_is_changed = false;
   fs::path fs_path;
 

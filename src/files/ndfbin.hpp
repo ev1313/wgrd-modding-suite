@@ -25,8 +25,6 @@ private:
 
   std::map<std::string, bool> open_object_windows;
 
-  fs::path xml_path;
-
   NdfBinFile ndfbin;
   std::string render_object_list();
   void render_property_list(std::string object_name);
@@ -36,6 +34,8 @@ public:
   explicit NdfBin(FileMeta meta, fs::path out_path);
   bool render() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
+  bool load_xml(fs::path path) override;
+  bool save_xml(fs::path path) override;
   bool save_bin(fs::path path) override;
 };
 
