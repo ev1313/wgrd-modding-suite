@@ -487,6 +487,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::F32_vec2: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec2>&>(property);
       float val[2] = {p->x, p->y};
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputFloat3(std::format("##f32_vec2_prop_{}", property->property_name).c_str(), val)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_F32_vec2>();
         change->x = val[0];
@@ -498,6 +499,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::F32_vec3: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec3>&>(property);
       float val[3] = {p->x, p->y, p->z};
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputFloat3(std::format("##f32_vec3_prop_{}", property->property_name).c_str(), val)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_F32_vec3>();
         change->x = val[0];
@@ -510,6 +512,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::F32_vec4: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyF32_vec4>&>(property);
       float val[4] = {p->x, p->y, p->z, p->w};
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputFloat3(std::format("##f32_vec4_prop_{}", property->property_name).c_str(), val)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_F32_vec4>();
         change->x = val[0];

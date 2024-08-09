@@ -165,7 +165,7 @@ void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_o
     files[meta.idx] = std::make_unique<File>(meta, out_path);
   }
   // if a xml file already exists, load the file from it instead of the dat file
-  std::string new_ext = fs::path(meta.vfs_path).extension();
+  std::string new_ext = fs::path(meta.vfs_path).extension().string();
   new_ext += ".xml";
   fs::path xml_path = out_path / "xml" / fs::path(meta.vfs_path).replace_extension(new_ext);
   files[meta.idx]->xml_path = xml_path;
