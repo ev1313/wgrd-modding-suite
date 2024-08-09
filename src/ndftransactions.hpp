@@ -84,13 +84,15 @@ struct NdfTransactionChangeObjectName : public NdfTransaction {
   // previous_name & name needs to be set when initializing
   std::string previous_name;
   std::string name;
+  // if you set this to false, the object references in other objects are not changed to the new name
+  bool fix_references = false;
   void apply(NDF& ndf) override {
-    if(!ndf.change_object_name(previous_name, name)) {
+    if(!ndf.change_object_name(previous_name, name, fix_references)) {
       throw std::runtime_error(std::format("applying ChangeObjectName transaction failed! {} -> {}", previous_name, name));
     }
   }
   void undo(NDF& ndf) override {
-    if(!ndf.change_object_name(previous_name, name)) {
+    if(!ndf.change_object_name(previous_name, name, fix_references)) {
       throw std::runtime_error(std::format("undoing ChangeObjectName transaction failed! {} -> {}", name, previous_name));
     }
   }

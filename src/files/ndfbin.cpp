@@ -84,11 +84,19 @@ std::string wgrd_files::NdfBin::render_object_list() {
       ImGui::Text("Object Name: ");
       ImGui::TableNextColumn();
       ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-      if(ImGui::InputText("##ObjectName", &object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      std::string changed_object_name = object_name;
+      if(ImGui::InputText("##ObjectName", &changed_object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeObjectName>();
         change->previous_name = object.name;
-        change->name = object_name;
+        change->name = changed_object_name;
         ndfbin.apply_transaction(std::move(change));
+        // trigger object_list update
+        object_count_changed = true;
+        // update name in open_object_windows, else empty window is shown
+        open_object_windows[changed_object_name] = true;
+        open_object_windows.erase(object_name);
+        // idk if necessary
+        object_name = changed_object_name;
       }
       ImGui::TableNextColumn();
       ImGui::Text("Export Path: ");
