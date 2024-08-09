@@ -30,3 +30,4 @@ jobs:
             build/*.dll
             build/*.exe
             build/fonts/
+          if-no-files-found: error
