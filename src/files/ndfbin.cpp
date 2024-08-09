@@ -81,6 +81,10 @@ std::string wgrd_files::NdfBin::render_object_list() {
   return object_name;
 }
 
+std::string wgrd_files::NdfBin::render_class_list() {
+  return "";
+}
+
 std::optional<std::unique_ptr<NdfTransaction>> wgrd_files::NdfBin::render_object_info(std::string object_name) {
   std::optional<std::unique_ptr<NdfTransaction>> ret = std::nullopt;
   if(object_name.empty() || !ndfbin.contains_object(object_name)){

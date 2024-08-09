@@ -70,15 +70,16 @@ std::optional<FileMeta> FileTree::file_list(py::dict files, const std::string& v
     } else {
       unsigned int idx = value.cast<py::tuple>()[4].cast<unsigned int>();
       if(ImGui::Selectable(full_vfs_path.c_str(), selected_file == idx)) {
-        selected_file = idx;
-        //ImGui::Text("File %d: %s offset 0x%zX size 0x%zX", idx, file.cast<std::string>().c_str(), offset, size);
+        if(selected_file != idx) {
+          selected_file = idx;
+
+          py::str file = value.cast<py::tuple>()[0].cast<py::str>();
+          size_t offset = value.cast<py::tuple>()[1].cast<size_t>();
+          size_t size = value.cast<py::tuple>()[2].cast<size_t>();
+          ret = FileMeta(full_vfs_path, file.cast<std::string>(), offset, size, idx);
+        }
       }
       if(idx == selected_file) {
-        py::str file = value.cast<py::tuple>()[0].cast<py::str>();
-        size_t offset = value.cast<py::tuple>()[1].cast<size_t>();
-        size_t size = value.cast<py::tuple>()[2].cast<size_t>();
-        ret = FileMeta(full_vfs_path, file.cast<std::string>(), offset, size, idx);
-
         ImGui::SetItemDefaultFocus();
       }
     }
@@ -114,14 +115,13 @@ std::optional<FileMeta> FileTree::file_tree(py::dict files, const std::string& v
       unsigned int idx = value.cast<py::tuple>()[4].cast<unsigned int>();
       if(ImGui::Selectable(path.cast<std::string>().c_str(), selected_file == idx)) {
         selected_file = idx;
-        //ImGui::Text("File %d: %s offset 0x%zX size 0x%zX", idx, file.cast<std::string>().c_str(), offset, size);
-      }
-      if(idx == selected_file) {
+
         py::str file = value.cast<py::tuple>()[0].cast<py::str>();
         size_t offset = value.cast<py::tuple>()[1].cast<size_t>();
         size_t size = value.cast<py::tuple>()[2].cast<size_t>();
         ret = FileMeta(full_vfs_path, file.cast<std::string>(), offset, size, idx);
-        
+      }
+      if(idx == selected_file) {
         ImGui::SetItemDefaultFocus();
       }
     }

@@ -27,6 +27,7 @@ private:
 
   NdfBinFile ndfbin;
   std::string render_object_list();
+  std::string render_class_list();
 std::optional<std::unique_ptr<NdfTransaction>> render_object_info(std::string object_name);
   void render_property_list(std::string object_name);
   void render_property(std::string object_name, std::string property_name);
