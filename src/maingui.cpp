@@ -84,6 +84,12 @@ bool maingui::init(int argc, char *argv[]) {
 
   py::gil_scoped_release release2;
   
+  if(program.get<bool>("-v")) {
+    spdlog::set_level(spdlog::level::debug);
+  } else {
+    spdlog::set_level(spdlog::level::info);
+  }
+  
   workspaces.load_project_file(program.get("-p"));
 
   return true;
