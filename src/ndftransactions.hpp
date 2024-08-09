@@ -31,13 +31,13 @@ inline std::string str_tolower(std::string s)
 }
 
 struct NdfTransaction {
+  std::string object_name;
   virtual ~NdfTransaction() = default;
   virtual void apply(NDF& ndf) = 0;
   virtual void undo(NDF& ndf) = 0;
 };
 
 struct NdfTransactionAddObject : public NdfTransaction {
-  std::string object_name;
   void apply(NDF& ndf) override {
     // for this we need a class DB that contains all possible classes so we can create properties for the object
     // or there is the GUI for adding missing properties
@@ -48,7 +48,6 @@ struct NdfTransactionAddObject : public NdfTransaction {
 };
 
 struct NdfTransactionRemoveObject : public NdfTransaction {
-  std::string object_name;
   // gets copied here on delete, moved back on undo
   NDFObject removed_object;
   void apply(NDF& ndf) override {
@@ -66,7 +65,6 @@ struct NdfTransactionRemoveObject : public NdfTransaction {
 };
 
 struct NdfTransactionCopyObject : public NdfTransaction {
-  std::string object_name;
   std::string new_object_name;
   void apply(NDF& ndf) override {
     if(!ndf.copy_object(object_name, new_object_name)) {
@@ -82,24 +80,22 @@ struct NdfTransactionCopyObject : public NdfTransaction {
 
 struct NdfTransactionChangeObjectName : public NdfTransaction {
   // previous_name & name needs to be set when initializing
-  std::string previous_name;
   std::string name;
   // if you set this to false, the object references in other objects are not changed to the new name
   bool fix_references = true;
   void apply(NDF& ndf) override {
-    if(!ndf.change_object_name(previous_name, name, fix_references)) {
-      throw std::runtime_error(std::format("applying ChangeObjectName transaction failed! {} -> {}", previous_name, name));
+    if(!ndf.change_object_name(object_name, name, fix_references)) {
+      throw std::runtime_error(std::format("applying ChangeObjectName transaction failed! {} -> {}", object_name, name));
     }
   }
   void undo(NDF& ndf) override {
-    if(!ndf.change_object_name(previous_name, name, fix_references)) {
-      throw std::runtime_error(std::format("undoing ChangeObjectName transaction failed! {} -> {}", name, previous_name));
+    if(!ndf.change_object_name(object_name, name, fix_references)) {
+      throw std::runtime_error(std::format("undoing ChangeObjectName transaction failed! {} -> {}", name, object_name));
     }
   }
 };
 
 struct NdfTransactionChangeObjectExportPath : public NdfTransaction {
-  std::string object_name;
   std::string export_path;
   std::string previous_export_path;
   void apply(NDF& ndf) override {
@@ -112,7 +108,6 @@ struct NdfTransactionChangeObjectExportPath : public NdfTransaction {
 };
 
 struct NdfTransactionChangeObjectTopObject : public NdfTransaction {
-  std::string object_name;
   bool top_object;
   bool previous_top_object;
   void apply(NDF& ndf) override {
@@ -125,7 +120,6 @@ struct NdfTransactionChangeObjectTopObject : public NdfTransaction {
 };
 
 struct NdfTransactionChangeProperty : public NdfTransaction {
-  std::string object_name;
   std::string property_name;
   void apply(NDF& ndf) override {
     auto& object = ndf.get_object(object_name);

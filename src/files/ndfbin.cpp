@@ -74,79 +74,82 @@ std::string wgrd_files::NdfBin::render_object_list() {
 
   std::string object_name = object_list[item_current_idx];
 
-  if(!object_name.empty() && ndfbin.contains_object(object_name)){
-    auto& object = ndfbin.get_object(object_name);
-
-    if(ImGui::BeginTable("object_prop_table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
-      ImGui::TableSetupColumn(gettext("##OptionName"), ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableNextColumn();
-      ImGui::Text("Object Name: ");
-      ImGui::TableNextColumn();
-      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-      std::string changed_object_name = object_name;
-      if(ImGui::InputText("##ObjectName", &changed_object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
-        auto change = std::make_unique<NdfTransactionChangeObjectName>();
-        change->previous_name = object.name;
-        change->name = changed_object_name;
-        ndfbin.apply_transaction(std::move(change));
-        // trigger object_list update
-        object_count_changed = true;
-        // update name in open_object_windows, else empty window is shown
-        open_object_windows[changed_object_name] = true;
-        open_object_windows.erase(object_name);
-        // idk if necessary
-        object_name = changed_object_name;
-      }
-      ImGui::TableNextColumn();
-      ImGui::Text("Export Path: ");
-      ImGui::TableNextColumn();
-      std::string export_path = object.export_path;
-      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-      if(ImGui::InputText("##ExportPath", &export_path, ImGuiInputTextFlags_EnterReturnsTrue)) {
-        auto change = std::make_unique<NdfTransactionChangeObjectExportPath>();
-        change->object_name = object.name;
-        change->previous_export_path = object.export_path;
-        change->export_path = export_path;
-        ndfbin.apply_transaction(std::move(change));
-      }
-      ImGui::TableNextColumn();
-      ImGui::Text("Is Top Object: ");
-      ImGui::TableNextColumn();
-      bool is_top_object = object.is_top_object;
-      if(ImGui::Checkbox("##IsTopObject", &is_top_object)) {
-        auto change = std::make_unique<NdfTransactionChangeObjectTopObject>();
-        change->object_name = object.name;
-        change->top_object = is_top_object;
-        ndfbin.apply_transaction(std::move(change));
-      }
-
-      ImGui::EndTable();
-    }
-
-    if(ImGui::Button(gettext("Remove Object"))) {
-      auto change = std::make_unique<NdfTransactionRemoveObject>();
-      change->object_name = object.name;
-      ndfbin.apply_transaction(std::move(change));
-      object_count_changed = true;
-    }
-    ImGui::SameLine();
-    if(ImGui::Button(gettext("Copy Object"))) {
-      auto change = std::make_unique<NdfTransactionCopyObject>();
-      change->object_name = object.name;
-      change->new_object_name = object.name + "_copy";
-      while(ndfbin.contains_object(change->new_object_name)) {
-        change->new_object_name += "_copy";
-      }
-      ndfbin.apply_transaction(std::move(change));
-      object_count_changed = true;
-    }
-  }
-
   return object_name;
 }
 
+std::optional<std::unique_ptr<NdfTransaction>> wgrd_files::NdfBin::render_object_info(std::string object_name) {
+  std::optional<std::unique_ptr<NdfTransaction>> ret = std::nullopt;
+  if(object_name.empty() || !ndfbin.contains_object(object_name)){
+    return ret;
+  }
+  auto& object = ndfbin.get_object(object_name);
+
+  if(ImGui::BeginTable("object_prop_table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn(gettext("##OptionName"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableNextColumn();
+    ImGui::Text("Class Name: ");
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", object.class_name.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("Object Name: ");
+    ImGui::TableNextColumn();
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+    std::string changed_object_name = object_name;
+    if(ImGui::InputText("##ObjectName", &changed_object_name, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      auto change = std::make_unique<NdfTransactionChangeObjectName>();
+      change->object_name = object.name;
+      change->name = changed_object_name;
+      ret = std::move(change);
+      // FIXME: update name in open_object_windows not here? Breaks, when transaction is not done...
+      open_object_windows[changed_object_name] = true;
+    }
+    ImGui::TableNextColumn();
+    ImGui::Text("Export Path: ");
+    ImGui::TableNextColumn();
+    std::string export_path = object.export_path;
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+    if(ImGui::InputText("##ExportPath", &export_path, ImGuiInputTextFlags_EnterReturnsTrue)) {
+      auto change = std::make_unique<NdfTransactionChangeObjectExportPath>();
+      change->object_name = object.name;
+      change->previous_export_path = object.export_path;
+      change->export_path = export_path;
+      ret = std::move(change);
+    }
+    ImGui::TableNextColumn();
+    ImGui::Text("Is Top Object: ");
+    ImGui::TableNextColumn();
+    bool is_top_object = object.is_top_object;
+    if(ImGui::Checkbox("##IsTopObject", &is_top_object)) {
+      auto change = std::make_unique<NdfTransactionChangeObjectTopObject>();
+      change->object_name = object.name;
+      change->top_object = is_top_object;
+      ret = std::move(change);
+    }
+
+    ImGui::EndTable();
+  }
+
+  if(ImGui::Button(gettext("Remove Object"))) {
+    auto change = std::make_unique<NdfTransactionRemoveObject>();
+    change->object_name = object.name;
+    ret = std::move(change);
+  }
+  ImGui::SameLine();
+  if(ImGui::Button(gettext("Copy Object"))) {
+    auto change = std::make_unique<NdfTransactionCopyObject>();
+    change->object_name = object.name;
+    change->new_object_name = object.name + "_copy";
+    while(ndfbin.contains_object(change->new_object_name)) {
+      change->new_object_name += "_copy";
+    }
+    ret = std::move(change);
+  }
+  return ret;
+}
+
 void wgrd_files::NdfBin::render_property_list(std::string object_name) {
+  // in case Remove Object was pressed
   if(object_name.empty() || !ndfbin.contains_object(object_name)){
     return;
   }
@@ -649,6 +652,7 @@ bool wgrd_files::NdfBin::render() {
   ImGui::End();
 
   if(ndfbin.is_parsed()) {
+    std::optional<std::unique_ptr<NdfTransaction>> change;
     for(auto& [object_name, p_open] : open_object_windows) {
       ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
@@ -659,6 +663,7 @@ bool wgrd_files::NdfBin::render() {
       }
 
       if(ImGui::Begin(object_name.c_str(), ptr)) {
+        change = render_object_info(object_name);
         render_property_list(object_name);
       }
       ImGui::End();
@@ -666,6 +671,18 @@ bool wgrd_files::NdfBin::render() {
       if(!p_open) {
         open_object_windows.erase(object_name);
       }
+    }
+
+    if(change) {
+      std::string object_name = change.value()->object_name;
+      ndfbin.apply_transaction(std::move(change.value()));
+      // also gets triggered when changing top object, but whatever
+      object_count_changed = true;
+      // if object was removed, we need to close its window as well
+      if(!ndfbin.contains_object(object_name)) {
+        open_object_windows.erase(object_name);
+      }
+      m_is_changed = true;
     }
   }
 
