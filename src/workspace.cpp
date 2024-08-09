@@ -114,7 +114,7 @@ void Workspace::render() {
   }
   ImGui::End();
 
-  files.imgui_call();
+  files.render();
 }
 
 toml::table Workspace::to_toml() {

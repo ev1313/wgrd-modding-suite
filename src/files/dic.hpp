@@ -48,9 +48,10 @@ private:
 public:
   explicit Dic(FileMeta meta, fs::path out_path);
   bool parse_file();
-  bool save_xml(fs::path path);
+  bool load_xml(fs::path path) override;
+  bool save_xml(fs::path path) override;
   bool save_bin(fs::path path) override;
-  bool imgui_call() override;
+  bool render() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 

@@ -609,7 +609,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
   return std::nullopt;
 }
 
-bool wgrd_files::NdfBin::imgui_call() {
+bool wgrd_files::NdfBin::render() {
   ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
   if(is_changed()) {
     wndflags |= ImGuiWindowFlags_UnsavedDocument;

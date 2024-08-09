@@ -5,7 +5,7 @@
 wgrd_files::Scenario::Scenario(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::Scenario::imgui_call() {
+bool wgrd_files::Scenario::render() {
   ImGui::Text("Scenario: %s", vfs_path.c_str());
   return true;
 }

@@ -8,7 +8,7 @@ wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path) : File(meta, out_path) 
   workspace.init_from_file(out_path / "bin" / vfs_path, out_path);
 }
 
-bool wgrd_files::EDat::imgui_call() {
+bool wgrd_files::EDat::render() {
   workspace.render();
 
   return true;

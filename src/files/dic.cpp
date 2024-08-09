@@ -35,6 +35,30 @@ bool wgrd_files::Dic::parse_file() {
   return true;
 }
 
+bool wgrd_files::Dic::load_xml(fs::path path) {
+  spdlog::info("Loading Dic XML: {} from {}", vfs_path, path.string());
+  py::gil_scoped_acquire acquire;
+
+  try {
+    py::module ET = py::module::import("xml.etree.ElementTree");
+    py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
+    py::object xml = ET.attr("parse")(path.string());
+    py::dict py_dic_data = dic.attr("fromET")(xml);
+    for(auto& entry : py_dic_data["entries"]) {
+      std::string hash = py::str(entry["hash"].attr("hex")()).cast<std::string>();
+      std::string str = py::str(entry["string"]).cast<std::string>();
+      dic_data[hash] = str;
+    }
+  } catch(const py::error_already_set &e) {
+    spdlog::error("Error loading Dic XML: {}", e.what());
+    return false;
+  }
+
+  py::gil_scoped_release release;
+  is_parsed = true;
+  return true;
+}
+
 bool wgrd_files::Dic::save_xml(fs::path path) {
   spdlog::info("Saving Dic XML: {} to {}", vfs_path, path.string());
   py::gil_scoped_acquire acquire;
@@ -60,7 +84,7 @@ bool wgrd_files::Dic::save_xml(fs::path path) {
     std::ofstream file(path, std::ios::out | std::ios::trunc);
     file << xml_string.cast<std::string>();
   } catch(const py::error_already_set &e) {
-    spdlog::error("Error parsing Dic: {}", e.what());
+    spdlog::error("Error saving Dic XML: {}", e.what());
     return false;
   }
 
@@ -90,7 +114,7 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
     fs::create_directories(path.parent_path());
     dic.attr("build_file")(preprocessed, path.string());
   } catch(const py::error_already_set &e) {
-    spdlog::error("Error parsing Dic: {}", e.what());
+    spdlog::error("Error saving Dic: {}", e.what());
     return false;
   }
 
@@ -99,7 +123,7 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
   return true;
 }
 
-bool wgrd_files::Dic::imgui_call() {
+bool wgrd_files::Dic::render() {
   if(!is_parsed) {
     if(!parse_file()) {
       return false;

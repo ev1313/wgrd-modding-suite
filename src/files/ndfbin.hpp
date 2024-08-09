@@ -34,7 +34,7 @@ private:
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
 public:
   explicit NdfBin(FileMeta meta, fs::path out_path);
-  bool imgui_call() override;
+  bool render() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
   bool save_bin(fs::path path) override;
 };

@@ -5,7 +5,7 @@
 wgrd_files::PPK::PPK(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::PPK::imgui_call() {
+bool wgrd_files::PPK::render() {
   ImGui::Text("PPK: %s", vfs_path.c_str());
   return true;
 }

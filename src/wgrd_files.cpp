@@ -28,7 +28,7 @@
 namespace fs = std::filesystem;
 using namespace wgrd_files;
 
-bool wgrd_files::File::imgui_call() {
+bool wgrd_files::File::render() {
   ImGui::Text("File: %s", vfs_path.c_str());
   if(ImGui::Button("save file")) {
     std::filesystem::path vfs(vfs_path);
@@ -114,10 +114,10 @@ bool File::copy_to_file(std::filesystem::path path) {
   return true;
 }
 
-void wgrd_files::Files::imgui_call() {
+void wgrd_files::Files::render() {
   for(auto &[idx, file] : files) {
     if(file->window_opened) {
-      file->imgui_call();
+      file->render();
     }
   }
 }

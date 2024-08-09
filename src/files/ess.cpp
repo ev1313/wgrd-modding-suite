@@ -5,7 +5,7 @@
 wgrd_files::Ess::Ess(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::Ess::imgui_call() {
+bool wgrd_files::Ess::render() {
   ImGui::Text("Ess: %s", vfs_path.c_str());
   return true;
 }
