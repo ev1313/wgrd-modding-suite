@@ -15,6 +15,7 @@ private:
   std::vector<std::string> object_list;
   std::string object_filter = "";
   std::string class_filter = "";
+  // only for being able to save the last clicked position for auto focus of the selected object
   int item_current_idx = -1;
   
   int property_item_current_idx = -1;
@@ -27,8 +28,28 @@ private:
 
   NdfBinFile ndfbin;
   std::string render_object_list();
+
+  struct Property {
+    // maps the possible value to an object name
+    std::map<std::string, std::set<std::string>> values;
+  };
+
+  struct Class {
+    // used for rendering the object list
+    std::vector<std::string> objects;
+    // maps the property name to the property
+    std::map<std::string, Property> properties;
+  };
+  // maps the class name to the class
+  std::map<std::string, Class> class_list;
+  // only for being able to save the last clicked position for auto focus
+  std::string selected_class = "";
+  std::unordered_map<std::string, bool> open_class_windows;
+  void fill_class_list();
   std::string render_class_list();
-std::optional<std::unique_ptr<NdfTransaction>> render_object_info(std::string object_name);
+  void render_classes();
+
+  std::optional<std::unique_ptr<NdfTransaction>> render_object_info(std::string object_name);
   void render_property_list(std::string object_name);
   void render_property(std::string object_name, std::string property_name);
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
