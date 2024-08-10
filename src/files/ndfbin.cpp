@@ -144,6 +144,7 @@ std::string wgrd_files::NdfBin::render_class_list() {
         it++;
       }
     }
+    clipper.End();
     ImGui::EndListBox();
   }
   
@@ -175,11 +176,14 @@ void wgrd_files::NdfBin::render_classes() {
             }
           }
         }
+        clipper.End();
         ImGui::EndListBox();
       }
       // property list
-      if(ImGui::BeginTable("class_prop_table", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
-        ImGui::TableSetupColumn(gettext("Property Name"), ImGuiTableColumnFlags_WidthStretch);
+      ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Hideable | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
+      ImVec2 table_size = ImGui::GetContentRegionAvail();
+      if(ImGui::BeginTable("class_prop_table", 2, flags, table_size)) {
+        ImGui::TableSetupColumn(gettext("Property Name"), ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn(gettext("Available Property Values"), ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
 
@@ -187,9 +191,10 @@ void wgrd_files::NdfBin::render_classes() {
           ImGui::TableNextColumn();
           ImGui::Text("%s", property_name.c_str());
           ImGui::TableNextColumn();
-          if(ImGui::BeginTable("class_prop_value_table", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable)) {
-            ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn(gettext("Count"), ImGuiTableColumnFlags_WidthStretch);
+          ImGuiTableFlags sub_flags = ImGuiTableFlags_Hideable | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders;
+          if(ImGui::BeginTable("class_prop_value_table", 3, flags)) {
+            ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn(gettext("Count"), ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupColumn(gettext("Objects"), ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableHeadersRow();
 
@@ -199,9 +204,11 @@ void wgrd_files::NdfBin::render_classes() {
               ImGui::TableNextColumn();
               ImGui::Text("%lu", objects.size());
               ImGui::TableNextColumn();
-              auto objects_it = objects | std::views::join_with(',');
-              std::string objects_str = std::string(objects_it.begin(), objects_it.end());
-              ImGui::Text("%s", objects_str.c_str());
+              ImGui::PushID(property_name.c_str());
+              // TODO: maybe cache this?
+              auto object_items = objects | std::views::join_with(',');
+              std::string object_items_str = std::string(object_items.begin(), object_items.end());
+              ImGui::Text("%s", object_items_str.c_str());
             }
             
             ImGui::EndTable();
@@ -227,10 +234,11 @@ std::optional<std::unique_ptr<NdfTransaction>> wgrd_files::NdfBin::render_object
     return ret;
   }
   auto& object = ndfbin.get_object(object_name);
-
-  if(ImGui::BeginTable("object_prop_table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+  ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
+  ImVec2 table_size = ImVec2(ImGui::GetContentRegionAvail().x, 6 * ImGui::GetTextLineHeightWithSpacing());
+  if(ImGui::BeginTable("object_prop_table", 2, flags, table_size)) {
     ImGui::TableSetupColumn(gettext("##OptionName"), ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn(gettext("##EditField"), ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableNextColumn();
     ImGui::Text("Class Name: ");
     ImGui::TableNextColumn();
@@ -275,9 +283,19 @@ std::optional<std::unique_ptr<NdfTransaction>> wgrd_files::NdfBin::render_object
     ImGui::Text("Object References: ");
     ImGui::TableNextColumn();
     if(object_references.contains(object.name)) {
-      auto refs = object_references.at(object.name) | std::views::join_with(',');
-      std::string references(std::begin(refs), std::end(refs));
-      ImGui::Text("%s", references.c_str());
+      ImGui::PushID(object.name.c_str());
+      for(auto ref : object_references.at(object.name)) {
+        if(ImGui::Button(ref.c_str())) {
+          if(open_object_windows.contains(ref)) {
+            open_object_windows.at(ref) = true;
+          } else {
+            open_object_windows.insert({ref, true});
+          }
+          ImGui::SetWindowFocus(ref.c_str());
+        }
+        ImGui::SameLine();
+      }
+      ImGui::PopID();
     }
 
     ImGui::EndTable();
