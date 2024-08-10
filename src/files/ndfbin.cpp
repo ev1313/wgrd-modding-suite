@@ -1,4 +1,5 @@
 #include "ndfbin.hpp"
+#include <filesystem>
 
 using namespace wgrd_files;
 
@@ -780,7 +781,7 @@ bool wgrd_files::NdfBin::render() {
     }
     ImGui::SameLine();
     if(ImGui::Button(gettext("Save ndfbin"))) {
-      ndfbin.save_ndfbin_to_file(out_path / "bin" / vfs_path);
+      save_bin(out_path / "bin" / vfs_path);
     }
   }
   std::string object = "";
@@ -873,6 +874,8 @@ bool wgrd_files::NdfBin::save_xml(fs::path path) {
 }
 
 bool wgrd_files::NdfBin::save_bin(fs::path path) {
+  spdlog::debug("Saving ndfbin to {}", path.string());
+  fs::create_directories(path.parent_path());
   ndfbin.save_ndfbin_to_file(path);
   return true;
 }
