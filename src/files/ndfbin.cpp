@@ -118,18 +118,30 @@ std::string wgrd_files::NdfBin::render_class_list() {
   ImGui::Text(gettext("Class List:"));
   std::string ret = "";
   if(ImGui::BeginListBox("##Class List", ImVec2(-FLT_MIN, 20*ImGui::GetTextLineHeightWithSpacing()))) {
-    for(auto& [class_name, class_] : class_list) {
-      if(!class_filter.empty() && !class_name.contains(class_filter)) {
-        continue;
-      }
-      if(ImGui::Selectable(class_name.c_str(), selected_class == class_name)) {
-        selected_class = class_name;
-        ret = class_name;
-        open_class_windows.insert({class_name, true});
-      }
+    ImGuiListClipper clipper;
+    clipper.Begin(class_list.size());
+    while(clipper.Step()) {
+      auto class_it = class_list.begin();
+      for(int it = clipper.DisplayStart; it < clipper.DisplayEnd && class_it != class_list.end(); ) {
+        auto& [class_name, class_] = *class_it;
 
-      if(selected_class == class_name) {
-        ImGui::SetItemDefaultFocus();
+        if(!class_filter.empty() && !str_tolower(class_name).contains(str_tolower(class_filter))) {
+          class_it++;
+          continue;
+        }
+
+        if(ImGui::Selectable(class_name.c_str(), selected_class == class_name)) {
+          selected_class = class_name;
+          ret = class_name;
+          open_class_windows.insert({class_name, true});
+        }
+
+        if(selected_class == class_name) {
+          ImGui::SetItemDefaultFocus();
+        }
+        class_it++;
+        // only increment stepper when class is not filtered
+        it++;
       }
     }
     ImGui::EndListBox();

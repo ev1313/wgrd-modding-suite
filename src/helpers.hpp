@@ -68,3 +68,11 @@ inline std::string remove_dollar(const std::string& str) {
   }
   return str;
 }
+
+inline std::string str_tolower(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c){ return std::tolower(c); } // correct
+                  );
+    return s;
+}

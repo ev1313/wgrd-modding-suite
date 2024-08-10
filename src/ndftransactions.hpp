@@ -19,16 +19,9 @@ namespace py = pybind11;
 #include <fstream>
 
 #include "ndf.hpp"
+#include "helpers.hpp"
 
 namespace wgrd_files {
-
-inline std::string str_tolower(std::string s)
-{
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c){ return std::tolower(c); } // correct
-                  );
-    return s;
-}
 
 struct NdfTransaction {
   std::string object_name;
@@ -116,6 +109,22 @@ struct NdfTransactionChangeObjectTopObject : public NdfTransaction {
   }
   void undo(NDF& ndf) override {
     ndf.get_object(object_name).is_top_object = previous_top_object;
+  }
+};
+
+// empty transaction, so you can group other transactions together
+struct NdfTransactionBulkRenameBegin : public NdfTransaction {
+  void apply(NDF&) override {
+  }
+  void undo(NDF&) override {
+  }
+};
+
+// empty transaction, so you can group other transactions together
+struct NdfTransactionBulkRenameEnd : public NdfTransaction {
+  void apply(NDF&) override {
+  }
+  void undo(NDF&) override {
   }
 };
 
