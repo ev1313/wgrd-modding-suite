@@ -612,7 +612,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
           ImGui::TableNextColumn();
           ImGui::Text("%d", (unsigned int)idx);
           ImGui::TableNextColumn();
-          item->property_name = std::to_string(idx);
+          item->property_name = "ListItem";
           auto change = render_ndf_type(item);
           if(change) {
             auto list_change = std::make_unique<NdfTransactionChangeProperty_ChangeListItem>();
@@ -653,7 +653,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
           ImGui::PushID(idx);
           ImGui::TableNextColumn();
           {
-            item.first->property_name = "Key_" + std::to_string(idx);
+            item.first->property_name = "Key";
             auto change = render_ndf_type(item.first);
             if(change) {
               auto key_change = std::make_unique<NdfTransactionChangeProperty_ChangeMapItem>();
@@ -665,7 +665,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
           }
           ImGui::TableNextColumn();
           {
-            item.second->property_name = "Value_" + std::to_string(idx);
+            item.second->property_name = "Value";
             auto change = render_ndf_type(item.second);
             if(change) {
               auto value_change = std::make_unique<NdfTransactionChangeProperty_ChangeMapItem>();
