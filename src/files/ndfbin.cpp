@@ -262,9 +262,11 @@ std::optional<std::unique_ptr<NdfTransaction>> wgrd_files::NdfBin::render_object
     ImGui::TableNextColumn();
     ImGui::Text("Object References: ");
     ImGui::TableNextColumn();
-    auto refs = object_references.at(object.name) | std::views::join_with(',');
-    std::string references(std::begin(refs), std::end(refs));
-    ImGui::Text("%s", references.c_str());
+    if(object_references.contains(object.name)) {
+      auto refs = object_references.at(object.name) | std::views::join_with(',');
+      std::string references(std::begin(refs), std::end(refs));
+      ImGui::Text("%s", references.c_str());
+    }
 
     ImGui::EndTable();
   }
