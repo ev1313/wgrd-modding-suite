@@ -84,6 +84,8 @@ std::string wgrd_files::NdfBin::render_object_list() {
 
 void wgrd_files::NdfBin::fill_class_list() {
   class_list.clear();
+  object_references.clear();
+  object_references.reserve(ndfbin.get_object_count());
   for(auto& object_name : ndfbin.filter_objects("", "")) {
     auto& object = ndfbin.get_object(object_name);
     auto class_it = class_list.find(object.class_name);
@@ -93,6 +95,14 @@ void wgrd_files::NdfBin::fill_class_list() {
     }
     class_it->second.objects.push_back(object_name);
     for(auto& property : object.properties) {
+      auto refs = property->get_object_references();
+      for(auto& ref : refs) {
+        if(!object_references.contains(ref)) {
+          object_references.emplace(ref, std::set<std::string>());
+        }
+        object_references[ref].insert(object_name);
+      }
+
       auto prop_it = class_it->second.properties.find(property->property_name);
       if(prop_it == class_it->second.properties.end()) {
         class_it->second.properties.emplace(property->property_name, Property());
@@ -247,6 +257,13 @@ std::optional<std::unique_ptr<NdfTransaction>> wgrd_files::NdfBin::render_object
       change->top_object = is_top_object;
       ret = std::move(change);
     }
+
+    ImGui::TableNextColumn();
+    ImGui::Text("Object References: ");
+    ImGui::TableNextColumn();
+    auto refs = object_references.at(object.name) | std::views::join_with(',');
+    std::string references(std::begin(refs), std::end(refs));
+    ImGui::Text("%s", references.c_str());
 
     ImGui::EndTable();
   }

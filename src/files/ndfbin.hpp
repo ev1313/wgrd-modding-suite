@@ -42,6 +42,7 @@ private:
   };
   // maps the class name to the class
   std::map<std::string, Class> class_list;
+  std::unordered_map<std::string, std::set<std::string>> object_references;
   // only for being able to save the last clicked position for auto focus
   std::string selected_class = "";
   std::unordered_map<std::string, bool> open_class_windows;
