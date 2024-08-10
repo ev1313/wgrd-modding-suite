@@ -775,7 +775,7 @@ bool wgrd_files::NdfBin::render() {
   ImGui::End();
 
   if(ndfbin.is_parsed()) {
-    std::optional<std::unique_ptr<NdfTransaction>> change;
+    std::vector<std::unique_ptr<NdfTransaction>> changes;
     for(auto& [object_name, p_open] : open_object_windows) {
       ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
@@ -786,7 +786,10 @@ bool wgrd_files::NdfBin::render() {
       }
 
       if(ImGui::Begin(object_name.c_str(), ptr)) {
-        change = render_object_info(object_name);
+        auto ret = render_object_info(object_name);
+        if(ret) {
+          changes.push_back(std::move(ret.value()));
+        }
         render_property_list(object_name);
       }
       ImGui::End();
@@ -796,9 +799,9 @@ bool wgrd_files::NdfBin::render() {
       }
     }
 
-    if(change) {
-      std::string object_name = change.value()->object_name;
-      ndfbin.apply_transaction(std::move(change.value()));
+    for(auto& change : changes) {
+      std::string object_name = change->object_name;
+      ndfbin.apply_transaction(std::move(change));
       // also gets triggered when changing top object, but whatever
       object_count_changed = true;
       // if object was removed, we need to close its window as well
@@ -807,6 +810,7 @@ bool wgrd_files::NdfBin::render() {
       }
       m_is_changed = true;
     }
+    changes.clear();
   }
 
   return window_opened;
