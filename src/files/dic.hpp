@@ -47,7 +47,7 @@ private:
   std::vector<std::unique_ptr<DicTransaction>> transactions;
 public:
   explicit Dic(FileMeta meta, fs::path out_path);
-  bool parse_file();
+  bool load_bin();
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;
   bool save_bin(fs::path path) override;

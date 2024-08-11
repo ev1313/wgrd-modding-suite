@@ -8,7 +8,7 @@ using namespace pybind11::literals;
 wgrd_files::Dic::Dic(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::Dic::parse_file() {
+bool wgrd_files::Dic::load_bin() {
   spdlog::info("Parsing Dic: {}", vfs_path);
   py::gil_scoped_acquire acquire;
 
@@ -125,7 +125,7 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
 
 bool wgrd_files::Dic::render() {
   if(!is_parsed) {
-    if(!parse_file()) {
+    if(!load_bin()) {
       return false;
     }
   }
