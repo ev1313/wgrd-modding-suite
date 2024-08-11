@@ -5,9 +5,8 @@
 wgrd_files::TGV::TGV(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::TGV::render() {
+void wgrd_files::TGV::render_window() {
   ImGui::Text("TGV: %s", vfs_path.c_str());
-  return true;
 }
 
 bool wgrd_files::TGV::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

@@ -6,11 +6,10 @@ wgrd_files::Ess::Ess(FileMeta meta, fs::path out_path) : File(meta, out_path) {
   load_bin();
 }
 
-bool wgrd_files::Ess::render() {
+void wgrd_files::Ess::render_window() {
   ImGui::Text("Ess: %s", vfs_path.c_str());
   ImGui::Text("Loop Start: %d", loop_start);
   ImGui::Text("Loop End: %d", loop_end);
-  return true;
 }
 
 bool wgrd_files::Ess::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

@@ -134,6 +134,8 @@ bool maingui::render_menu_bar() {
       }
       ImGui::EndMenu();
     }
+    // add workspaces menu tab
+    workspaces.render_menu();
     if(ImGui::BeginMenu(gettext("Settings"))) {
       if(ImGui::MenuItem(gettext("Style Editor"))) {
         show_style_editor = true;

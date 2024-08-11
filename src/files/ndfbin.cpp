@@ -209,6 +209,7 @@ void wgrd_files::NdfBin::render_classes() {
               auto object_items = objects | std::views::join_with(',');
               std::string object_items_str = std::string(object_items.begin(), object_items.end());
               ImGui::Text("%s", object_items_str.c_str());
+              ImGui::PopID();
             }
             
             ImGui::EndTable();
@@ -788,13 +789,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
   return std::nullopt;
 }
 
-bool wgrd_files::NdfBin::render() {
-  ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
-  if(is_changed()) {
-    wndflags |= ImGuiWindowFlags_UnsavedDocument;
-  }
-  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-  ImGui::Begin(vfs_path.c_str(), &window_opened, wndflags);
+void wgrd_files::NdfBin::render_window() {
   if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
     if(ImGui::Button(gettext("Parse NDF"))) {
       ndfbin.start_parsing(vfs_path, get_data(), xml_path);
@@ -822,20 +817,15 @@ bool wgrd_files::NdfBin::render() {
     render_class_list();
     render_classes();
   }
-  ImGui::End();
+}
 
+void wgrd_files::NdfBin::render_extra() {
   if(ndfbin.is_parsed()) {
     std::vector<std::unique_ptr<NdfTransaction>> changes;
     for(auto& [object_name, p_open] : open_object_windows) {
       ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
-      bool* ptr = &p_open;
-
-      if(object == object_name) {
-        ptr = nullptr;
-      }
-
-      if(ImGui::Begin(object_name.c_str(), ptr)) {
+      if(ImGui::Begin(object_name.c_str(), &p_open)) {
         auto ret = render_object_info(object_name);
         if(ret) {
           changes.push_back(std::move(ret.value()));
@@ -843,10 +833,6 @@ bool wgrd_files::NdfBin::render() {
         render_property_list(object_name);
       }
       ImGui::End();
-
-      if(!p_open) {
-        open_object_windows.erase(object_name);
-      }
     }
 
     for(auto& change : changes) {
@@ -856,14 +842,12 @@ bool wgrd_files::NdfBin::render() {
       object_count_changed = true;
       // if object was removed, we need to close its window as well
       if(!ndfbin.contains_object(object_name)) {
-        open_object_windows.erase(object_name);
+        open_object_windows[object_name] = false;
       }
       m_is_changed = true;
     }
     changes.clear();
   }
-
-  return window_opened;
 }
 
 bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

@@ -5,9 +5,8 @@
 wgrd_files::Scenario::Scenario(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::Scenario::render() {
+void wgrd_files::Scenario::render_window() {
   ImGui::Text("Scenario: %s", vfs_path.c_str());
-  return true;
 }
 
 bool wgrd_files::Scenario::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

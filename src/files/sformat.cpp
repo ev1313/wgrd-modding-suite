@@ -5,9 +5,8 @@
 wgrd_files::SFormat::SFormat(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::SFormat::render() {
+void wgrd_files::SFormat::render_window() {
   ImGui::Text("SFormat: %s", vfs_path.c_str());
-  return true;
 }
 
 bool wgrd_files::SFormat::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

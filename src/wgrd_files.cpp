@@ -28,7 +28,7 @@
 namespace fs = std::filesystem;
 using namespace wgrd_files;
 
-bool wgrd_files::File::render() {
+void wgrd_files::File::render_window() {
   ImGui::Text("File: %s", vfs_path.c_str());
   if(ImGui::Button("save file")) {
     std::filesystem::path vfs(vfs_path);
@@ -49,7 +49,6 @@ bool wgrd_files::File::render() {
 
     ImGuiFileDialog::Instance()->Close();
   }
-  return true;
 }
 
 wgrd_files::File::File(FileMeta meta, fs::path out_path)
@@ -115,20 +114,25 @@ bool File::copy_to_file(std::filesystem::path path) {
 }
 
 void wgrd_files::Files::render() {
-  for(auto &[idx, file] : files) {
-    if(file->window_opened) {
-      file->render();
+  for(auto& [idx, p_open] : open_file_windows) {
+    if(!p_open) {
+      continue;
     }
+    auto file = files.find(idx);
+    if(file == files.end()) {
+      spdlog::error("Trying to render not loaded file {}", idx);
+      continue;
+    }
+    if(ImGui::Begin(file->second->vfs_path.c_str(), &p_open)) {
+      file->second->render_window();
+    }
+    ImGui::End();
+    file->second->render_extra();
   }
 }
 
 void wgrd_files::Files::open_window(FileMeta meta) {
-  auto file = files.find(meta.idx);
-  if(file == files.end()) {
-    spdlog::error("Trying to open window for not loaded file");
-    return;
-  }
-  file->second->window_opened = true;
+  open_file_windows[meta.idx] = true;
 }
 
 void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_offset) {

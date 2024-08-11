@@ -123,65 +123,52 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
   return true;
 }
 
-bool wgrd_files::Dic::render() {
+void wgrd_files::Dic::render_window() {
   if(!is_parsed) {
     if(!load_bin()) {
-      return false;
+      return;
     }
   }
-
-  ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
-  if(is_changed()) {
-    wndflags |= ImGuiWindowFlags_UnsavedDocument;
+  if(ImGui::Button(gettext("Save XML"))) {
+    save_xml(xml_path);
   }
-  ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
-  if(ImGui::Begin(vfs_path.c_str(), &window_opened, wndflags)) {
 
-    if(ImGui::Button(gettext("Save XML"))) {
-      save_xml(xml_path);
-    }
-
-    if(ImGui::BeginTable(gettext("Dictionary entries"), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
-      ImGui::TableSetupColumn(gettext("Hash"), ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn(gettext("String"), ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableHeadersRow();
-      ImGui::TableNextColumn();
-      for(auto& [hash, str] : dic_data) {
-        if(hash == "0000000000000080") {
-          continue;
-        }
-        ImGui::PushID(hash.c_str());
-        std::string hash_str = hash;
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-        if(ImGui::InputText("##DicHashInput", &hash_str, ImGuiInputTextFlags_EnterReturnsTrue)) {
-          auto trans = std::make_unique<DicTransaction_ChangeHash>();
-          trans->previous_hash = hash;
-          trans->new_hash = hash_str;
-          transactions.push_back(std::move(trans));
-          transactions.back()->apply(dic_data);
-          m_is_changed = true;
-        }
-        ImGui::TableNextColumn();
-        std::string value_str = str;
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-        if(ImGui::InputText("##DicValueInput", &value_str, ImGuiInputTextFlags_EnterReturnsTrue)) {
-          auto trans = std::make_unique<DicTransaction_ChangeValue>();
-          trans->hash = hash;
-          trans->new_value = value_str;
-          transactions.push_back(std::move(trans));
-          transactions.back()->apply(dic_data);
-          m_is_changed = true;
-        }
-        ImGui::TableNextColumn();
-        ImGui::PopID();
+  if(ImGui::BeginTable(gettext("Dictionary entries"), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn(gettext("Hash"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn(gettext("String"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableHeadersRow();
+    ImGui::TableNextColumn();
+    for(auto& [hash, str] : dic_data) {
+      if(hash == "0000000000000080") {
+        continue;
       }
-      ImGui::EndTable();
+      ImGui::PushID(hash.c_str());
+      std::string hash_str = hash;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+      if(ImGui::InputText("##DicHashInput", &hash_str, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto trans = std::make_unique<DicTransaction_ChangeHash>();
+        trans->previous_hash = hash;
+        trans->new_hash = hash_str;
+        transactions.push_back(std::move(trans));
+        transactions.back()->apply(dic_data);
+        m_is_changed = true;
+      }
+      ImGui::TableNextColumn();
+      std::string value_str = str;
+      ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+      if(ImGui::InputText("##DicValueInput", &value_str, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        auto trans = std::make_unique<DicTransaction_ChangeValue>();
+        trans->hash = hash;
+        trans->new_value = value_str;
+        transactions.push_back(std::move(trans));
+        transactions.back()->apply(dic_data);
+        m_is_changed = true;
+      }
+      ImGui::TableNextColumn();
+      ImGui::PopID();
     }
+    ImGui::EndTable();
   }
-
-  ImGui::End();
-
-  return true;
 }
 
 bool wgrd_files::Dic::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

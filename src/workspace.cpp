@@ -8,6 +8,8 @@
 
 #include <toml.hpp>
 
+#include <ranges>
+
 #include <libintl.h>
 
 std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) {
@@ -103,17 +105,16 @@ bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
   return true;
 }
 
-void Workspace::render() {
-  if (ImGui::Begin(workspace_name.c_str(), &is_open)) {
-    auto meta = file_tree.render();
-    if(meta) {
-      files.add_file(workspace_out_path, meta.value());
-      loaded_file_paths.insert(meta.value().fs_path);
-      files.open_window(meta.value());
-    }
+void Workspace::render_window() {
+  auto meta = file_tree.render();
+  if(meta) {
+    files.add_file(workspace_out_path, meta.value());
+    loaded_file_paths.insert(meta.value().fs_path);
+    files.open_window(meta.value());
   }
-  ImGui::End();
+}
 
+void Workspace::render_extra() {
   files.render();
 }
 
@@ -188,27 +189,54 @@ void Workspace::save_changes_to_dat(bool save_to_fs_path) {
 }
 
 void Workspaces::render() {
-  size_t idx = 0;
-  for(auto& workspace : workspaces) {
-    ImGui::SetNextWindowSize(ImVec2(800, 800), ImGuiCond_FirstUseEver);
-    workspace.render();
-
-    if(!workspace.is_open) {
-      workspaces.erase(workspaces.begin() + idx);
+  for(auto& [workspace_name, p_open] : open_workspace_windows) {
+    if(!workspaces.contains(workspace_name)) {
+      spdlog::error("Workspace {} does not exist", workspace_name);
+      continue;
     }
+    auto& workspace = workspaces[workspace_name];
+    ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
+    if(workspace.is_changed()) {
+      wndflags |= ImGuiWindowFlags_UnsavedDocument;
+    }
+    ImGui::SetNextWindowSize(ImVec2(800, 800), ImGuiCond_FirstUseEver);
+    if(ImGui::Begin(workspace.workspace_name.c_str(), &p_open)) {
+      workspace.render_window();
+    }
+    ImGui::End();
+    workspace.render_extra();
   }
   if(show_add_workspace) {
     auto workspace = Workspace::render_init_workspace(&show_add_workspace);
     if(workspace) {
-      workspaces.push_back(std::move(workspace.value()));
+      add_workspace(std::move(workspace.value()));
       show_add_workspace = false;
     }
   }
 }
 
+void Workspaces::render_menu() {
+  if(ImGui::BeginMenu(gettext("Workspaces"))) {
+    if(open_workspace_windows.empty()) {
+      ImGui::MenuItem(gettext("No workspaces loaded"), nullptr, nullptr, false);
+    }
+    assert(open_workspace_windows.size() == workspaces.size());
+    for(auto& [workspace_name, p_open] : open_workspace_windows) {
+      ImGui::MenuItem(workspace_name.c_str(), nullptr, &p_open);
+    }
+    ImGui::EndMenu();
+  }
+}
+
+void Workspaces::add_workspace(Workspace w) {
+  spdlog::info("Loading workspace {} {} {}", w.workspace_name, w.workspace_dat_path.string(), w.workspace_out_path.string());
+  open_workspace_windows.insert({w.workspace_name, true});
+  this->workspaces.insert({w.workspace_name, std::move(w)});
+}
+
 void Workspaces::save_project_file(fs::path path) {
   toml::array arr;
-  for(auto& workspace : workspaces) {
+  for(auto& [_, workspace] : workspaces) {
     auto data = workspace.to_toml();
     arr.push_back(data);
   }
@@ -227,9 +255,8 @@ void Workspaces::load_project_file(fs::path path) {
       Workspace w;
       w.workspace_name = workspace["name"].as_string();
       w.init(workspace["dat_path"].as_string(), workspace["out_path"].as_string());
-      this->workspaces.push_back(std::move(w));
       py::gil_scoped_release release;
-      spdlog::info("Loaded workspace {} {} {}", w.workspace_name, workspace["dat_path"].as_string(), workspace["out_path"].as_string());
+      add_workspace(std::move(w));
     }
   } else {
     spdlog::info("Could not load project file from {}", path.string());
@@ -237,7 +264,7 @@ void Workspaces::load_project_file(fs::path path) {
 }
 
 void Workspaces::save_workspaces(bool save_to_fs_path) {
-  for(auto& workspace : workspaces) {
+  for(auto& [_, workspace] : workspaces) {
     workspace.save_changes_to_dat(save_to_fs_path);
   }
 }

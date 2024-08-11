@@ -11,7 +11,7 @@ private:
   bool is_parsed = false;
 public:
   explicit Ess(FileMeta meta, fs::path out_path);
-  bool render() override;
+  void render_window() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
   bool load_bin();
 };

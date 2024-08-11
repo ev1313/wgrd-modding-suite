@@ -8,10 +8,12 @@ wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path) : File(meta, out_path) 
   workspace.init_from_file(out_path / "bin" / vfs_path, out_path);
 }
 
-bool wgrd_files::EDat::render() {
-  workspace.render();
+void wgrd_files::EDat::render_window() {
+  workspace.render_window();
+}
 
-  return true;
+void wgrd_files::EDat::render_extra() {
+  workspace.render_extra();
 }
 
 bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

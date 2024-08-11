@@ -56,7 +56,8 @@ private:
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
 public:
   explicit NdfBin(FileMeta meta, fs::path out_path);
-  bool render() override;
+  void render_window() override;
+  void render_extra() override;
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;
