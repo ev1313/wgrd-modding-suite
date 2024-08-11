@@ -61,6 +61,7 @@ public:
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;
+  bool load_bin(fs::path path) override;
   bool save_bin(fs::path path) override;
 };
 

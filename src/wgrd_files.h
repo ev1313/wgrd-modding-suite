@@ -22,6 +22,10 @@ namespace wgrd_files {
 class Files;
 
 class File {
+private:
+  bool is_parsing = false;
+  std::optional<std::promise<bool>> m_ndf_parsed_promise;
+  std::optional<std::future<bool>> m_ndf_parsed_future;
 protected:
   std::string vfs_path;
   std::ifstream file;
@@ -47,6 +51,10 @@ public:
   // this function just plainly copies from the given filestream to the given path
   bool copy_to_file(fs::path path);
 
+  virtual bool start_parsing() {
+    spdlog::error("cannot parse {}", vfs_path);
+    return false;
+  }
   virtual bool load_xml(fs::path path) {
     spdlog::error("cannot load xml file {} into {}", vfs_path, path.string());
     return false;

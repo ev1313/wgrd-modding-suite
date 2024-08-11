@@ -706,8 +706,6 @@ class NdfBinFile {
 private:
   bool ndf_parsed = false;
   bool ndf_parsing = false;
-  std::optional<std::promise<bool>> m_ndf_parsed_promise;
-  std::optional<std::future<bool>> m_ndf_parsed_future;
   NDF ndf;
 
 public:
