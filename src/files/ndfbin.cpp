@@ -810,44 +810,48 @@ void wgrd_files::NdfBin::render_window() {
     if(ImGui::Button(gettext("Save ndfbin"))) {
       save_bin(out_path / "bin" / vfs_path);
     }
-  }
-  std::string object = "";
-  if(ndfbin.is_parsed()) {
+
     render_object_list();
     render_class_list();
-    render_classes();
   }
 }
 
 void wgrd_files::NdfBin::render_extra() {
-  if(ndfbin.is_parsed()) {
-    std::vector<std::unique_ptr<NdfTransaction>> changes;
-    for(auto& [object_name, p_open] : open_object_windows) {
-      ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-
-      if(ImGui::Begin(object_name.c_str(), &p_open)) {
-        auto ret = render_object_info(object_name);
-        if(ret) {
-          changes.push_back(std::move(ret.value()));
-        }
-        render_property_list(object_name);
-      }
-      ImGui::End();
-    }
-
-    for(auto& change : changes) {
-      std::string object_name = change->object_name;
-      ndfbin.apply_transaction(std::move(change));
-      // also gets triggered when changing top object, but whatever
-      object_count_changed = true;
-      // if object was removed, we need to close its window as well
-      if(!ndfbin.contains_object(object_name)) {
-        open_object_windows[object_name] = false;
-      }
-      m_is_changed = true;
-    }
-    changes.clear();
+  if(!ndfbin.is_parsed()) {
+    return;
   }
+
+  render_classes();
+
+  // render_objects
+  std::vector<std::unique_ptr<NdfTransaction>> changes;
+  for(auto& [object_name, p_open] : open_object_windows) {
+    if(!p_open) {
+      continue;
+    }
+    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
+    if(ImGui::Begin(object_name.c_str(), &p_open)) {
+      auto ret = render_object_info(object_name);
+      if(ret) {
+        changes.push_back(std::move(ret.value()));
+      }
+      render_property_list(object_name);
+    }
+    ImGui::End();
+  }
+
+  for(auto& change : changes) {
+    std::string object_name = change->object_name;
+    ndfbin.apply_transaction(std::move(change));
+    // also gets triggered when changing top object, but whatever
+    object_count_changed = true;
+    // if object was removed, we need to close its window as well
+    if(!ndfbin.contains_object(object_name)) {
+      open_object_windows[object_name] = false;
+    }
+    m_is_changed = true;
+  }
+  changes.clear();
 }
 
 bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {

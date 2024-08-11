@@ -190,6 +190,9 @@ void Workspace::save_changes_to_dat(bool save_to_fs_path) {
 
 void Workspaces::render() {
   for(auto& [workspace_name, p_open] : open_workspace_windows) {
+    if(!p_open) {
+      continue;
+    }
     if(!workspaces.contains(workspace_name)) {
       spdlog::error("Workspace {} does not exist", workspace_name);
       continue;
