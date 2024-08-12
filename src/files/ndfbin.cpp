@@ -46,10 +46,12 @@ void wgrd_files::NdfBin::render_object_list() {
   }
   if(filter_changed) {
     // filter objects
+    object_list_filtered.clear();
     for(auto& object_name : ndfbin.filter_objects(object_filter_lower, class_filter_lower)) {
       object_list_filtered.push_back(object_name);
     }
     // filter classes
+    class_list_filtered.clear();
     if(!class_filter.empty()) {
       for(auto& [class_name, _] : class_list) {
         if(str_tolower(class_name).contains(class_filter_lower)) {
@@ -133,16 +135,11 @@ std::string wgrd_files::NdfBin::render_class_list() {
   std::string ret = "";
   if(ImGui::BeginListBox("##Class List", ImVec2(-FLT_MIN, 20*ImGui::GetTextLineHeightWithSpacing()))) {
     ImGuiListClipper clipper;
-    clipper.Begin(class_list.size());
+    clipper.Begin(class_list_filtered.size());
     while(clipper.Step()) {
-      auto class_it = class_list.begin();
-      for(int it = clipper.DisplayStart; it < clipper.DisplayEnd && class_it != class_list.end(); ) {
-        auto& [class_name, class_] = *class_it;
-
-        if(!class_filter.empty() && !str_tolower(class_name).contains(class_filter_lower)) {
-          class_it++;
-          continue;
-        }
+      for(int it = clipper.DisplayStart; it < clipper.DisplayEnd; it++) {
+        const std::string& class_name = class_list_filtered[it];
+        const auto& class_ = class_list[class_name];
 
         if(ImGui::Selectable(class_name.c_str(), selected_class == class_name)) {
           selected_class = class_name;
@@ -153,9 +150,6 @@ std::string wgrd_files::NdfBin::render_class_list() {
         if(selected_class == class_name) {
           ImGui::SetItemDefaultFocus();
         }
-        class_it++;
-        // only increment stepper when class is not filtered
-        it++;
       }
     }
     clipper.End();
