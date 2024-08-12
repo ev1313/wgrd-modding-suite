@@ -302,7 +302,7 @@ void wgrd_files::NdfBin::render_bulk_renames() {
 
       ImGui::Text(gettext("New property names:"));
 
-      if(ImGui::BeginTable("Bulk Rename Table", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+      if(ImGui::BeginTable("Bulk Rename Table", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY, ImVec2(-FLT_MIN, 20*ImGui::GetTextLineHeightWithSpacing()))) {
         ImGui::TableSetupColumn(gettext("Old name"), ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn(gettext("Generated new name"), ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn(gettext("Override name"), ImGuiTableColumnFlags_WidthStretch);
@@ -341,8 +341,38 @@ void wgrd_files::NdfBin::render_bulk_renames() {
         ImGui::EndTable();
       }
       
+      ImGui::Separator();
+      if(ImGui::Button(gettext("Bulk Rename"))) {
+        std::unordered_map<std::string, std::string> renames;
+        for(auto& object_name : class_.objects) {
+          auto& object = ndfbin.get_object(object_name);
+          if(bulk_rename_overrides[object.name].second) {
+            continue;
+          }
+          std::string new_name = bulk_rename_overrides[object.name].first;
+          if(new_name.empty()) {
+            new_name = bulk_rename_prefix;
+            for(int i = 0; i < bulk_rename_property_count; i++) {
+              if(!object.property_map.contains(bulk_rename_selected_properties[i])) {
+                new_name += "_NULL";
+                continue;
+              }
+              auto& property = object.properties.at(object.property_map.at(bulk_rename_selected_properties[i]));
+              std::string prop_name = property->as_string();
+              std::replace(prop_name.begin(), prop_name.end(), ' ', '_');
+              new_name += "_" + prop_name;
+            }
+          }
+          renames.insert({object.name, new_name});
+        }
+        auto trans = std::make_unique<NdfTransactionBulkRename>();
+        trans->renames = std::move(renames);
+        ndfbin.apply_transaction(std::move(trans));
+        object_count_changed = true;
+      }
     }
     ImGui::End();
+
     // FIXME: currently only one window supported
     return;
   }

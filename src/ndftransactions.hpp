@@ -111,19 +111,22 @@ struct NdfTransactionChangeObjectTopObject : public NdfTransaction {
   }
 };
 
-// empty transaction, so you can group other transactions together
-struct NdfTransactionBulkRenameBegin : public NdfTransaction {
-  void apply(NDF&) override {
+// since bulk renaming can be very resource intensive
+// we need to batch the changes together
+// object_name is ignored in this case, as all objects
+// are affected. it is ""
+struct NdfTransactionBulkRename : public NdfTransaction {
+  // old_name -> new_name
+  std::unordered_map<std::string, std::string> renames;
+  void apply(NDF& ndf) override {
+    ndf.bulk_rename_objects(renames);
   }
-  void undo(NDF&) override {
-  }
-};
-
-// empty transaction, so you can group other transactions together
-struct NdfTransactionBulkRenameEnd : public NdfTransaction {
-  void apply(NDF&) override {
-  }
-  void undo(NDF&) override {
+  void undo(NDF& ndf) override {
+    std::unordered_map<std::string, std::string> undos;
+    for(auto& [old_name, new_name] : renames) {
+      undos[new_name] = old_name;
+    }
+    ndf.bulk_rename_objects(undos);
   }
 };
 
