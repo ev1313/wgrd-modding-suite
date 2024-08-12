@@ -127,26 +127,21 @@ std::optional<FileMeta> FileTree::render_file_list() {
   std::optional<FileMeta> ret = std::nullopt;
 
   ImGuiListClipper clipper;
-  clipper.Begin(vfs_files.size());
-  auto vfs_it = vfs_files.begin();
+  clipper.Begin(vfs_filtered_files.size());
+  auto vfs_it = vfs_filtered_files.begin();
   while(clipper.Step()) {
-    for(int it = 0; it < clipper.DisplayEnd && vfs_it != vfs_files.end(); ) {
+    for(int it = 0; it < clipper.DisplayEnd && vfs_it != vfs_filtered_files.end(); ) {
       // we only need to increment the vfs iterator, if it is currently shown
-      auto [vfs_path, value] = *vfs_it;
-      // FIXME: cache the lowercased vfs_path?
-      if(!m_search_lower.empty() && !str_tolower(vfs_path).contains(m_search_lower)) {
-        vfs_it++;
-        continue;
-      }
+      auto [_, vfs_path] = *vfs_it;
       // we need to first get to the display start
       if(it < clipper.DisplayStart) {
         it++;
         continue;
       }
       // now we are inside the range we want to display
-      if(ImGui::Selectable(vfs_path.c_str(), selected_vfs_path == value.vfs_path)) {
-        selected_vfs_path = value.vfs_path;
-        ret = value;
+      if(ImGui::Selectable(vfs_path.c_str(), selected_vfs_path == vfs_path)) {
+        selected_vfs_path = vfs_path;
+        ret = vfs_files[vfs_path];
       }
 
       if(vfs_path == selected_vfs_path) {

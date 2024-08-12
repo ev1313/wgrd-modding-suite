@@ -181,7 +181,7 @@ void wgrd_files::NdfBin::render_classes() {
         ImGui::EndListBox();
       }
       // property list
-      ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Hideable | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
+      ImGuiTableFlags flags = ImGuiTableFlags_Hideable | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders;
       ImVec2 table_size = ImGui::GetContentRegionAvail();
       if(ImGui::BeginTable("class_prop_table", 2, flags, table_size)) {
         ImGui::TableSetupColumn(gettext("Property Name"), ImGuiTableColumnFlags_WidthFixed);
@@ -194,8 +194,8 @@ void wgrd_files::NdfBin::render_classes() {
           ImGui::TableNextColumn();
           ImGuiTableFlags sub_flags = ImGuiTableFlags_Hideable | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders;
           if(ImGui::BeginTable("class_prop_value_table", 3, flags)) {
-            ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn(gettext("Count"), ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn(gettext("Value"), ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn(gettext("Count"), ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn(gettext("Objects"), ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableHeadersRow();
 
@@ -207,9 +207,9 @@ void wgrd_files::NdfBin::render_classes() {
               ImGui::TableNextColumn();
               ImGui::PushID(property_name.c_str());
               // TODO: maybe cache this?
-              auto object_items = objects | std::views::join_with(',');
-              std::string object_items_str = std::string(object_items.begin(), object_items.end());
-              ImGui::Text("%s", object_items_str.c_str());
+              //auto object_items = objects | std::views::join_with(',');
+              //std::string object_items_str = std::string(object_items.begin(), object_items.end());
+              //ImGui::Text("%s", object_items_str.c_str());
               ImGui::PopID();
             }
             
