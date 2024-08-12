@@ -12,7 +12,7 @@ using namespace wgrd_files;
 wgrd_files::NdfBin::NdfBin(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-std::string wgrd_files::NdfBin::render_object_list() {
+void wgrd_files::NdfBin::render_object_list() {
   if(ImGui::BeginTable("filters", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
     ImGui::TableSetupColumn(gettext("Filter"), ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn(gettext("Action"), ImGuiTableColumnFlags_WidthStretch);
@@ -21,14 +21,16 @@ std::string wgrd_files::NdfBin::render_object_list() {
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if(ImGui::InputText("##ObjectFilter", &object_filter)) {
-      object_count_changed = true;
+      object_filter_lower = str_tolower(object_filter);
+      filter_changed = true;
     }
     ImGui::TableNextColumn();
     ImGui::Text("Class Filter: ");
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if(ImGui::InputText("##ClassFilter", &class_filter)) {
-      object_count_changed = true;
+      class_filter_lower = str_tolower(class_filter);
+      filter_changed = true;
     }
     ImGui::TableNextColumn();
     //static bool filter_topo = false;
@@ -38,29 +40,46 @@ std::string wgrd_files::NdfBin::render_object_list() {
 
   if(object_count_changed) {
     fill_class_list();
-    object_list.clear();
-    object_list = ndfbin.filter_objects(object_filter, class_filter);
     item_current_idx = -1;
     object_count_changed = false;
+    filter_changed = true;
+  }
+  if(filter_changed) {
+    // filter objects
+    for(auto& object_name : ndfbin.filter_objects(object_filter_lower, class_filter_lower)) {
+      object_list_filtered.push_back(object_name);
+    }
+    // filter classes
+    if(!class_filter.empty()) {
+      for(auto& [class_name, _] : class_list) {
+        if(str_tolower(class_name).contains(class_filter_lower)) {
+          class_list_filtered.push_back(class_name);
+        }
+      }
+    } else {
+      auto class_list_it = class_list | std::views::keys;
+      class_list_filtered = std::vector<std::string>(class_list_it.begin(), class_list_it.end());
+    }
+    filter_changed = false;
   }
 
-  if(item_current_idx >= object_list.size()) {
+  if(item_current_idx >= object_list_filtered.size()) {
     item_current_idx = -1;
   }
 
   if (ImGui::BeginListBox("##ObjectList", ImVec2(-FLT_MIN, 20*ImGui::GetTextLineHeightWithSpacing())))
   {
     ImGuiListClipper clipper;
-    clipper.Begin(object_list.size());
+    clipper.Begin(object_list_filtered.size());
 
     while (clipper.Step()) {
       for(int it = clipper.DisplayStart; it < clipper.DisplayEnd; it++) {
-        const auto& object = ndfbin.get_object(object_list[it]);
+        const auto& object = ndfbin.get_object(object_list_filtered[it]);
 
         const bool is_selected = (item_current_idx == it);
         if (ImGui::Selectable(std::format("{} - {}", object.name, object.class_name).c_str(), is_selected)) {
           item_current_idx = it;
-          std::string object_name = object_list[item_current_idx];
+          std::string object_name = object_list_filtered[item_current_idx];
           if(!object_name.empty()) {
             open_object_windows.insert({object_name, true});
           }
@@ -74,14 +93,6 @@ std::string wgrd_files::NdfBin::render_object_list() {
     }
     ImGui::EndListBox();
   }
-
-  if(item_current_idx == -1) {
-    return "";
-  }
-
-  std::string object_name = object_list[item_current_idx];
-
-  return object_name;
 }
 
 void wgrd_files::NdfBin::fill_class_list() {
@@ -90,11 +101,13 @@ void wgrd_files::NdfBin::fill_class_list() {
   object_references.reserve(ndfbin.get_object_count());
   for(auto& object_name : ndfbin.filter_objects("", "")) {
     auto& object = ndfbin.get_object(object_name);
+
     auto class_it = class_list.find(object.class_name);
     if(class_it == class_list.end()) {
       class_list.emplace(object.class_name, Class());
       class_it = class_list.find(object.class_name);
     }
+
     class_it->second.objects.push_back(object_name);
     for(auto& property : object.properties) {
       auto refs = property->get_object_references();
@@ -126,7 +139,7 @@ std::string wgrd_files::NdfBin::render_class_list() {
       for(int it = clipper.DisplayStart; it < clipper.DisplayEnd && class_it != class_list.end(); ) {
         auto& [class_name, class_] = *class_it;
 
-        if(!class_filter.empty() && !str_tolower(class_name).contains(str_tolower(class_filter))) {
+        if(!class_filter.empty() && !str_tolower(class_name).contains(class_filter_lower)) {
           class_it++;
           continue;
         }
@@ -154,14 +167,19 @@ std::string wgrd_files::NdfBin::render_class_list() {
 
 void wgrd_files::NdfBin::render_classes() {
   for(auto& [class_name, p_open] : open_class_windows) {
+    if(!p_open) {
+      continue;
+    }
     if(!class_list.contains(class_name)) {
       spdlog::error("Class {} not found", class_name);
       continue;
     }
+
     auto& class_ = class_list.at(class_name);
 
     ImGui::SetNextWindowSize(ImVec2(600, 800), ImGuiCond_FirstUseEver);
-    if(ImGui::Begin(class_name.c_str(), &p_open)) {
+    if(ImGui::Begin(class_name.c_str(), &p_open, ImGuiWindowFlags_MenuBar)) {
+      render_class_menu(class_name);
       // object list
       if (ImGui::BeginListBox("##ClassObjectList", ImVec2(-FLT_MIN, 15*ImGui::GetTextLineHeightWithSpacing())))
       {
@@ -221,12 +239,93 @@ void wgrd_files::NdfBin::render_classes() {
     }
     ImGui::End();
   }
-  for(auto it = open_class_windows.begin(); it != open_class_windows.end();) {
-    if(!it->second) {
-      it = open_class_windows.erase(it);
-    } else {
-      ++it;
+  render_bulk_renames();
+}
+
+void wgrd_files::NdfBin::render_class_menu(std::string class_name) {
+  if(ImGui::BeginMenuBar()) {
+    if(ImGui::BeginMenu(gettext("Tools"))) {
+      if(ImGui::MenuItem(gettext("Bulk Rename"))) {
+        open_class_bulk_rename_windows.insert({class_name, true});
+        // FIXME: refactor bulk renames into separate class so they can handle their own windows...
+        bulk_rename_prefix = class_name;
+      }
+
+      ImGui::EndMenu();
     }
+
+    ImGui::EndMenuBar();
+  }
+}
+
+void wgrd_files::NdfBin::render_bulk_renames() {
+  for(auto& [class_name, p_open] : open_class_bulk_rename_windows) {
+    if(!p_open) {
+      continue;
+    }
+    if(!class_list.contains(class_name)) {
+      spdlog::error("Class {} not found", class_name);
+      continue;
+    }
+    auto& class_ = class_list.at(class_name);
+
+    ImGui::SetNextWindowSize(ImVec2(600, 800), ImGuiCond_FirstUseEver);
+    std::string wndname = std::format("{} {}", gettext("Bulk Rename: "), class_name);
+    if(ImGui::Begin(wndname.c_str(), &p_open, ImGuiWindowFlags_None)) {
+      ImGui::Text("Bulk Rename: %s", class_name.c_str());
+      ImGui::Separator();
+      if(ImGui::SliderInt(gettext("Select number of properties"), &bulk_rename_property_count, 0, class_.properties.size())) {
+        bulk_rename_selected_properties.resize(bulk_rename_property_count);
+      }
+      ImGui::Separator();
+      ImGui::InputText(gettext("Prefix"), &bulk_rename_prefix);
+      ImGui::Separator();
+
+      if(bulk_rename_property_count == 0) {
+        ImGui::Text(gettext("No properties selected"));
+      } else {
+        ImGui::Text(gettext("Select properties: "));
+      }
+
+      for(int i = 0; i < bulk_rename_property_count; i++) {
+        ImGui::PushID(i);
+        if(ImGui::BeginCombo(gettext("Select Property"), bulk_rename_selected_properties[i].c_str())) {
+          for(auto& [property_name, _] : class_.properties) {
+            std::string& selection = bulk_rename_selected_properties[i];
+            if(ImGui::Selectable(property_name.c_str(), selection == property_name)) {
+              bulk_rename_selected_properties[i] = property_name;
+            }
+            if(bulk_rename_selected_properties[i] == property_name) {
+              ImGui::SetItemDefaultFocus();
+            }
+          }
+          ImGui::EndCombo();
+        }
+        ImGui::PopID();
+      }
+
+      ImGui::Separator();
+
+      ImGui::Text(gettext("New property names:"));
+
+      for(auto& object_name : class_.objects) {
+        auto& object = ndfbin.get_object(object_name);
+        std::string new_name = bulk_rename_prefix;
+        for(int i = 0; i < bulk_rename_property_count; i++) {
+          if(!object.property_map.contains(bulk_rename_selected_properties[i])) {
+            new_name = "ERROR: Property not found in object";
+            break;
+          }
+          auto& property = object.properties.at(object.property_map.at(bulk_rename_selected_properties[i]));
+          std::string prop_name = property->as_string();
+          std::replace(prop_name.begin(), prop_name.end(), ' ', '_');
+          new_name += "_" + prop_name;
+        }
+        ImGui::Text("%s -> %s", object.name.c_str(), new_name.c_str());
+      }
+      
+    }
+    ImGui::End();
   }
 }
 

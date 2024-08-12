@@ -249,53 +249,6 @@ std::optional<FileMeta> FileTree::render_file_tree() {
     ImGui::TreePop();
   }
 
-  /*
-  for(auto& item : tree) {
-    //spdlog::info("rendering item {}", item.part);
-
-    if (item.value.type() == typeid(std::vector<FileTreeItem>)) {
-      if(!m_search_lower.empty()) {
-        bool cont = true;
-        for(auto& sub_path : item.sub_paths) {
-          if(str_tolower(sub_path).contains(m_search_lower)) {
-            cont = false;
-            break;
-          }
-        }
-        if(cont) {
-          continue;
-        }
-      }
-      if(open_all) {
-        ImGui::SetNextItemOpen(true);
-      }
-      if(ImGui::TreeNodeEx(item.part.c_str(), ImGuiTreeNodeFlags_NavLeftJumpsBackHere)) {
-        bool child_open_all = false;
-        if(!ImGui::IsItemToggledOpen() && ImGui::IsItemHovered() && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow))) {
-          child_open_all = true;
-        }
-        auto sub_ret = render_file_tree(std::any_cast<std::vector<FileTreeItem>>(item.value), open_all || child_open_all);
-        if(!ret.has_value()) {
-          ret = sub_ret;
-        }
-
-        ImGui::TreePop();
-      }
-    } else {
-      FileMeta value = std::any_cast<FileMeta>(item.value);
-      if(!str_tolower(value.vfs_path).contains(m_search_lower)) {
-        continue;
-      }
-      if(ImGui::Selectable(item.part.c_str(), selected_vfs_path == value.vfs_path)) {
-        selected_vfs_path = value.vfs_path;
-        ret = value;
-      }
-      if(value.vfs_path == selected_vfs_path) {
-        ImGui::SetItemDefaultFocus();
-      }
-    }
-  }*/
-
   return ret;
 }
 

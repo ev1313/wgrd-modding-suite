@@ -12,9 +12,13 @@ private:
   // object count is cached, since it iterates all objects in ndfbin
   // gets set to true if the object count changed after removing / adding / cloning objects
   bool object_count_changed = true;
-  std::vector<std::string> object_list;
+  // this is the option, whether the object and class list should be filtered again
+  bool filter_changed = true;
+  std::vector<std::string> object_list_filtered;
   std::string object_filter = "";
+  std::string object_filter_lower = "";
   std::string class_filter = "";
+  std::string class_filter_lower = "";
   // only for being able to save the last clicked position for auto focus of the selected object
   int item_current_idx = -1;
   
@@ -27,7 +31,7 @@ private:
   std::map<std::string, bool> open_object_windows;
 
   NdfBinFile ndfbin;
-  std::string render_object_list();
+  void render_object_list();
 
   struct Property {
     // maps the possible value to an object name
@@ -42,13 +46,23 @@ private:
   };
   // maps the class name to the class
   std::map<std::string, Class> class_list;
+  // contains a mapping object_name -> objects referencing the object
   std::unordered_map<std::string, std::set<std::string>> object_references;
+  // used for filtering the class list
+  std::vector<std::string> class_list_filtered;
   // only for being able to save the last clicked position for auto focus
   std::string selected_class = "";
   std::unordered_map<std::string, bool> open_class_windows;
+  std::unordered_map<std::string, bool> open_class_bulk_rename_windows;
   void fill_class_list();
   std::string render_class_list();
   void render_classes();
+  void render_class_menu(std::string class_name);
+
+  int bulk_rename_property_count = 1;
+  std::string bulk_rename_prefix = "";
+  std::vector<std::string> bulk_rename_selected_properties = {""};
+  void render_bulk_renames();
 
   std::optional<std::unique_ptr<NdfTransaction>> render_object_info(std::string object_name);
   void render_property_list(std::string object_name);
