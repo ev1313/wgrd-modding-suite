@@ -4,7 +4,6 @@
 #include <iterator>
 #include <memory>
 
-#include <future>
 #include <optional>
 #include <pugixml.hpp>
 
@@ -704,35 +703,13 @@ struct NdfTransactionChangeProperty_ChangePairItem : public NdfTransactionChange
 
 class NdfBinFile {
 private:
-  bool ndf_parsed = false;
-  bool ndf_parsing = false;
-  std::optional<std::promise<bool>> m_ndf_parsed_promise;
-  std::optional<std::future<bool>> m_ndf_parsed_future;
   NDF ndf;
 
 public:
-  void start_parsing(fs::path vfs_path, fs::path file_path, fs::path out_path);
-  void start_parsing(fs::path vfs_path, std::vector<char> vec_data, fs::path out_path);
+  void start_parsing(fs::path vfs_path, fs::path file_path);
+  void start_parsing(fs::path vfs_path, std::vector<char> vec_data);
   void load_from_xml_file(fs::path path);
 
-  bool is_parsing() {
-    return ndf_parsing;
-  }
-  bool is_parsed() {
-    return ndf_parsed;
-  }
-  void check_parsing() {
-    if(!m_ndf_parsed_promise.has_value()) {
-      throw std::runtime_error("m_ndf_parsed_promise not set");
-    }
-    if(!m_ndf_parsed_future.has_value()) {
-      throw std::runtime_error("m_ndf_parsed_future not set");
-    }
-    if(m_ndf_parsed_future.value().wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-      ndf_parsed = m_ndf_parsed_future.value().get();
-      ndf_parsing = false;
-    }
-  }
   bool contains_object(const std::string& name) {
     return ndf.object_map.contains(name);
   }
@@ -804,17 +781,15 @@ public:
   void save_ndfbin_to_stream(std::ostream& stream) {
     std::stringstream tmp;
     ndf.save_as_ndfbin_stream(tmp);
-    py::gil_scoped_acquire acquire{};
     try {
+      py::gil_scoped_acquire acquire;
       py::object compress_ndfbin = py::module_::import("wgrd_cons_parsers.compress_ndfbin").attr("compress_ndfbin");
       py::bytes bytes(tmp.str());
       py::bytes compressed = compress_ndfbin(bytes);
       stream.write(compressed.cast<std::string>().data(), compressed.cast<std::string>().size());
-
     } catch (py::error_already_set &e) {
       spdlog::error("Error saving NDF: {}", e.what());
     }
-    py::gil_scoped_release release{};
   }
   void save_ndfbin_to_file(fs::path path) {
     std::ofstream ofs(path, std::ios::binary | std::ios::out | std::ios::trunc);

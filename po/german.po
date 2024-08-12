@@ -1,0 +1,275 @@
+# WGRD Modding Suite.
+# Copyright (C) 2021-2024 End
+# This file is distributed under the same license as the wgrd-modding-suite package.
+# Tim Blume <wgrd@3nd.io>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-11 18:51+0200\n"
+"PO-Revision-Date: 2024-08-11 19:01+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
+"X-Poedit-Basepath: src\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: file_tree.cpp:140
+msgid "VFS Tree"
+msgstr "VFS Baum"
+
+#: files/dic.cpp:125
+msgid "Save XML"
+msgstr "Speichere XML"
+
+#: files/dic.cpp:129
+msgid "Dictionary entries"
+msgstr "Wörterbucheinträge"
+
+#: files/dic.cpp:130
+msgid "Hash"
+msgstr "Hash"
+
+#: files/dic.cpp:131
+msgid "String"
+msgstr "String"
+
+#: files/ndfbin.cpp:15
+msgid "Filter"
+msgstr "Filter"
+
+#: files/ndfbin.cpp:16
+msgid "Action"
+msgstr "Aktion"
+
+#: files/ndfbin.cpp:117
+msgid "Class List:"
+msgstr "Klassen:"
+
+#: files/ndfbin.cpp:185
+msgid "Property Name"
+msgstr "Eigenschaft"
+
+#: files/ndfbin.cpp:186
+msgid "Available Property Values"
+msgstr "Mögliche Werte"
+
+#: files/ndfbin.cpp:195 files/ndfbin.cpp:332
+msgid "Value"
+msgstr "Wert"
+
+#: files/ndfbin.cpp:196
+msgid "Count"
+msgstr "Anzahl"
+
+#: files/ndfbin.cpp:197
+msgid "Objects"
+msgstr "Objekte"
+
+#: files/ndfbin.cpp:240
+msgid "##OptionName"
+msgstr "##OptionName"
+
+#: files/ndfbin.cpp:241
+msgid "##EditField"
+msgstr "##EditField"
+
+#: files/ndfbin.cpp:304
+msgid "Remove Object"
+msgstr "Objekt löschen"
+
+#: files/ndfbin.cpp:310
+msgid "Copy Object"
+msgstr "Objekt kopieren"
+
+#: files/ndfbin.cpp:330
+msgid "Name"
+msgstr "Name"
+
+#: files/ndfbin.cpp:331
+msgid "Type"
+msgstr "Typ"
+
+#: files/ndfbin.cpp:508
+msgid "Jump"
+msgstr "Springe"
+
+#: files/ndfbin.cpp:577
+msgid "Color"
+msgstr "Farbe"
+
+#: files/ndfbin.cpp:657
+msgid "List Index"
+msgstr "Listenindex"
+
+#: files/ndfbin.cpp:658
+msgid "List Items"
+msgstr "Listenelemente"
+
+#: files/ndfbin.cpp:674 files/ndfbin.cpp:729
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: files/ndfbin.cpp:682 files/ndfbin.cpp:737
+msgid "Remove"
+msgstr "Löschen"
+
+#: files/ndfbin.cpp:699
+msgid "Map Key"
+msgstr "Schlüssel"
+
+#: files/ndfbin.cpp:700
+msgid "Map Value"
+msgstr "Wert"
+
+#: files/ndfbin.cpp:754
+msgid "First"
+msgstr "Erster"
+
+#: files/ndfbin.cpp:755
+msgid "Second"
+msgstr "Zweiter"
+
+#: imgui_helpers.cpp:13
+msgid "Open File Dialog##"
+msgstr "Öffne Dateidialog##"
+
+#: imgui_helpers.cpp:74
+msgid "ImGui Style Editor"
+msgstr "ImGui Stileditor"
+
+#: logger.h:47 maingui.cpp:143
+msgid "Log"
+msgstr "Log"
+
+#: logger.h:55
+msgid "Copy to Clipboard"
+msgstr "In die Zwischenablage kopieren"
+
+#: main.cpp:15 main.cpp:16
+#, c++-format
+msgid "GLFW Error {}: {}\n"
+msgstr "GLFW Fehler {}: {}\n"
+
+#: main.cpp:22
+msgid "Window close callback"
+msgstr "Fenster schließen"
+
+#: main.cpp:71 maingui.cpp:13
+msgid "WG: RD Modding Suite"
+msgstr "WG: RD Modding Suite"
+
+#: maingui.cpp:14
+msgid "Load a project file"
+msgstr "Projektdatei laden"
+
+#: maingui.cpp:15
+msgid "Shows debug logs"
+msgstr "Debug Logs anzeigen"
+
+#: maingui.cpp:43
+msgid "Python does not work, exiting"
+msgstr "Python funktioniert nicht, schließe Programm"
+
+#: maingui.cpp:63
+msgid "Mod Manager"
+msgstr "Modmanager"
+
+#: maingui.cpp:111
+msgid "File"
+msgstr "Datei"
+
+#: maingui.cpp:112
+msgid "Open new workspace"
+msgstr "Öffne neue Arbeitsumgebung"
+
+#: maingui.cpp:115
+msgid "Save all workspaces"
+msgstr "Speichere alle Arbeitsumgebungen"
+
+#: maingui.cpp:118
+msgid "Save dat files to input path"
+msgstr "Speichere dat Datei über Originaldateien"
+
+#: maingui.cpp:120 maingui.cpp:124
+msgid "Load project file"
+msgstr "Lade Projektdatei"
+
+#: maingui.cpp:126 maingui.cpp:129
+msgid "Save project file"
+msgstr "Speichere Projektdatei"
+
+#: maingui.cpp:132
+msgid "Exit"
+msgstr "Schließen"
+
+#: maingui.cpp:139
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: maingui.cpp:140
+msgid "Style Editor"
+msgstr "Stileditor"
+
+#: maingui.cpp:146
+msgid "Lag Test"
+msgstr "Lag Test"
+
+#: maingui.cpp:180
+msgid "Error"
+msgstr "Fehler"
+
+#: maingui.cpp:181
+msgid "Python does not work, see the logfile, exiting."
+msgstr ""
+"Python funktioniert nicht, bitte in dem Log nachsehen, was das Problem ist."
+
+#: maingui.cpp:182
+msgid ""
+"If you are on Windows, you need to start the start_modding_suite.bat instead "
+"of directly the modding_suite.exe file!"
+msgstr ""
+"Wenn du unter Windows bist, musst du die Datei \"start_modding_suite.bat\" "
+"ausführen, statt direkt die Datei modding_suite.exe!"
+
+#: maingui.cpp:183
+msgid "Also check you installed Python 3.11 into your PATH."
+msgstr "Bitte überprüfen ebenfalls, ob Python 3.11 im PATH installiert ist."
+
+#: workspace.cpp:20
+msgid "Workspace name: "
+msgstr "Name der Arbeitsumgebung: "
+
+#: workspace.cpp:25
+msgid "Path to dat files: "
+msgstr "Pfad zu den dat Dateien: "
+
+#: workspace.cpp:30
+msgid "Path to dat files"
+msgstr "Pfad zu den dat Dateien"
+
+#: workspace.cpp:33
+msgid "Path to output folder: "
+msgstr "Pfad zum Ausgabeordner: "
+
+#: workspace.cpp:38
+msgid "Path to output directory"
+msgstr "Pfad zum Ausgabeordner"
+
+#: workspace.cpp:41
+msgid "Load workspace"
+msgstr "Lade Arbeitsumgebung"
+
+#: workspace.cpp:222
+msgid "Workspaces"
+msgstr "Arbeitsumgebungen"
+
+#: workspace.cpp:224
+msgid "No workspaces loaded"
+msgstr "Keine Arbeitsumgebung geladen"

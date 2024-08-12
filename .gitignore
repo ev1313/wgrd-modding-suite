@@ -4,3 +4,4 @@ cmake-build*
 .cache
 *.swp
 compile_commands.json
+*.mo

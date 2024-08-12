@@ -42,12 +42,11 @@ struct DicTransaction_ChangeValue : DicTransaction {
 
 class Dic : public File {
 private:
-  bool is_parsed = false;
   std::map<std::string, std::string> dic_data;
   std::vector<std::unique_ptr<DicTransaction>> transactions;
 public:
   explicit Dic(FileMeta meta, fs::path out_path);
-  bool load_bin();
+  bool load_stream() override;
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;
   bool save_bin(fs::path path) override;

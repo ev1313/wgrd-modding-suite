@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
   textdomain("wgrd_mod_manager");
 
   py::scoped_interpreter guard{};
-
   {
+    py::gil_scoped_release release;
     // create the main gui inside this, so deinit is called before the python interpreter is deinitialized
     maingui main_gui;
     main_gui.init(argc, argv);
@@ -163,6 +163,8 @@ int main(int argc, char* argv[])
 
       glfwSwapBuffers(window);
     }
+    
+    py::gil_scoped_acquire acquire;
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
@@ -172,6 +174,7 @@ int main(int argc, char* argv[])
     glfwDestroyWindow(window);
     glfwTerminate();
   }
+  py::gil_scoped_acquire acquire;
 
   return 0;
 }

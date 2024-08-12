@@ -1,19 +1,22 @@
 #include "workspace.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <imgui.h>
+#include "helpers.hpp"
 #include "imgui_stdlib.h"
 
 #include "imgui_helpers.hpp"
 
+#include <memory>
 #include <toml.hpp>
 
 #include <ranges>
 
 #include <libintl.h>
 
-std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) {
-  std::optional<Workspace> ret = std::nullopt;
+std::optional<std::unique_ptr<Workspace>> Workspace::render_init_workspace(bool* show_workspace) {
+  std::optional<std::unique_ptr<Workspace>> ret = std::nullopt;
   ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
   ImGui::Begin("Add a workspace", show_workspace);
 
@@ -39,9 +42,9 @@ std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) 
   out_path = out_path_ret.value_or(out_path);
 
   if(ImGui::Button(gettext("Load workspace"))) {
-    Workspace w;
-    w.workspace_name = name;
-    if(w.init(dat_path, out_path)) {
+    std::unique_ptr<Workspace> w = std::make_unique<Workspace>();
+    w->workspace_name = name;
+    if(w->init(dat_path, out_path)) {
       ret = std::move(w);
     }
   }
@@ -51,7 +54,7 @@ std::optional<Workspace> Workspace::render_init_workspace(bool* show_workspace) 
   return ret;
 }
 
-bool Workspace::init(fs::path dat_path, fs::path out_path) {
+bool Workspace::check_directories(fs::path dat_path, fs::path out_path) {
   if(!fs::exists(dat_path)) {
     spdlog::warn("dat_path does not exist {}", dat_path.string());
     return false;
@@ -71,37 +74,53 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
     spdlog::warn("could not create directories {}", (out_path / "dat").string());
     return false;
   }
+  return true;
+}
 
-  file_tree.init_from_dat_path(dat_path);
+bool Workspace::init(fs::path dat_path, fs::path out_path) {
+  if(!check_directories(dat_path, out_path)) {
+    return false;
+  }
   workspace_dat_path = dat_path;
   workspace_out_path = out_path;
+  
+  m_is_parsing = true;
+  m_parsed_promise = std::promise<bool>();
+  m_parsed_future = m_parsed_promise->get_future();
+
+  std::thread([this, dat_path]() {
+    try{
+      file_tree.init_from_dat_path(dat_path);
+      m_parsed_promise->set_value_at_thread_exit(true);
+    } catch (const std::exception& e) {
+      spdlog::error("Failed to parse workspace: {}", e.what());
+      m_parsed_promise->set_value_at_thread_exit(false);
+    }
+  }).detach();
   return true;
 }
 
 bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
-  if(!fs::exists(file_path)) {
-    spdlog::warn("file_path does not exist {}", file_path.string());
-    return false;
-  }
-  fs::create_directories(out_path / "xml");
-  if(!fs::is_directory(out_path / "xml")) {
-    spdlog::warn("could not create directories {}", (out_path / "xml").string());
-    return false;
-  }
-  fs::create_directories(out_path / "bin");
-  if(!fs::is_directory(out_path / "bin")) {
-    spdlog::warn("could not create directories {}", (out_path / "bin").string());
-    return false;
-  }
-  fs::create_directories(out_path / "dat");
-  if(!fs::is_directory(out_path / "dat")) {
-    spdlog::warn("could not create directories {}", (out_path / "dat").string());
+  if(!check_directories(file_path, out_path)) {
     return false;
   }
 
-  file_tree.init_from_path(file_path);
   workspace_dat_path = file_path.parent_path();
   workspace_out_path = out_path;
+
+  m_is_parsing = true;
+  m_parsed_promise = std::promise<bool>();
+  m_parsed_future = m_parsed_promise->get_future();
+
+  std::thread([this, file_path]() {
+    try{
+      file_tree.init_from_path(file_path);
+      m_parsed_promise->set_value_at_thread_exit(true);
+    } catch (const std::exception& e) {
+      spdlog::error("Failed to parse workspace: {}", e.what());
+      m_parsed_promise->set_value_at_thread_exit(false);
+    }
+  }).detach();
   return true;
 }
 
@@ -160,7 +179,6 @@ void Workspace::save_changes_to_dat(bool save_to_fs_path) {
       } catch(const py::error_already_set& e) {
         spdlog::error(e.what());
       }
-      py::gil_scoped_release release;
     }
 
     files.copy_bin_changes(dat_path.string(), tmp_dir / "out");
@@ -181,7 +199,6 @@ void Workspace::save_changes_to_dat(bool save_to_fs_path) {
       } catch(const py::error_already_set& e) {
         spdlog::error(e.what());
       }
-      py::gil_scoped_release release;
     }
     // remove the tmp directory
     fs::remove_all(tmp_dir);
@@ -199,15 +216,26 @@ void Workspaces::render() {
     }
     auto& workspace = workspaces[workspace_name];
     ImGuiWindowFlags wndflags = ImGuiWindowFlags_None;
-    if(workspace.is_changed()) {
+    if(workspace->is_changed()) {
       wndflags |= ImGuiWindowFlags_UnsavedDocument;
     }
     ImGui::SetNextWindowSize(ImVec2(800, 800), ImGuiCond_FirstUseEver);
-    if(ImGui::Begin(workspace.workspace_name.c_str(), &p_open)) {
-      workspace.render_window();
+    if(ImGui::Begin(workspace->workspace_name.c_str(), &p_open)) {
+      workspace->check_parsing();
+      if(!workspace->is_parsed()) {
+        if(!workspace->is_parsing()) {
+          spdlog::error("Workspace is not loaded and probably failed loading! {}", workspace->workspace_name);
+        } else {
+          ImGui::Text("Parsing %s", workspace->workspace_name.c_str());
+        }
+      } else {
+        workspace->render_window();
+      }
     }
     ImGui::End();
-    workspace.render_extra();
+    if(workspace->is_parsed()) {
+      workspace->render_extra();
+    }
   }
   if(show_add_workspace) {
     auto workspace = Workspace::render_init_workspace(&show_add_workspace);
@@ -231,16 +259,16 @@ void Workspaces::render_menu() {
   }
 }
 
-void Workspaces::add_workspace(Workspace w) {
-  spdlog::info("Loading workspace {} {} {}", w.workspace_name, w.workspace_dat_path.string(), w.workspace_out_path.string());
-  open_workspace_windows.insert({w.workspace_name, true});
-  this->workspaces.insert({w.workspace_name, std::move(w)});
+void Workspaces::add_workspace(std::unique_ptr<Workspace> w) {
+  spdlog::info("Loading workspace {} {} {}", w->workspace_name, w->workspace_dat_path.string(), w->workspace_out_path.string());
+  open_workspace_windows.insert({w->workspace_name, true});
+  this->workspaces.insert({w->workspace_name, std::move(w)});
 }
 
 void Workspaces::save_project_file(fs::path path) {
   toml::array arr;
   for(auto& [_, workspace] : workspaces) {
-    auto data = workspace.to_toml();
+    auto data = workspace->to_toml();
     arr.push_back(data);
   }
   toml::table table;
@@ -254,11 +282,9 @@ void Workspaces::load_project_file(fs::path path) {
     auto data = toml::parse(path.string());
     auto workspaces = data["workspaces"].as_array();
     for(auto& workspace : workspaces) {
-      py::gil_scoped_acquire acquire;
-      Workspace w;
-      w.workspace_name = workspace["name"].as_string();
-      w.init(workspace["dat_path"].as_string(), workspace["out_path"].as_string());
-      py::gil_scoped_release release;
+      std::unique_ptr<Workspace> w = std::make_unique<Workspace>();
+      w->workspace_name = workspace["name"].as_string();
+      w->init(workspace["dat_path"].as_string(), workspace["out_path"].as_string());
       add_workspace(std::move(w));
     }
   } else {
@@ -268,6 +294,9 @@ void Workspaces::load_project_file(fs::path path) {
 
 void Workspaces::save_workspaces(bool save_to_fs_path) {
   for(auto& [_, workspace] : workspaces) {
-    workspace.save_changes_to_dat(save_to_fs_path);
+    if(!workspace->is_parsed() || workspace->is_parsing()) {
+      continue;
+    }
+    workspace->save_changes_to_dat(save_to_fs_path);
   }
 }

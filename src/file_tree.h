@@ -1,8 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <pybind11/pybind11.h>
+
+#include <any>
+#include <set>
+#include <map>
+#include "tsl/ordered_map.h"
 
 #include <libintl.h>
 
@@ -21,16 +27,22 @@ struct FileMeta {
 
 class __attribute__((visibility("default"))) FileTree {
 private:
-  bool m_rebuild_tree = true;
   std::string m_search = "";
+  std::string m_search_lower = "";
   bool m_tree_view = true;
+ 
+  // full vfs path -> FileMeta
+  std::map<std::string, FileMeta> vfs_files;
+  // the vfs_files get filtered into this
+  tsl::ordered_map<std::string, uint32_t> vfs_string_table;
+  std::map<std::vector<uint32_t>, std::string> vfs_indexed_files;
+  std::map<std::vector<uint32_t>, std::string> vfs_filtered_files;
 
-  int selected_file = -1;
-private:
-  py::dict vfs_files;
-  py::dict vfs_tree;
-  std::optional<FileMeta> file_list(py::dict files, const std::string& vfs_path = "$");
-  std::optional<FileMeta> file_tree(py::dict files, const std::string& vfs_path = "$", bool open_all = false);
+  std::string selected_vfs_path = "";
+  void fill_filetree(py::dict files, const std::string& vfs_path);
+  void filter_filetree();
+  std::optional<FileMeta> render_file_list();
+  std::optional<FileMeta> render_file_tree();
 public:
   bool init_from_wgrd_path(fs::path wgrd_path);
   bool init_from_dat_path(fs::path path);

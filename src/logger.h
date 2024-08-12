@@ -61,6 +61,7 @@ public:
     }
   }
   void deinit() {
+    py::gil_scoped_acquire acquire;
     py_redirect.reset();
   }
 };

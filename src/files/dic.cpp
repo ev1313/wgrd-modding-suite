@@ -1,4 +1,7 @@
 #include "dic.hpp"
+#include "helpers.hpp"
+
+#include "helpers.hpp"
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -8,11 +11,11 @@ using namespace pybind11::literals;
 wgrd_files::Dic::Dic(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
-bool wgrd_files::Dic::load_bin() {
+bool wgrd_files::Dic::load_stream() {
   spdlog::info("Parsing Dic: {}", vfs_path);
-  py::gil_scoped_acquire acquire;
 
   try {
+    py::gil_scoped_acquire acquire;
     py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
     std::vector<char> vec_data = get_data();
     py::bytes data(vec_data.data(), vec_data.size());
@@ -30,16 +33,14 @@ bool wgrd_files::Dic::load_bin() {
     return false;
   }
 
-  py::gil_scoped_release release;
-  is_parsed = true;
   return true;
 }
 
 bool wgrd_files::Dic::load_xml(fs::path path) {
   spdlog::info("Loading Dic XML: {} from {}", vfs_path, path.string());
-  py::gil_scoped_acquire acquire;
 
   try {
+    py::gil_scoped_acquire acquire;
     py::module ET = py::module::import("xml.etree.ElementTree");
     py::object dic = py::module::import("wgrd_cons_parsers.dic").attr("Dic");
     py::object xml = ET.attr("parse")(path.string());
@@ -54,16 +55,14 @@ bool wgrd_files::Dic::load_xml(fs::path path) {
     return false;
   }
 
-  py::gil_scoped_release release;
-  is_parsed = true;
   return true;
 }
 
 bool wgrd_files::Dic::save_xml(fs::path path) {
   spdlog::info("Saving Dic XML: {} to {}", vfs_path, path.string());
-  py::gil_scoped_acquire acquire;
 
   try {
+    py::gil_scoped_acquire acquire;
     py::dict py_dic_data;
     py_dic_data["entries"] = py::list();
     for(auto& [hash, str] : dic_data) {
@@ -88,15 +87,14 @@ bool wgrd_files::Dic::save_xml(fs::path path) {
     return false;
   }
 
-  py::gil_scoped_release release;
   return true;
 }
 
 bool wgrd_files::Dic::save_bin(fs::path path) {
   spdlog::info("Saving Dic: {}", vfs_path);
-  py::gil_scoped_acquire acquire;
 
   try {
+    py::gil_scoped_acquire acquire;
     py::dict py_dic_data;
     py_dic_data["entries"] = py::list();
     for(auto& [hash, str] : dic_data) {
@@ -118,17 +116,11 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
     return false;
   }
 
-  py::gil_scoped_release release;
   m_is_changed = false;
   return true;
 }
 
 void wgrd_files::Dic::render_window() {
-  if(!is_parsed) {
-    if(!load_bin()) {
-      return;
-    }
-  }
   if(ImGui::Button(gettext("Save XML"))) {
     save_xml(xml_path);
   }

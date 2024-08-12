@@ -1,5 +1,4 @@
 #include "ndfbin.hpp"
-#include <filesystem>
 
 using namespace wgrd_files;
 
@@ -790,37 +789,11 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
 }
 
 void wgrd_files::NdfBin::render_window() {
-  if(!ndfbin.is_parsing() && !ndfbin.is_parsed()) {
-    if(ImGui::Button(gettext("Parse NDF"))) {
-      ndfbin.start_parsing(vfs_path, get_data(), xml_path);
-    }
-  }
-  if(ndfbin.is_parsing()) {
-    ImGui::Text("Parsing NDF");
-    ndfbin.check_parsing();
-  } else if(ndfbin.is_parsed()) {
-    if(ImGui::Button(gettext("Regenerate NDF"))) {
-      ndfbin.start_parsing(vfs_path, get_data(), xml_path);
-    }
-    ImGui::SameLine();
-    if(ImGui::Button(gettext("Save XML"))) {
-      ndfbin.save_ndf_xml_to_file(out_path / "xml" / fs::path(vfs_path).replace_extension(".ndf.xml"));
-    }
-    ImGui::SameLine();
-    if(ImGui::Button(gettext("Save ndfbin"))) {
-      save_bin(out_path / "bin" / vfs_path);
-    }
-
-    render_object_list();
-    render_class_list();
-  }
+  render_object_list();
+  render_class_list();
 }
 
 void wgrd_files::NdfBin::render_extra() {
-  if(!ndfbin.is_parsed()) {
-    return;
-  }
-
   render_classes();
 
   // render_objects
@@ -880,16 +853,24 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f, size_t 
 }
 
 bool wgrd_files::NdfBin::load_xml(fs::path path) {
-  if(fs::exists(xml_path)) {
-    ndfbin.load_from_xml_file(xml_path);
-    return true;
+  if(!fs::exists(xml_path)) {
+    spdlog::info("No ndf xml file found at {}", xml_path.string());
+    return false;
   }
-  spdlog::info("No ndf xml file found at {}", xml_path.string());
-  return false;
+  spdlog::info("Loading ndf xml from {}", xml_path.string());
+  ndfbin.load_from_xml_file(xml_path);
+  return true;
 }
 
 bool wgrd_files::NdfBin::save_xml(fs::path path) {
+  spdlog::debug("Saving ndf xml to {}", path.string());
   ndfbin.save_ndf_xml_to_file(path);
+  return true;
+}
+
+bool wgrd_files::NdfBin::load_bin(fs::path path) {
+  spdlog::info("Loading ndf bin from {}", path.string());
+  ndfbin.start_parsing(path, get_data());
   return true;
 }
 

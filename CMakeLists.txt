@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 project(modding_suite)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/modules/")
 message(${CMAKE_MODULE_PATH})
@@ -95,6 +96,8 @@ src/
 ImGuiFileDialog/
 ${LibEpoxy_INCLUDE_DIRS}
 )
+
+#target_compile_definitions(modding_suite PUBLIC PYBIND11_SIMPLE_GIL_MANAGEMENT=1)
 
 install(TARGETS modding_suite DESTINATION bin)
 include(CPack)

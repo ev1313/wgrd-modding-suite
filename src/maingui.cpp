@@ -1,5 +1,6 @@
 #include "maingui.hpp"
 
+#include "helpers.hpp"
 #include "imgui.h"
 #include "imgui_helpers.hpp"
 #include "spdlog/sinks/rotating_file_sink.h"
@@ -27,23 +28,24 @@ bool maingui::init(int argc, char *argv[]) {
   spdlog::debug("checking python");
 
   // this checks the most basic things about whether python works at all
-  py::gil_scoped_acquire acquire;
-  try {
-    py::str py_exec = (py::module::import("sys").attr("executable"));
-    spdlog::info(std::string(py_exec));
-    py::str py_path = (py::module::import("sys").attr("path"));
-    spdlog::info(std::string(py_path));
-    python_works = true;
-  } catch(const py::error_already_set& e) {
-    spdlog::error(e.what());
-    python_works = false;
-  }
+  {
+    py::gil_scoped_acquire acquire;
+    try {
+      py::str py_exec = (py::module::import("sys").attr("executable"));
+      spdlog::info(std::string(py_exec));
+      py::str py_path = (py::module::import("sys").attr("path"));
+      spdlog::info(std::string(py_path));
+      python_works = true;
+    } catch(const py::error_already_set& e) {
+      spdlog::error(e.what());
+      python_works = false;
+    }
 
-  if(!python_works) {
-    spdlog::error(gettext("Python does not work, exiting"));
-    return false;
+    if(!python_works) {
+      spdlog::error(gettext("Python does not work, exiting"));
+      return false;
+    }
   }
-  py::gil_scoped_release release;
 
   // configure spdlog
   auto logpattern = "[%H:%M:%S] [%^%l%$] %v";
@@ -69,20 +71,25 @@ bool maingui::init(int argc, char *argv[]) {
 
   imgui_sink->open_log = false;
 
-  py::gil_scoped_acquire acquire2;
-  try {
-    py::str wgrd_cons_parsers = py::module::import("wgrd_cons_parsers");
-    spdlog::info(std::string(wgrd_cons_parsers));
-    py::str wgrd_cons_tools = py::module::import("wgrd_cons_tools");
-    spdlog::info(std::string(wgrd_cons_tools));
+  {
+    py::gil_scoped_acquire acquire;
+    try {
+      py::str wgrd_cons_parsers = py::module::import("wgrd_cons_parsers");
+      spdlog::info(std::string(wgrd_cons_parsers));
+      py::str wgrd_cons_tools = py::module::import("wgrd_cons_tools");
+      spdlog::info(std::string(wgrd_cons_tools));
 
-    python_works = true;
-  } catch(const py::error_already_set& e) {
-    spdlog::error(e.what());
-    python_works = false;
+      python_works = true;
+    } catch(const py::error_already_set& e) {
+      spdlog::error(e.what());
+      python_works = false;
+    }
   }
 
-  py::gil_scoped_release release2;
+  if(!python_works) {
+    spdlog::error(gettext("Python does not work, exiting"));
+    return false;
+  }
   
   if(program.get<bool>("-v")) {
     spdlog::set_level(spdlog::level::debug);

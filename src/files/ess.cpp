@@ -1,4 +1,5 @@
 #include "ess.hpp"
+#include "helpers.hpp"
 
 #include <imgui.h>
 
@@ -30,9 +31,9 @@ bool wgrd_files::Ess::is_file(std::string vfs_path, std::ifstream &f, size_t off
 
 bool wgrd_files::Ess::load_bin() {
   spdlog::info("Parsing Ess: {}", vfs_path);
-  py::gil_scoped_acquire acquire;
 
   try {
+    py::gil_scoped_acquire acquire;
     // we decode the ess file to xml so we get access to loop start / end
     py::object ess = py::module::import("wgrd_cons_parsers.ess").attr("Ess");
     std::vector<char> vec_data = get_data();
@@ -45,17 +46,15 @@ bool wgrd_files::Ess::load_bin() {
 
     // and now we decode it to wav file, so we can play it
     py::object decode_ess = py::module::import("wgrd_cons_tools.decode_ess").attr("decode_ess");
-    std::string wav_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ess.wav");
-    std::string labels_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ess.labels");
+    fs::path wav_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ess.wav");
+    fs::path labels_path = out_path / "xml" / fs::path(vfs_path).replace_extension(".ess.labels");
     fs::create_directories(out_path / "xml" / vfs_path);
-    decode_ess(data, wav_path, labels_path);
+    decode_ess(data, wav_path.string(), labels_path.string());
 
   } catch(const py::error_already_set &e) {
     spdlog::error("Error parsing Ess: {}", e.what());
     return false;
   }
 
-  py::gil_scoped_release release;
-  is_parsed = true;
   return true;
 }

@@ -8,7 +8,6 @@ class Ess : public File {
 private:
   uint32_t loop_start = 0;
   uint32_t loop_end = 0;
-  bool is_parsed = false;
 public:
   explicit Ess(FileMeta meta, fs::path out_path);
   void render_window() override;

@@ -1,10 +1,16 @@
 #pragma once
 
 #include <pybind11/pybind11.h>
+#include <pystate.h>
+#include <pytypedefs.h>
 namespace py = pybind11;
+
+#include <any>
 
 #include <ranges>
 #include "spdlog/spdlog.h"
+
+#include <iostream>
 
 // Based on:
 // https://stackoverflow.com/questions/58758429/pybind11-redirect-python-sys-stdout-to-c-from-print
@@ -26,14 +32,12 @@ public:
     _stderr_buffer = stringio();
     sysm.attr("stdout") = _stdout_buffer;
     sysm.attr("stderr") = _stderr_buffer;
-    py::gil_scoped_release release;
   }
   std::string stdoutString() {
     py::gil_scoped_acquire acquire;
     _stdout_buffer.attr("seek")(last_offset_stdout);
     std::string ret = py::str(_stdout_buffer.attr("read")());
     last_offset_stdout = py::int_(_stdout_buffer.attr("tell")());
-    py::gil_scoped_release release;
     return ret;
   }
   std::string stderrString() {
@@ -41,10 +45,10 @@ public:
     _stderr_buffer.attr("seek")(last_offset_stderr);
     std::string ret = py::str(_stderr_buffer.attr("read")());
     last_offset_stderr = py::int_(_stderr_buffer.attr("tell")());
-    py::gil_scoped_release release;
     return ret;
   }
   void update_log() {
+    return;
     for(const auto line : stdoutString() | std::views::split('\n')) {
       spdlog::info(std::string_view(line));
     }
@@ -53,11 +57,9 @@ public:
     }
   }
   ~PyStdErrOutStreamRedirect() {
-    py::gil_scoped_acquire acquire;
     auto sysm = py::module::import("sys");
     sysm.attr("stdout") = _stdout;
     sysm.attr("stderr") = _stderr;
-    py::gil_scoped_release release;
   }
 };
 

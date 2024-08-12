@@ -8,6 +8,7 @@
 namespace py = pybind11;
 
 #include <future>
+#include <atomic>
 
 #include <set>
 #include <map>
@@ -22,6 +23,12 @@ namespace wgrd_files {
 class Files;
 
 class File {
+private:
+  std::atomic_bool m_is_parsed = false;
+  std::atomic_bool m_is_parsing = false;
+  
+  std::optional<std::promise<bool>> m_parsed_promise;
+  std::optional<std::future<bool>> m_parsed_future;
 protected:
   std::string vfs_path;
   std::ifstream file;
@@ -40,12 +47,18 @@ public:
   virtual void render_window();
   // this function is called *outside* the window (e.g. ndfbin uses this to spawn new object windows)
   virtual void render_extra() {};
-  // FIXME: for what is this function
-  std::vector<char> get_file();
   // this function returns the bytes stored in the given filestream
   std::vector<char> get_data();
   // this function just plainly copies from the given filestream to the given path
   bool copy_to_file(fs::path path);
+
+  void start_parsing(bool try_xml = true);
+
+  // default implementation, may be overridden
+  virtual bool load_stream() {
+    copy_to_file(out_path / "bin" / vfs_path);
+    return load_bin(out_path / "bin" / vfs_path);
+  }
 
   virtual bool load_xml(fs::path path) {
     spdlog::error("cannot load xml file {} into {}", vfs_path, path.string());
@@ -75,6 +88,33 @@ public:
 
   bool is_changed() {
     return m_is_changed;
+  }
+
+  void check_parsing() {
+    if(m_is_parsed) {
+      return;
+    }
+    if(!m_is_parsing) {
+      return;
+    }
+    if(!m_parsed_promise.has_value()) {
+      throw std::runtime_error("m_ndf_parsed_promise not set");
+    }
+    if(!m_parsed_future.has_value()) {
+      throw std::runtime_error("m_ndf_parsed_future not set");
+    }
+    if(m_parsed_future.value().wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+      m_is_parsed = m_parsed_future.value().get();
+      m_is_parsing = false;
+    }
+  }
+
+  bool is_parsed() {
+    return m_is_parsed;
+  }
+
+  bool is_parsing() {
+    return m_is_parsing;
   }
 };
 

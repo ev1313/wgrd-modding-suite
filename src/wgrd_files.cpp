@@ -58,16 +58,8 @@ wgrd_files::File::File(FileMeta meta, fs::path out_path)
   offset = meta.offset;
   size = meta.size;
   fs_path = meta.fs_path;
-}
-
-std::vector<char> File::get_file() {
-  size_t old = file.tellg();
-  file.seekg(offset);
-  std::vector<char> ret;
-  ret.resize(size);
-  file.read(reinterpret_cast<char*>(ret.data()), size);
-  file.seekg(old);
-  return ret;
+  // may be overridden by the derived class
+  xml_path = out_path / "xml" / fs::path(meta.vfs_path).replace_extension(".xml");
 }
 
 std::vector<char> File::get_data() {
@@ -81,6 +73,32 @@ std::vector<char> File::get_data() {
 
   file.seekg(old);
   return std::move(ret);
+}
+
+void File::start_parsing(bool try_xml) {
+  if(is_parsing()) {
+    spdlog::error("Already parsing {}", vfs_path);
+    return;
+  }
+  m_is_parsing = true;
+  m_is_parsed = false;
+
+  m_parsed_promise = std::promise<bool>();
+  m_parsed_future = m_parsed_promise->get_future();
+
+  std::thread([this, try_xml]() {
+    bool ret = false;
+    if(try_xml) {
+      ret = load_xml(xml_path);
+    }
+    if(!ret) {
+      ret = load_stream();
+      if(ret) {
+        save_xml(xml_path);
+      }
+    }
+    m_parsed_promise->set_value_at_thread_exit(ret);
+  }).detach();
 }
 
 bool File::copy_to_file(std::filesystem::path path) {
@@ -120,11 +138,20 @@ void wgrd_files::Files::render() {
     }
     auto file = files.find(idx);
     if(file == files.end()) {
-      spdlog::error("Trying to render not loaded file {}", idx);
+      spdlog::error("Trying to render not existing file {}", idx);
       continue;
     }
     if(ImGui::Begin(file->second->vfs_path.c_str(), &p_open)) {
-      file->second->render_window();
+      file->second->check_parsing();
+      if(!file->second->is_parsed()) {
+        if(!file->second->is_parsing()) {
+          ImGui::Text("Failed to parse %s", file->second->vfs_path.c_str());
+        } else {
+          ImGui::Text("Parsing %s", file->second->vfs_path.c_str());
+        }
+      } else {
+        file->second->render_window();
+      }
     }
     ImGui::End();
     file->second->render_extra();
@@ -168,16 +195,7 @@ void wgrd_files::Files::add_file(fs::path out_path, FileMeta meta, size_t file_o
   } else {
     files[meta.idx] = std::make_unique<File>(meta, out_path);
   }
-  // if a xml file already exists, load the file from it instead of the dat file
-  std::string new_ext = fs::path(meta.vfs_path).extension().string();
-  new_ext += ".xml";
-  fs::path xml_path = out_path / "xml" / fs::path(meta.vfs_path).replace_extension(new_ext);
-  files[meta.idx]->xml_path = xml_path;
-  if(fs::exists(xml_path)) {
-    files[meta.idx]->load_xml(xml_path);
-  } else {
-    spdlog::info("No ndf xml file found at {}", xml_path.string());
-  }
+  files[meta.idx]->start_parsing();
 }
 
 void wgrd_files::Files::copy_bin_changes(fs::path dat_path, fs::path out_folder_path) {
