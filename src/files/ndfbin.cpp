@@ -7,6 +7,8 @@ using namespace wgrd_files;
 
 #include "magic_enum.hpp"
 
+#include <random>
+
 wgrd_files::NdfBin::NdfBin(FileMeta meta, fs::path out_path) : File(meta, out_path) {
 }
 
@@ -381,6 +383,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       uint8_t val = prop->value;
       uint8_t min = 0;
       uint8_t max = UINT8_MAX;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::DragScalar(std::format("##u8_prop_{}", property->property_name).c_str(), ImGuiDataType_U8, &val, drag_speed, &min, &max)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_UInt8>();
         change->value = val;
@@ -393,6 +396,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       int16_t val = prop->value;
       int16_t min = INT16_MIN;
       int16_t max = INT16_MAX;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::DragScalar(std::format("##s16_prop_{}", property->property_name).c_str(), ImGuiDataType_S16, &val, drag_speed, &min, &max)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_Int16>();
         change->value = val;
@@ -405,6 +409,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       uint16_t val = prop->value;
       uint16_t min = 0;
       uint16_t max = UINT16_MAX;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::DragScalar(std::format("##u16_prop_{}", property->property_name).c_str(), ImGuiDataType_U16, &val, drag_speed, &min, &max)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_UInt16>();
         change->value = val;
@@ -417,6 +422,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       int32_t val = prop->value;
       int32_t min = INT32_MIN;
       int32_t max = INT32_MAX;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::DragScalar(std::format("##s32_prop_{}", property->property_name).c_str(), ImGuiDataType_S32, &val, drag_speed, &min, &max)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_Int32>();
         change->value = val;
@@ -429,6 +435,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       uint32_t val = prop->value;
       uint32_t min = 0;
       uint32_t max = UINT32_MAX;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::DragScalar(std::format("##u32_prop_{}", property->property_name).c_str(), ImGuiDataType_U32, &val, drag_speed, &min, &max)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_UInt32>();
         change->value = val;
@@ -439,6 +446,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::Float32: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyFloat32>&>(property);
       float val = prop->value;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::DragFloat(std::format("##f32_prop_{}", property->property_name).c_str(), &val, drag_speed)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_Float32>();
         change->value = val;
@@ -449,6 +457,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::Float64: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyFloat64>&>(property);
       double val = prop->value;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputDouble(std::format("##f64_prop_{}", property->property_name).c_str(), &val)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_Float64>();
         change->value = val;
@@ -495,7 +504,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
       if(property->is_object_reference()) {
         auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyObjectReference>&>(property);
         std::string value = prop->object_name;
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x*0.8f);
         if(ImGui::InputText(std::format("##objref_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_EnterReturnsTrue)) {
           auto change = std::make_unique<NdfTransactionChangeProperty_ObjectReference>();
           change->value = value;
@@ -503,21 +512,13 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
         }
         ImGui::SameLine();
         if(!ndfbin.contains_object(value)) {
-          ImGui::Text("Object %s does not exist", value.c_str());
-        } else {
-          if(ImGui::Button(gettext("Jump"))) {
-            // FIXME: maybe reset object / class filters and then just use normal way of finding it?
-            int idx = -1;
-            for(const auto& [i, obj] : object_list | std::views::enumerate) {
-              if(obj == value) {
-                idx = i;
-                break;
-              }
-            }
-            if(idx != -1) {
-              item_current_idx = idx;
-            }
-          }
+          ImGui::BeginDisabled();
+        }
+        if(ImGui::Button(gettext("Jump"))) {
+          open_object_windows[value] = true;
+        }
+        if(!ndfbin.contains_object(value)) {
+          ImGui::EndDisabled();
         }
         break;
       }
@@ -597,10 +598,22 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::NDFGUID: {
       auto& prop = reinterpret_cast<std::unique_ptr<NDFPropertyGUID>&>(property);
       std::string value = prop->guid;
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.7f);
+      // FIXME: error handling for submitting broken GUIDs?
       if(ImGui::InputText(std::format("##guid_prop_{}", property->property_name).c_str(), &value, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_GUID>();
         change->guid = value;
+        return change;
+      }
+      ImGui::SameLine();
+      if(ImGui::Button(gettext("Generate"))) {
+        auto change = std::make_unique<NdfTransactionChangeProperty_GUID>();
+        std::random_device r;
+        std::default_random_engine e1(r());
+        std::uniform_int_distribution<size_t> uniform_dist(0, UINT64_MAX);
+        size_t x1 = uniform_dist(e1);
+        size_t x2 = uniform_dist(e1);
+        change->guid = std::format("{:016X}{:016X}", x1, x2);
         return change;
       }
       break;
@@ -630,6 +643,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::S32_vec2: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec2>&>(property);
       int32_t val[2] = {p->x, p->y};
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputInt2(std::format("##f32_vec2_prop_{}", property->property_name).c_str(), val)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_S32_vec2>();
         change->x = val[0];
@@ -641,6 +655,7 @@ std::optional<std::unique_ptr<NdfTransactionChangeProperty>> wgrd_files::NdfBin:
     case NDFPropertyType::S32_vec3: {
       auto& p = reinterpret_cast<std::unique_ptr<NDFPropertyS32_vec3>&>(property);
       int32_t val[3] = {p->x, p->y, p->z};
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if(ImGui::InputInt3(std::format("##f32_vec3_prop_{}", property->property_name).c_str(), val)) {
         auto change = std::make_unique<NdfTransactionChangeProperty_S32_vec3>();
         change->x = val[0];
