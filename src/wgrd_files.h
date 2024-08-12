@@ -43,6 +43,7 @@ protected:
 public:
   explicit File(FileMeta meta, fs::path out_path);
   void render();
+  virtual void render_menu();
   // this function is called *inside* the window
   virtual void render_window();
   // this function is called *outside* the window (e.g. ndfbin uses this to spawn new object windows)

@@ -121,12 +121,8 @@ bool wgrd_files::Dic::save_bin(fs::path path) {
 }
 
 void wgrd_files::Dic::render_window() {
-  if(ImGui::Button(gettext("Save XML"))) {
-    save_xml(xml_path);
-  }
-
   if(ImGui::BeginTable(gettext("Dictionary entries"), 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
-    ImGui::TableSetupColumn(gettext("Hash"), ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn(gettext("Hash"), ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn(gettext("String"), ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
     ImGui::TableNextColumn();

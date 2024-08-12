@@ -28,6 +28,49 @@
 namespace fs = std::filesystem;
 using namespace wgrd_files;
 
+void wgrd_files::File::render_menu() {
+  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_R)) {
+    start_parsing();
+  }
+  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S)) {
+    save_xml(xml_path);
+  }
+
+  if(ImGui::BeginMenuBar()) {
+    if(ImGui::BeginMenu(gettext("File"))) {
+      if(ImGui::MenuItem(gettext("Rebuild"), gettext("Ctrl+R"))) {
+        start_parsing();
+      }
+      if(ImGui::MenuItem(gettext("Save XML"), gettext("Ctrl+S"))) {
+        save_xml(xml_path);
+      }
+      if(ImGui::MenuItem(gettext("Save Bin"))) {
+        save_bin(out_path / "bin" / vfs_path);
+      }
+      if(ImGui::MenuItem(gettext("Save XML to..."))) {
+
+      }
+      if(ImGui::MenuItem(gettext("Save Bin to..."))) {
+
+      }
+      ImGui::EndMenu();
+    }
+    if(ImGui::BeginMenu(gettext("Edit"))) {
+      if(ImGui::MenuItem(gettext("Undo"), gettext("Ctrl+Z"))) {
+
+      }
+      if(ImGui::MenuItem(gettext("Redo"), gettext("Ctrl+Y"))) {
+
+      }
+      if(ImGui::MenuItem(gettext("Transaction Log"))) {
+
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
+}
+
 void wgrd_files::File::render_window() {
   ImGui::Text("File: %s", vfs_path.c_str());
   if(ImGui::Button("save file")) {
@@ -141,7 +184,8 @@ void wgrd_files::Files::render() {
       spdlog::error("Trying to render not existing file {}", idx);
       continue;
     }
-    if(ImGui::Begin(file->second->vfs_path.c_str(), &p_open)) {
+    if(ImGui::Begin(file->second->vfs_path.c_str(), &p_open, ImGuiWindowFlags_MenuBar)) {
+      file->second->render_menu();
       file->second->check_parsing();
       if(!file->second->is_parsed()) {
         if(!file->second->is_parsing()) {
