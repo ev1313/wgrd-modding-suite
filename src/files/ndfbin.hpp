@@ -62,6 +62,8 @@ private:
   int bulk_rename_property_count = 1;
   std::string bulk_rename_prefix = "";
   std::vector<std::string> bulk_rename_selected_properties = {""};
+  //FIXME: this should be cleared every time the bulk rename window is opened
+  std::map<std::string, std::pair<std::string, bool>> bulk_rename_overrides;
   void render_bulk_renames();
 
   std::optional<std::unique_ptr<NdfTransaction>> render_object_info(std::string object_name);

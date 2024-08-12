@@ -302,24 +302,49 @@ void wgrd_files::NdfBin::render_bulk_renames() {
 
       ImGui::Text(gettext("New property names:"));
 
-      for(auto& object_name : class_.objects) {
-        auto& object = ndfbin.get_object(object_name);
-        std::string new_name = bulk_rename_prefix;
-        for(int i = 0; i < bulk_rename_property_count; i++) {
-          if(!object.property_map.contains(bulk_rename_selected_properties[i])) {
-            new_name = "ERROR: Property not found in object";
-            break;
+      if(ImGui::BeginTable("Bulk Rename Table", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn(gettext("Old name"), ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn(gettext("Generated new name"), ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn(gettext("Override name"), ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn(gettext("Ignore"), ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableHeadersRow();
+        for(auto& object_name : class_.objects) {
+          auto& object = ndfbin.get_object(object_name);
+
+          if(!bulk_rename_overrides.contains(object.name)) {
+            bulk_rename_overrides.insert({object.name, {"", false}});
           }
-          auto& property = object.properties.at(object.property_map.at(bulk_rename_selected_properties[i]));
-          std::string prop_name = property->as_string();
-          std::replace(prop_name.begin(), prop_name.end(), ' ', '_');
-          new_name += "_" + prop_name;
+
+          std::string new_name = bulk_rename_prefix;
+          for(int i = 0; i < bulk_rename_property_count; i++) {
+            if(!object.property_map.contains(bulk_rename_selected_properties[i])) {
+              new_name += "_NULL";
+              continue;
+            }
+            auto& property = object.properties.at(object.property_map.at(bulk_rename_selected_properties[i]));
+            std::string prop_name = property->as_string();
+            std::replace(prop_name.begin(), prop_name.end(), ' ', '_');
+            new_name += "_" + prop_name;
+          }
+
+          ImGui::TableNextColumn();
+          ImGui::Text("%s", object.name.c_str());
+          ImGui::TableNextColumn();
+          ImGui::Text("%s", new_name.c_str());
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::InputText(std::format("##OverrideName{}", object.name).c_str(), &bulk_rename_overrides[object.name].first);
+          ImGui::TableNextColumn();
+          ImGui::Checkbox(std::format("##IgnoreObject{}", object.name).c_str(), &bulk_rename_overrides[object.name].second);
         }
-        ImGui::Text("%s -> %s", object.name.c_str(), new_name.c_str());
+
+        ImGui::EndTable();
       }
       
     }
     ImGui::End();
+    // FIXME: currently only one window supported
+    return;
   }
 }
 
