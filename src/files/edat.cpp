@@ -3,24 +3,15 @@
 #include <imgui.h>
 
 wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path) : File(meta, out_path) {
+  xml_path = out_path / "edat" / vfs_path;
 }
 
 void wgrd_files::EDat::render_window() {
-  if(!workspace->is_parsed()) {
-    if(!workspace->is_parsing()) {
-      spdlog::error("Workspace is not loaded and probably failed loading! {}", workspace->workspace_name);
-    } else {
-      ImGui::Text("Parsing %s", workspace->workspace_name.c_str());
-    }
-  } else {
-    workspace->render_window();
-  }
+  workspace->render_window();
 }
 
 void wgrd_files::EDat::render_extra() {
-  if(workspace->is_parsed()) {
-    workspace->render_extra();
-  }
+  workspace->render_extra();
 }
 
 bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {
@@ -42,5 +33,7 @@ bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f, size_t of
 bool wgrd_files::EDat::load_bin(fs::path path) {
   workspace = std::make_unique<Workspace>();
   workspace->workspace_name = vfs_path;
-  return workspace->init_from_file(path, out_path);
+  fs::path edat_out_path = out_path / "edat" / vfs_path;
+  fs::create_directories(edat_out_path);
+  return workspace->init_from_file(path, edat_out_path);
 }

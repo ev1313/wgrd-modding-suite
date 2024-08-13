@@ -198,7 +198,9 @@ void wgrd_files::Files::render() {
       }
     }
     ImGui::End();
-    file->second->render_extra();
+    if(file->second->is_parsed()) {
+      file->second->render_extra();
+    }
   }
 }
 

@@ -87,11 +87,12 @@ public:
     return false;
   }
 
-  bool is_changed() {
+  virtual bool is_changed() {
     return m_is_changed;
   }
-
-  void check_parsing() {
+  
+  // virtual since edat overwrites it to pass down to workspace
+  virtual void check_parsing() {
     if(m_is_parsed) {
       return;
     }
@@ -110,11 +111,13 @@ public:
     }
   }
 
-  bool is_parsed() {
+  // virtual since edat overwrites it to pass down to workspace
+  virtual bool is_parsed() {
     return m_is_parsed;
   }
 
-  bool is_parsing() {
+  // virtual since edat overwrites it to pass down to workspace
+  virtual bool is_parsing() {
     return m_is_parsing;
   }
 };

@@ -101,6 +101,7 @@ bool Workspace::init(fs::path dat_path, fs::path out_path) {
 }
 
 bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
+  spdlog::info("Loading workspace from file {} {}", file_path.string(), out_path.string());
   if(!check_directories(file_path, out_path)) {
     return false;
   }
@@ -114,8 +115,8 @@ bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
 
   std::thread([this, file_path]() {
     try{
-      file_tree.init_from_path(file_path);
-      m_parsed_promise->set_value_at_thread_exit(true);
+      bool ret = file_tree.init_from_path(file_path);
+      m_parsed_promise->set_value_at_thread_exit(ret);
     } catch (const std::exception& e) {
       spdlog::error("Failed to parse workspace: {}", e.what());
       m_parsed_promise->set_value_at_thread_exit(false);
