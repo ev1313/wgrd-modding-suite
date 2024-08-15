@@ -5,7 +5,8 @@
 namespace wgrd_files {
 
 /*
- * Note: most ppk files are actually just EDat files, but with the same extension.
+ * Note: most ppk files are actually just EDat files, but with the same
+ * extension.
  *
  * This handles edat like ppk files.
  * */
@@ -16,4 +17,4 @@ public:
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
-}
+} // namespace wgrd_files

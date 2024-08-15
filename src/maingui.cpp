@@ -12,14 +12,19 @@
 #include <libintl.h>
 
 maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
-  program.add_argument("-p").help(gettext("Load a project file")).default_value(std::string{"project.toml"});
-  program.add_argument("-v", "--verbose").help(gettext("Shows debug logs")).default_value(false).implicit_value(true);
+  program.add_argument("-p")
+      .help(gettext("Load a project file"))
+      .default_value(std::string{"project.toml"});
+  program.add_argument("-v", "--verbose")
+      .help(gettext("Shows debug logs"))
+      .default_value(false)
+      .implicit_value(true);
 }
 
 bool maingui::init(int argc, char *argv[]) {
   program.parse_args(argc, argv);
 
-  if(program.get<bool>("-v")) {
+  if (program.get<bool>("-v")) {
     spdlog::set_level(spdlog::level::debug);
   } else {
     spdlog::set_level(spdlog::level::info);
@@ -36,12 +41,12 @@ bool maingui::init(int argc, char *argv[]) {
       py::str py_path = (py::module::import("sys").attr("path"));
       spdlog::info(std::string(py_path));
       python_works = true;
-    } catch(const py::error_already_set& e) {
+    } catch (const py::error_already_set &e) {
       spdlog::error(e.what());
       python_works = false;
     }
 
-    if(!python_works) {
+    if (!python_works) {
       spdlog::error(gettext("Python does not work, exiting"));
       return false;
     }
@@ -62,7 +67,8 @@ bool maingui::init(int argc, char *argv[]) {
   imgui_sink = std::make_shared<mod_manager::logger_mt>();
   imgui_sink->set_pattern(logpattern);
 
-  spdlog::logger test(gettext("Mod Manager"), {console_sink, file_sink, imgui_sink});
+  spdlog::logger test(gettext("Mod Manager"),
+                      {console_sink, file_sink, imgui_sink});
   auto logger = std::make_shared<spdlog::logger>(test);
   spdlog::set_default_logger(logger);
 
@@ -80,23 +86,23 @@ bool maingui::init(int argc, char *argv[]) {
       spdlog::info(std::string(wgrd_cons_tools));
 
       python_works = true;
-    } catch(const py::error_already_set& e) {
+    } catch (const py::error_already_set &e) {
       spdlog::error(e.what());
       python_works = false;
     }
   }
 
-  if(!python_works) {
+  if (!python_works) {
     spdlog::error(gettext("Python does not work, exiting"));
     return false;
   }
-  
-  if(program.get<bool>("-v")) {
+
+  if (program.get<bool>("-v")) {
     spdlog::set_level(spdlog::level::debug);
   } else {
     spdlog::set_level(spdlog::level::info);
   }
-  
+
   workspaces.load_project_file(program.get("-p"));
 
   return true;
@@ -104,53 +110,56 @@ bool maingui::init(int argc, char *argv[]) {
 
 bool maingui::render_menu_bar() {
   bool ret = false;
-  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O)) {
     workspaces.show_add_workspace = true;
   }
-  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S)) {
     workspaces.save_workspaces(save_to_fs_path);
   }
-  if(ImGui::Shortcut(ImGuiMod_Alt | ImGuiKey_F4)) {
+  if (ImGui::Shortcut(ImGuiMod_Alt | ImGuiKey_F4)) {
     ret = true;
   }
 
-  if(ImGui::BeginMenuBar()) {
-    if(ImGui::BeginMenu(gettext("File"))) {
-      if(ImGui::MenuItem(gettext("Open new workspace"), "Ctrl+O")) {
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu(gettext("File"))) {
+      if (ImGui::MenuItem(gettext("Open new workspace"), "Ctrl+O")) {
         workspaces.show_add_workspace = true;
       }
-      if(ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
+      if (ImGui::MenuItem(gettext("Save all workspaces"), "Ctrl+Shift+S")) {
         workspaces.save_workspaces(save_to_fs_path);
       }
-      ImGui::Checkbox(gettext("Save dat files to input path"), &save_to_fs_path);
+      ImGui::Checkbox(gettext("Save dat files to input path"),
+                      &save_to_fs_path);
       ImGui::Separator();
-      if(ImGui::MenuItem(gettext("Load project file"))) {
+      if (ImGui::MenuItem(gettext("Load project file"))) {
         IGFD::FileDialogConfig config;
         config.path = ".";
-        
-        ImGuiFileDialog::Instance()->OpenDialog("Load project file", gettext("Load project file"), ".toml", config);
+
+        ImGuiFileDialog::Instance()->OpenDialog(
+            "Load project file", gettext("Load project file"), ".toml", config);
       }
-      if(ImGui::MenuItem(gettext("Save project file"))) {
+      if (ImGui::MenuItem(gettext("Save project file"))) {
         IGFD::FileDialogConfig config;
         config.path = ".";
-        ImGuiFileDialog::Instance()->OpenDialog("Save project file", gettext("Save project file"), ".toml", config);
+        ImGuiFileDialog::Instance()->OpenDialog(
+            "Save project file", gettext("Save project file"), ".toml", config);
       }
       ImGui::Separator();
-      if(ImGui::MenuItem(gettext("Exit"), "Alt+F4")) {
+      if (ImGui::MenuItem(gettext("Exit"), "Alt+F4")) {
         ret = true;
       }
       ImGui::EndMenu();
     }
     // add workspaces menu tab
     workspaces.render_menu();
-    if(ImGui::BeginMenu(gettext("Settings"))) {
-      if(ImGui::MenuItem(gettext("Style Editor"))) {
+    if (ImGui::BeginMenu(gettext("Settings"))) {
+      if (ImGui::MenuItem(gettext("Style Editor"))) {
         show_style_editor = true;
       }
-      if(ImGui::MenuItem(gettext("Log"), "Ctrl+L")) {
+      if (ImGui::MenuItem(gettext("Log"), "Ctrl+L")) {
         imgui_sink->open_log = true;
       }
-      if(ImGui::MenuItem(gettext("Lag Test"))) {
+      if (ImGui::MenuItem(gettext("Lag Test"))) {
         spdlog::info("Lag Test");
         std::this_thread::sleep_for(std::chrono::seconds(5));
         spdlog::info("Lag Test done");
@@ -161,7 +170,7 @@ bool maingui::render_menu_bar() {
   }
 
   if (ImGuiFileDialog::Instance()->Display(
-    "Load project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
+          "Load project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       fs::path ret = ImGuiFileDialog::Instance()->GetFilePathName();
       spdlog::info("Load project file {}", ret.string());
@@ -170,7 +179,7 @@ bool maingui::render_menu_bar() {
     ImGuiFileDialog::Instance()->Close();
   }
   if (ImGuiFileDialog::Instance()->Display(
-    "Save project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
+          "Save project file", ImGuiWindowFlags_NoCollapse, ImVec2(800, 800))) {
     if (ImGuiFileDialog::Instance()->IsOk()) {
       fs::path ret = ImGuiFileDialog::Instance()->GetFilePathName();
       spdlog::info("Save project file {}", ret.string());
@@ -183,11 +192,14 @@ bool maingui::render_menu_bar() {
 }
 
 bool maingui::render() {
-  if(!python_works) {
+  if (!python_works) {
     ImGui::Begin(gettext("Error"), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text(gettext("Python does not work, see the logfile, exiting."));
-    ImGui::Text(gettext("If you are on Windows, you need to start the start_modding_suite.bat instead of directly the modding_suite.exe file!"));
-    ImGui::Text(gettext("Also check you installed Python 3.11 into your PATH."));
+    ImGui::Text(gettext(
+        "If you are on Windows, you need to start the start_modding_suite.bat "
+        "instead of directly the modding_suite.exe file!"));
+    ImGui::Text(
+        gettext("Also check you installed Python 3.11 into your PATH."));
     ImGui::End();
     imgui_sink->open_log = true;
     imgui_sink->render_log();
@@ -195,16 +207,21 @@ bool maingui::render() {
   }
 
   // render main window
-  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImGuiViewport *viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(viewport->WorkPos);
   ImGui::SetNextWindowSize(viewport->WorkSize);
   ImGui::SetNextWindowViewport(viewport->ID);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking);
+  ImGui::Begin("Main Window", nullptr,
+               ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
+                   ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                   ImGuiWindowFlags_NoMove |
+                   ImGuiWindowFlags_NoBringToFrontOnFocus |
+                   ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking);
   ImGui::PopStyleVar(3);
-        
+
   ImGuiID dockspace_id = ImGui::GetID("ModdingSuiteDockSpace");
   ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
   bool exit_now = render_menu_bar();
@@ -213,11 +230,11 @@ bool maingui::render() {
 
   workspaces.render();
 
-  if(show_style_editor) {
+  if (show_style_editor) {
     ImGui::ShowStyleEditor(&show_style_editor, nullptr);
   }
 
-  if(ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L)) {
     imgui_sink->open_log = true;
   }
   imgui_sink->render_log();

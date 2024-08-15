@@ -11,4 +11,4 @@ public:
   static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
 };
 
-}
+} // namespace wgrd_files

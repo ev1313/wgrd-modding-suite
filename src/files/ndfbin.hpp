@@ -10,21 +10,25 @@ namespace wgrd_files {
 class NdfBin : public File {
 private:
   // object count is cached, since it iterates all objects in ndfbin
-  // gets set to true if the object count changed after removing / adding / cloning objects
+  // gets set to true if the object count changed after removing / adding /
+  // cloning objects
   bool object_count_changed = true;
-  // this is the option, whether the object and class list should be filtered again
+  // this is the option, whether the object and class list should be filtered
+  // again
   bool filter_changed = true;
   std::vector<std::string> object_list_filtered;
   std::string object_filter = "";
   std::string object_filter_lower = "";
   std::string class_filter = "";
   std::string class_filter_lower = "";
-  // only for being able to save the last clicked position for auto focus of the selected object
+  // only for being able to save the last clicked position for auto focus of the
+  // selected object
   int item_current_idx = -1;
-  
+
   int property_item_current_idx = -1;
 
-  // used to detect, whether object changed, to update property_temp array with cached values
+  // used to detect, whether object changed, to update property_temp array with
+  // cached values
   bool object_changed = true;
   std::vector<std::any> property_temp;
 
@@ -62,14 +66,17 @@ private:
   int bulk_rename_property_count = 1;
   std::string bulk_rename_prefix = "";
   std::vector<std::string> bulk_rename_selected_properties = {""};
-  //FIXME: this should be cleared every time the bulk rename window is opened
+  // FIXME: this should be cleared every time the bulk rename window is opened
   std::map<std::string, std::pair<std::string, bool>> bulk_rename_overrides;
   void render_bulk_renames();
 
-  std::optional<std::unique_ptr<NdfTransaction>> render_object_info(std::string object_name);
+  std::optional<std::unique_ptr<NdfTransaction>>
+  render_object_info(std::string object_name);
   void render_property_list(std::string object_name);
   void render_property(std::string object_name, std::string property_name);
-  std::optional<std::unique_ptr<NdfTransactionChangeProperty>> render_ndf_type(std::unique_ptr<NDFProperty>& property);
+  std::optional<std::unique_ptr<NdfTransactionChangeProperty>>
+  render_ndf_type(std::unique_ptr<NDFProperty> &property);
+
 public:
   explicit NdfBin(FileMeta meta, fs::path out_path);
   void render_window() override;
@@ -81,5 +88,4 @@ public:
   bool save_bin(fs::path path) override;
 };
 
-}
-
+} // namespace wgrd_files

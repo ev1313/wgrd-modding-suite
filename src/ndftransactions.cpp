@@ -1,7 +1,8 @@
 #include "ndftransactions.hpp"
 #include "helpers.hpp"
 
-void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, fs::path file_path) {
+void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path,
+                                           fs::path file_path) {
   std::ifstream file(file_path, std::ios::binary | std::ios::in);
   std::vector<char> data;
   data.resize(fs::file_size(file_path));
@@ -9,14 +10,17 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, fs::path file_path
   start_parsing(vfs_path, data);
 }
 
-void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path, std::vector<char> vec_data) {
+void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path,
+                                           std::vector<char> vec_data) {
   spdlog::info("loading ndfbin from bin {}", vfs_path.string());
   ndf.clear();
 
   {
     py::gil_scoped_acquire acquire;
     try {
-      py::object decompress_ndfbin = py::module_::import("wgrd_cons_parsers.decompress_ndfbin").attr("decompress_ndfbin");
+      py::object decompress_ndfbin =
+          py::module_::import("wgrd_cons_parsers.decompress_ndfbin")
+              .attr("decompress_ndfbin");
 
       py::bytes data(vec_data.data(), vec_data.size());
 

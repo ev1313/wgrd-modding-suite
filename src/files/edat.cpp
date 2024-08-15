@@ -2,19 +2,17 @@
 
 #include <imgui.h>
 
-wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path) : File(meta, out_path) {
+wgrd_files::EDat::EDat(FileMeta meta, fs::path out_path)
+    : File(meta, out_path) {
   xml_path = out_path / "edat" / vfs_path;
 }
 
-void wgrd_files::EDat::render_window() {
-  workspace->render_window();
-}
+void wgrd_files::EDat::render_window() { workspace->render_window(); }
 
-void wgrd_files::EDat::render_extra() {
-  workspace->render_extra();
-}
+void wgrd_files::EDat::render_extra() { workspace->render_extra(); }
 
-bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f, size_t offset) {
+bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f,
+                               size_t offset) {
   f.clear();
   f.seekg(offset);
 
@@ -24,7 +22,7 @@ bool wgrd_files::EDat::is_file(std::string vfs_path, std::ifstream &f, size_t of
   f.clear();
   f.seekg(offset);
 
-  if(!strcmp(magic, "edat")) {
+  if (!strcmp(magic, "edat")) {
     return true;
   }
   return false;

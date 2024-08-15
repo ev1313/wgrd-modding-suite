@@ -7,8 +7,8 @@ namespace py = pybind11;
 
 #include <any>
 
-#include <ranges>
 #include "spdlog/spdlog.h"
+#include <ranges>
 
 #include <iostream>
 
@@ -21,6 +21,7 @@ class __attribute__((visibility("default"))) PyStdErrOutStreamRedirect {
   py::object _stderr_buffer;
   size_t last_offset_stdout = 0;
   size_t last_offset_stderr = 0;
+
 public:
   PyStdErrOutStreamRedirect() {
     py::gil_scoped_acquire acquire;
@@ -28,7 +29,8 @@ public:
     _stdout = sysm.attr("stdout");
     _stderr = sysm.attr("stderr");
     auto stringio = py::module::import("io").attr("StringIO");
-    _stdout_buffer = stringio();  // Other filelike object can be used here as well, such as objects created by pybind11
+    _stdout_buffer = stringio(); // Other filelike object can be used here as
+                                 // well, such as objects created by pybind11
     _stderr_buffer = stringio();
     sysm.attr("stdout") = _stdout_buffer;
     sysm.attr("stderr") = _stderr_buffer;
@@ -49,10 +51,10 @@ public:
   }
   void update_log() {
     return;
-    for(const auto line : stdoutString() | std::views::split('\n')) {
+    for (const auto line : stdoutString() | std::views::split('\n')) {
       spdlog::info(std::string_view(line));
     }
-    for(const auto line : stderrString() | std::views::split('\n')) {
+    for (const auto line : stderrString() | std::views::split('\n')) {
       spdlog::error(std::string_view(line));
     }
   }
@@ -63,18 +65,18 @@ public:
   }
 };
 
-// used for vfs paths, as the contain $/ at the beginning, which is omitted in dat files
-inline std::string remove_dollar(const std::string& str) {
-  if(str.size() >= 2 && str[0] == '$' && str[1] == '/') {
+// used for vfs paths, as the contain $/ at the beginning, which is omitted in
+// dat files
+inline std::string remove_dollar(const std::string &str) {
+  if (str.size() >= 2 && str[0] == '$' && str[1] == '/') {
     return str.substr(2);
   }
   return str;
 }
 
-inline std::string str_tolower(std::string s)
-{
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c){ return std::tolower(c); } // correct
-                  );
-    return s;
+inline std::string str_tolower(std::string s) {
+  std::transform(s.begin(), s.end(), s.begin(),
+                 [](unsigned char c) { return std::tolower(c); } // correct
+  );
+  return s;
 }

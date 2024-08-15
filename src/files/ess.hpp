@@ -8,6 +8,7 @@ class Ess : public File {
 private:
   uint32_t loop_start = 0;
   uint32_t loop_end = 0;
+
 public:
   explicit Ess(FileMeta meta, fs::path out_path);
   void render_window() override;
@@ -15,4 +16,4 @@ public:
   bool load_bin();
 };
 
-}
+} // namespace wgrd_files
