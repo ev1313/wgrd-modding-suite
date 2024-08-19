@@ -65,6 +65,18 @@ struct WorkspaceConfig {
 
 class Files;
 
+enum class FileType {
+    DIC,
+    EDAT,
+    ESS,
+    NDFBIN,
+    PPK,
+    SCENARIO,
+    SFORMAT,
+    TGV,
+    UNKNOWN
+};
+
 class File {
 private:
   std::atomic_bool m_is_parsed = false;
@@ -93,6 +105,7 @@ protected:
 
 public:
   explicit File(FileMeta meta);
+  virtual FileType get_type() { return FileType::UNKNOWN; }
   void render();
   // this function should call the imgui shortcuts
   virtual void render_shortcuts();
@@ -196,6 +209,15 @@ public:
   void open_window(std::string vfs_path);
   void copy_bin_changes(fs::path dat_path, fs::path out_folder_path);
   void save_changes_to_dat(bool save_to_fs_path);
+  File* get_file(std::string vfs_path) {
+      auto file_it = files.find(vfs_path);
+      if (file_it == files.end()) {
+          return nullptr;
+      }
+      auto& [file_list, _] = file_it->second;
+      assert(file_list.size() > 0);
+      return file_list.back().get();
+  }
   bool is_changed() {
     for (const auto &[_, file_idx] : files) {
       const auto &[files, _] = file_idx;

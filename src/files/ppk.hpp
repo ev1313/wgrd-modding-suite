@@ -13,6 +13,7 @@ namespace wgrd_files {
 class PPK : public File {
 public:
   explicit PPK(FileMeta meta) : File(std::move(meta)) {}
+  FileType get_type() override { return FileType::PPK; }
   void render_window() override;
   static bool is_file(const FileMeta &meta);
 };

@@ -47,6 +47,7 @@ private:
 
 public:
   explicit Dic(FileMeta meta) : File(std::move(meta)) {}
+  FileType get_type() override { return FileType::DIC; }
   bool load_stream() override;
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;

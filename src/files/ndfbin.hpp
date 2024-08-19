@@ -79,6 +79,7 @@ private:
 
 public:
   explicit NdfBin(FileMeta meta) : File(std::move(meta)) {}
+  FileType get_type() override { return FileType::NDFBIN; }
   void render_window() override;
   void render_extra() override;
   static bool is_file(const FileMeta &meta);
