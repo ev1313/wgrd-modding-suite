@@ -8,10 +8,8 @@
 
 using namespace pybind11::literals;
 
-wgrd_files::Dic::Dic(FileMeta meta, fs::path out_path) : File(meta, out_path) {}
-
 bool wgrd_files::Dic::load_stream() {
-  spdlog::info("Parsing Dic: {}", vfs_path);
+  spdlog::info("Parsing Dic: {}", meta.vfs_path);
 
   try {
     py::gil_scoped_acquire acquire;
@@ -38,7 +36,7 @@ bool wgrd_files::Dic::load_stream() {
 }
 
 bool wgrd_files::Dic::load_xml(fs::path path) {
-  spdlog::info("Loading Dic XML: {} from {}", vfs_path, path.string());
+  spdlog::info("Loading Dic XML: {} from {}", meta.vfs_path, path.string());
 
   try {
     py::gil_scoped_acquire acquire;
@@ -61,7 +59,7 @@ bool wgrd_files::Dic::load_xml(fs::path path) {
 }
 
 bool wgrd_files::Dic::save_xml(fs::path path) {
-  spdlog::info("Saving Dic XML: {} to {}", vfs_path, path.string());
+  spdlog::info("Saving Dic XML: {} to {}", meta.vfs_path, path.string());
 
   try {
     py::gil_scoped_acquire acquire;
@@ -94,7 +92,7 @@ bool wgrd_files::Dic::save_xml(fs::path path) {
 }
 
 bool wgrd_files::Dic::save_bin(fs::path path) {
-  spdlog::info("Saving Dic: {}", vfs_path);
+  spdlog::info("Saving Dic: {}", meta.vfs_path);
 
   try {
     py::gil_scoped_acquire acquire;
@@ -166,16 +164,15 @@ void wgrd_files::Dic::render_window() {
   }
 }
 
-bool wgrd_files::Dic::is_file(std::string vfs_path, std::ifstream &f,
-                              size_t offset) {
-  f.clear();
-  f.seekg(offset);
+bool wgrd_files::Dic::is_file(const FileMeta &meta) {
+  meta.stream->clear();
+  meta.stream->seekg(meta.offset);
 
   char magic[4];
-  f.read(magic, sizeof(magic));
+  meta.stream->read(magic, sizeof(magic));
 
-  f.clear();
-  f.seekg(offset);
+  meta.stream->clear();
+  meta.stream->seekg(meta.offset);
 
   if (!strncmp(magic, "TRAD", 4)) {
     return true;

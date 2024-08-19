@@ -78,10 +78,10 @@ private:
   render_ndf_type(std::unique_ptr<NDFProperty> &property);
 
 public:
-  explicit NdfBin(FileMeta meta, fs::path out_path);
+  explicit NdfBin(FileMeta meta) : File(std::move(meta)) {}
   void render_window() override;
   void render_extra() override;
-  static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
+  static bool is_file(const FileMeta &meta);
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;
   bool load_bin(fs::path path) override;

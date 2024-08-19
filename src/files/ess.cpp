@@ -3,26 +3,21 @@
 
 #include <imgui.h>
 
-wgrd_files::Ess::Ess(FileMeta meta, fs::path out_path) : File(meta, out_path) {
-  load_bin();
-}
-
 void wgrd_files::Ess::render_window() {
-  ImGui::Text("Ess: %s", vfs_path.c_str());
+  ImGui::Text("Ess: %s", meta.vfs_path.c_str());
   ImGui::Text("Loop Start: %d", loop_start);
   ImGui::Text("Loop End: %d", loop_end);
 }
 
-bool wgrd_files::Ess::is_file(std::string vfs_path, std::ifstream &f,
-                              size_t offset) {
-  f.clear();
-  f.seekg(offset);
+bool wgrd_files::Ess::is_file(const FileMeta &meta) {
+  meta.stream->clear();
+  meta.stream->seekg(meta.offset);
 
   char magic[4];
-  f.read(magic, sizeof(magic));
+  meta.stream->read(magic, sizeof(magic));
 
-  f.clear();
-  f.seekg(offset);
+  meta.stream->clear();
+  meta.stream->seekg(meta.offset);
 
   if (magic[0] == 0x01 && magic[1] == 0x00 && magic[2] == 0x02 &&
       magic[3] == 0x02) {
@@ -32,7 +27,7 @@ bool wgrd_files::Ess::is_file(std::string vfs_path, std::ifstream &f,
 }
 
 bool wgrd_files::Ess::load_bin() {
-  spdlog::info("Parsing Ess: {}", vfs_path);
+  spdlog::info("Parsing Ess: {}", meta.vfs_path);
 
   try {
     py::gil_scoped_acquire acquire;
@@ -50,11 +45,9 @@ bool wgrd_files::Ess::load_bin() {
     // and now we decode it to wav file, so we can play it
     py::object decode_ess =
         py::module::import("wgrd_cons_tools.decode_ess").attr("decode_ess");
-    fs::path wav_path =
-        out_path / "xml" / fs::path(vfs_path).replace_extension(".ess.wav");
-    fs::path labels_path =
-        out_path / "xml" / fs::path(vfs_path).replace_extension(".ess.labels");
-    fs::create_directories(out_path / "xml" / vfs_path);
+    fs::path wav_path = xml_path.replace_extension(".ess.wav");
+    fs::path labels_path = xml_path.replace_extension(".ess.labels");
+    fs::create_directories(xml_path.parent_path());
     decode_ess(data, wav_path.string(), labels_path.string());
 
   } catch (const py::error_already_set &e) {

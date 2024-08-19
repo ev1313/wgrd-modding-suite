@@ -10,9 +10,9 @@ private:
   uint32_t loop_end = 0;
 
 public:
-  explicit Ess(FileMeta meta, fs::path out_path);
+  explicit Ess(FileMeta meta) : File(std::move(meta)) {}
   void render_window() override;
-  static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
+  static bool is_file(const FileMeta &meta);
   bool load_bin();
 };
 

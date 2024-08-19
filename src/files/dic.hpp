@@ -46,13 +46,13 @@ private:
   std::vector<std::unique_ptr<DicTransaction>> transactions;
 
 public:
-  explicit Dic(FileMeta meta, fs::path out_path);
+  explicit Dic(FileMeta meta) : File(std::move(meta)) {}
   bool load_stream() override;
   bool load_xml(fs::path path) override;
   bool save_xml(fs::path path) override;
   bool save_bin(fs::path path) override;
   void render_window() override;
-  static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
+  static bool is_file(const FileMeta &meta);
 };
 
 } // namespace wgrd_files

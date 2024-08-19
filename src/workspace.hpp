@@ -5,6 +5,8 @@
 
 #include "toml.hpp"
 
+using namespace wgrd_files;
+
 class Workspaces;
 
 class Workspace {
@@ -17,38 +19,49 @@ private:
 
 private:
   FileTree file_tree;
-  wgrd_files::Files files;
-  std::set<std::string> loaded_file_paths;
-  fs::path workspace_dat_path;
-  fs::path workspace_out_path;
+  Files files;
+
+  WorkspaceConfig m_config;
 
   friend class Workspaces;
-  bool check_directories(fs::path dat_path, fs::path out_path);
+  // checks and creates directories
+  bool check_directories(fs::path fs_path, fs::path dat_path, fs::path bin_path,
+                         fs::path xml_path, fs::path tmp_path);
 
 public:
+  explicit Workspace() : files(m_config) {}
   std::string workspace_name;
   static std::optional<std::unique_ptr<Workspace>>
   render_init_workspace(bool *show_workspace);
-  bool init(fs::path dat_path, fs::path out_path);
+  bool init(fs::path fs_path, fs::path out_path);
+  bool init(fs::path fs_path, fs::path dat_path, fs::path bin_path,
+            fs::path xml_path, fs::path tmp_path);
+  bool init(const WorkspaceConfig &config);
   bool init_from_file(fs::path file_path, fs::path out_path);
+  bool init_from_file(fs::path file_path, fs::path dat_path, fs::path bin_path,
+                      fs::path xml_path, fs::path tmp_path);
   void render_window();
   void render_extra();
-  toml::table to_toml();
+  // argument determines whether to save to the given dat_path or to save to the
+  // input folder
   void save_changes_to_dat(bool save_to_fs_path);
   bool is_changed() { return files.is_changed(); }
   void check_parsing() {
+    // if no parse ever started, the future/promise may not exist yet
     if (m_is_parsed) {
       return;
     }
     if (!m_is_parsing) {
       return;
     }
+    // but if it started they have to exist
     if (!m_parsed_promise.has_value()) {
       throw std::runtime_error("m_parsed_promise not set");
     }
     if (!m_parsed_future.has_value()) {
       throw std::runtime_error("m_parsed_future not set");
     }
+    // check if thread is already done
     if (m_parsed_future.value().wait_for(std::chrono::seconds(0)) ==
         std::future_status::ready) {
       m_is_parsed = m_parsed_future.value().get();

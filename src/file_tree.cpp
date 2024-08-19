@@ -7,6 +7,8 @@
 #include "helpers.hpp"
 #include "spdlog/spdlog.h"
 
+using namespace wgrd_files;
+
 void FileTree::create_filetree(fs::path path, bool is_file) {
   py::gil_scoped_acquire acquire;
   try {
@@ -50,19 +52,25 @@ bool FileTree::init_from_stream(std::ifstream &stream) {
 }
 
 void FileTree::fill_filetree(py::dict files) {
-  for (auto [py_path, value] : files) {
+  for (auto [py_path, value_lst] : files) {
     // spdlog::debug("parsing filetree item {}", path.cast<std::string>());
     std::string path = py_path.cast<std::string>();
     std::replace(path.begin(), path.end(), '\\', '/');
     std::string full_vfs_path = "$/" + path;
-    assert(py::isinstance<py::tuple>(value));
-    py::str file = value.cast<py::tuple>()[0].cast<py::str>();
-    size_t offset = value.cast<py::tuple>()[1].cast<size_t>();
-    size_t size = value.cast<py::tuple>()[2].cast<size_t>();
-    unsigned int idx = value.cast<py::tuple>()[4].cast<unsigned int>();
-    auto meta =
-        FileMeta(full_vfs_path, file.cast<std::string>(), offset, size, idx);
-    vfs_files[full_vfs_path] = meta;
+    assert(py::isinstance<py::list>(value_lst));
+    FileMetaList meta_lst;
+    for (auto &value : value_lst) {
+      assert(py::isinstance<py::tuple>(value));
+      py::tuple tup = value.cast<py::tuple>();
+      py::str file = tup[0].cast<py::str>();
+      size_t offset = tup[1].cast<size_t>();
+      size_t size = tup[2].cast<size_t>();
+      unsigned int idx = tup[4].cast<unsigned int>();
+      auto meta =
+          FileMeta(full_vfs_path, file.cast<std::string>(), offset, size, idx);
+      meta_lst.push_back(std::move(meta));
+    }
+    vfs_files[full_vfs_path] = std::move(meta_lst);
     std::vector<uint32_t> vec;
     for (auto str_it : std::views::split(path, '/')) {
       std::string str = std::string(str_it.begin(), str_it.end());
@@ -89,8 +97,8 @@ void FileTree::filter_filetree() {
   }
 }
 
-std::optional<FileMeta> FileTree::render_file_list() {
-  std::optional<FileMeta> ret = std::nullopt;
+std::optional<std::string> FileTree::render_file_list() {
+  std::optional<std::string> ret = std::nullopt;
 
   ImGuiListClipper clipper;
   clipper.Begin(vfs_filtered_files.size());
@@ -108,7 +116,7 @@ std::optional<FileMeta> FileTree::render_file_list() {
       // now we are inside the range we want to display
       if (ImGui::Selectable(vfs_path.c_str(), selected_vfs_path == vfs_path)) {
         selected_vfs_path = vfs_path;
-        ret = vfs_files[vfs_path];
+        ret = vfs_path;
       }
 
       if (vfs_path == selected_vfs_path) {
@@ -124,9 +132,9 @@ std::optional<FileMeta> FileTree::render_file_list() {
   return ret;
 }
 
-std::optional<FileMeta> FileTree::render_file_tree() {
+std::optional<std::string> FileTree::render_file_tree() {
   // FIXME: https://github.com/ocornut/imgui/issues/3823
-  std::optional<FileMeta> ret = std::nullopt;
+  std::optional<std::string> ret = std::nullopt;
 
   // for keyboard navigation,
   // index of the level from which all nodes shall be open
@@ -181,7 +189,7 @@ std::optional<FileMeta> FileTree::render_file_tree() {
         // we are at the end of the path, so we need to render the selectable
         if (ImGui::Selectable(part.c_str(), selected_vfs_path == vfs_path)) {
           selected_vfs_path = vfs_path;
-          ret = vfs_files[vfs_path];
+          ret = vfs_path;
         }
         if (vfs_path == selected_vfs_path) {
           ImGui::SetItemDefaultFocus();
@@ -224,7 +232,7 @@ std::optional<FileMeta> FileTree::render_file_tree() {
   return ret;
 }
 
-std::optional<FileMeta> FileTree::render() {
+std::optional<FileMetaList> FileTree::render() {
   ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
   if (ImGui::InputText("##file_tree_search", &m_search)) {
     m_search_lower = str_tolower(m_search);
@@ -233,7 +241,7 @@ std::optional<FileMeta> FileTree::render() {
 
   ImGui::Checkbox(gettext("VFS Tree"), &m_tree_view);
 
-  std::optional<FileMeta> ret = std::nullopt;
+  std::optional<std::string> ret = std::nullopt;
   if (m_tree_view) {
     ret = render_file_tree();
   } else {
@@ -241,5 +249,13 @@ std::optional<FileMeta> FileTree::render() {
     ret = render_file_list();
     ImGui::EndListBox();
   }
-  return ret;
+  if (ret) {
+    assert(vfs_files.contains(ret.value()));
+    FileMetaList result;
+    for (const FileMeta &meta : vfs_files[ret.value()]) {
+      result.push_back(meta.get_copy());
+    }
+    return result;
+  }
+  return std::nullopt;
 }

@@ -1,16 +1,14 @@
 #include "ndfbin.hpp"
+#include <filesystem>
 
 using namespace wgrd_files;
 
-#include <imgui.h>
+#include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 
 #include "magic_enum.hpp"
 
 #include <random>
-
-wgrd_files::NdfBin::NdfBin(FileMeta meta, fs::path out_path)
-    : File(meta, out_path) {}
 
 void wgrd_files::NdfBin::render_object_list() {
   if (ImGui::BeginTable("filters", 2,
@@ -1160,20 +1158,19 @@ void wgrd_files::NdfBin::render_extra() {
   changes.clear();
 }
 
-bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f,
-                                 size_t offset) {
-  f.clear();
-  f.seekg(offset);
+bool wgrd_files::NdfBin::is_file(const FileMeta &meta) {
+  meta.stream->clear();
+  meta.stream->seekg(meta.offset);
 
   char magic[4];
-  f.read(magic, sizeof(magic));
+  meta.stream->read(magic, sizeof(magic));
   char magic2[4];
-  f.read(magic2, sizeof(magic2));
+  meta.stream->read(magic2, sizeof(magic2));
   char magic3[4];
-  f.read(magic3, sizeof(magic3));
+  meta.stream->read(magic3, sizeof(magic3));
 
-  f.clear();
-  f.seekg(offset);
+  meta.stream->clear();
+  meta.stream->seekg(meta.offset);
 
   if (strncmp(magic, "EUG0", 4)) {
     return false;
@@ -1189,6 +1186,10 @@ bool wgrd_files::NdfBin::is_file(std::string vfs_path, std::ifstream &f,
 bool wgrd_files::NdfBin::load_xml(fs::path path) {
   if (!fs::exists(xml_path)) {
     spdlog::info("No ndf xml file found at {}", xml_path.string());
+    return false;
+  }
+  if (!fs::is_regular_file(xml_path)) {
+    spdlog::error("Trying to load {} which is not a file!", xml_path.string());
     return false;
   }
   spdlog::info("Loading ndf xml from {}", xml_path.string());

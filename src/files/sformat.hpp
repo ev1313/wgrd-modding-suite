@@ -6,9 +6,9 @@ namespace wgrd_files {
 
 class SFormat : public File {
 public:
-  explicit SFormat(FileMeta meta, fs::path out_path);
+  explicit SFormat(FileMeta meta) : File(std::move(meta)) {}
   void render_window() override;
-  static bool is_file(std::string vfs_path, std::ifstream &f, size_t offset);
+  static bool is_file(const FileMeta &meta);
 };
 
 } // namespace wgrd_files
