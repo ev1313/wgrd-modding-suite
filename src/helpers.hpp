@@ -12,6 +12,9 @@ namespace py = pybind11;
 
 #include <iostream>
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
 // Based on:
 // https://stackoverflow.com/questions/58758429/pybind11-redirect-python-sys-stdout-to-c-from-print
 class __attribute__((visibility("default"))) PyStdErrOutStreamRedirect {
@@ -79,4 +82,9 @@ inline std::string str_tolower(std::string s) {
                  [](unsigned char c) { return std::tolower(c); } // correct
   );
   return s;
+}
+
+inline fs::path append_ext(fs::path path, std::string ext) {
+  std::string new_ext = path.extension().string() + ext;
+  return path.replace_extension(new_ext);
 }

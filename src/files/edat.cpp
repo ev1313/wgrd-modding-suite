@@ -1,6 +1,9 @@
 #include "edat.hpp"
+#include "wgrd_files.h"
 
 #include <imgui.h>
+
+#include "helpers.hpp"
 
 wgrd_files::EDat::EDat(FileMeta meta) : File(std::move(meta)) {
   // xml_path = out_path / "edat" / vfs_path;
@@ -27,10 +30,18 @@ bool wgrd_files::EDat::is_file(const FileMeta &meta) {
 }
 
 bool wgrd_files::EDat::load_bin(fs::path path) {
-  throw std::runtime_error("Not implemented");
   workspace = std::make_unique<Workspace>();
-  workspace->workspace_name = meta.vfs_path;
-  // fs::path edat_out_path = out_path / "edat" / vfs_path;
-  // fs::create_directories(edat_out_path);
-  // return workspace->init_from_file(path, edat_out_path);
+  WorkspaceConfig config;
+  config.name = meta.vfs_path;
+  config.fs_path = path;
+  config.dat_path = path.parent_path();
+  config.bin_path = append_ext(bin_path, ".bin");
+  config.xml_path = xml_path.parent_path() / fs::path(meta.vfs_path).filename();
+  config.tmp_path = tmp_path;
+  spdlog::info("loading edat with config: name {} fs_path {} dat_path {} "
+               "bin_path {} xml_path {} tmp_path {}",
+               config.name, config.fs_path.string(), config.dat_path.string(),
+               config.bin_path.string(), config.xml_path.string(),
+               config.tmp_path.string());
+  return workspace->init_from_file(config);
 }

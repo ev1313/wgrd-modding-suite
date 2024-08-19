@@ -16,7 +16,13 @@ void FileTree::create_filetree(fs::path path, bool is_file) {
         py::module_::import("wgrd_cons_tools.create_vfs").attr("get_dat_paths");
     py::object create_vfs =
         py::module_::import("wgrd_cons_tools.create_vfs").attr("create_vfs");
-    py::object dat_paths = get_dat_paths((path).string());
+    py::object dat_paths;
+    if (!is_file) {
+      dat_paths = get_dat_paths((path).string());
+    } else {
+      dat_paths = py::list();
+      dat_paths.attr("append")(py::str(path.string()));
+    }
     py::dict files = create_vfs(dat_paths);
     fill_filetree(files);
   } catch (py::error_already_set &e) {

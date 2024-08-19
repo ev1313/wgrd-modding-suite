@@ -79,6 +79,11 @@ bool Workspace::check_directories(fs::path fs_path, fs::path dat_path,
     spdlog::warn("could not create directories {}", (xml_path).string());
     return false;
   }
+  fs::create_directories(tmp_path);
+  if (!fs::is_directory(tmp_path)) {
+    spdlog::warn("could not create directories {}", (tmp_path).string());
+    return false;
+  }
   m_config.fs_path = fs_path;
   m_config.dat_path = dat_path;
   m_config.bin_path = bin_path;
@@ -127,6 +132,12 @@ bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
   return init_from_file(file_path, out_path / "dat", out_path / "bin",
                         out_path / "xml", out_path / "tmp");
 }
+
+bool Workspace::init_from_file(const WorkspaceConfig &config) {
+  return init_from_file(config.fs_path, config.dat_path, config.bin_path,
+                        config.xml_path, config.tmp_path);
+}
+
 bool Workspace::init_from_file(fs::path file_path, fs::path dat_path,
                                fs::path bin_path, fs::path xml_path,
                                fs::path tmp_path) {
