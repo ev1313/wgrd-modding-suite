@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(modding_suite)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/modules/")
@@ -25,6 +25,7 @@ add_subdirectory(deps/wgrd-tools/)
 add_subdirectory(deps/magic_enum)
 add_subdirectory(deps/toml11)
 
+# imgui dependecies
 add_library(imgui
   deps/imgui/imgui.cpp
   deps/imgui/imgui_tables.cpp
@@ -34,21 +35,32 @@ add_library(imgui
   deps/imgui/backends/imgui_impl_glfw.cpp
   deps/imgui/backends/imgui_impl_opengl3.cpp
 )
-target_include_directories(imgui PUBLIC 
+target_include_directories(imgui PUBLIC
 deps/imgui/
 deps/imgui/misc/cpp/
 deps/imgui/backends/
 )
 target_link_libraries(imgui PUBLIC ${GLFW3_LIBRARY} ${LibEpoxy_LIBRARIES})
 
-add_executable(modding_suite
-		ImGuiFileDialog/ImGuiFileDialog.cpp
-		src/main.cpp
-		src/file_tree.cpp
-		src/file_tree.h
+add_library(imgui_filedialog STATIC
+    ImGuiFileDialog/ImGuiFileDialog.cpp
+)
+target_include_directories(imgui_filedialog PUBLIC
+    ImGuiFileDialog/
+)
+target_link_libraries(imgui_filedialog PUBLIC imgui)
 
-		src/wgrd_files.cpp
-		src/wgrd_files.h
+# modding-suite
+
+add_library(lib_modding_suite STATIC
+    src/file_tree.cpp
+	src/file_tree.hpp
+
+    src/files/configs.hpp
+    src/files/file.hpp
+    src/files/file.cpp
+    src/files/files.hpp
+    src/files/files.cpp
     src/files/dic.hpp
     src/files/dic.cpp
     src/files/edat.hpp
@@ -65,9 +77,6 @@ add_executable(modding_suite
     src/files/sformat.cpp
     src/files/tgv.hpp
     src/files/tgv.cpp
-
-    src/maingui.cpp
-    src/maingui.hpp
     src/ndftransactions.cpp
     src/ndftransactions.hpp
     src/workspace.cpp
@@ -76,28 +85,57 @@ add_executable(modding_suite
     src/imgui_helpers.hpp
     src/imgui_helpers.cpp
 )
+target_link_libraries(lib_modding_suite
+    PUBLIC
+    imgui_filedialog
+    Python3::Python
+    pybind11::pybind11
+    ndf
+    magic_enum::magic_enum
+    toml11::toml11
+    $<$<BOOL:${WIN32}>:intl iconv>
+)
+target_include_directories(lib_modding_suite
+    PUBLIC
+    deps/wgrd-tools/src
+    src/
+)
+
+# modding-suite executable
+
+add_executable(modding_suite
+	src/main.cpp
+    src/maingui.cpp
+    src/maingui.hpp
+)
 
 target_link_libraries(modding_suite
 	PRIVATE
-  $<$<BOOL:${WIN32}>:intl iconv>
-  Python3::Python
-	pybind11::pybind11
 	${LibEpoxy_LIBRARIES}
-  imgui
-  ndf
-  magic_enum::magic_enum
-  toml11::toml11
+	lib_modding_suite
 )
 
 target_include_directories(modding_suite
 PRIVATE
-deps/wgrd-tools/src
-src/
-ImGuiFileDialog/
 ${LibEpoxy_INCLUDE_DIRS}
 )
 
-#target_compile_definitions(modding_suite PUBLIC PYBIND11_SIMPLE_GIL_MANAGEMENT=1)
+option(BUILD_TESTS "Build tests" OFF)
+if(${BUILD_TESTS})
+add_subdirectory(deps/Catch2)
+
+# tests
+
+add_executable(tests
+    tests/file_tree.cpp
+)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
+
+add_executable(tests_generator
+    tests/generator.cpp
+)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
+endif()
 
 install(TARGETS modding_suite DESTINATION bin)
 include(CPack)

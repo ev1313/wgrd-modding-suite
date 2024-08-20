@@ -1,81 +1,8 @@
 #pragma once
 
-#include "toml11/value.hpp"
-#include <any>
-
-#include <filesystem>
-#include <fstream>
-#include <pybind11/embed.h>
-namespace py = pybind11;
-
-#include <atomic>
-#include <future>
-
-#include "spdlog/spdlog.h"
-#include <map>
-#include <set>
-
-#include "pugixml.hpp"
-
-#include "file_tree.h"
-
-#include "toml.hpp"
+#include "files/files.hpp"
 
 namespace wgrd_files {
-
-struct WorkspaceConfig {
-  // name of the workspace
-  std::string name;
-  // path to the input files
-  fs::path fs_path;
-  // output folder for the generated dat files
-  fs::path dat_path;
-  // output folder for loaded and generated bin files
-  // (mostly extracted from dat files or generated for dat files)
-  fs::path bin_path;
-  // output folder for loaded and generated xml files
-  fs::path xml_path;
-  // temp folder
-  fs::path tmp_path;
-  toml::table to_toml() {
-    toml::table table;
-    table["name"] = name;
-    table["fs_path"] = fs_path.string();
-    table["dat_path"] = dat_path.string();
-    table["bin_path"] = bin_path.string();
-    table["xml_path"] = xml_path.string();
-    table["tmp_path"] = tmp_path.string();
-    return table;
-  }
-  bool from_toml(toml::table table) noexcept {
-    try {
-      name = table["name"].as_string();
-      fs_path = table["fs_path"].as_string();
-      dat_path = table["dat_path"].as_string();
-      bin_path = table["bin_path"].as_string();
-      xml_path = table["xml_path"].as_string();
-      tmp_path = table["tmp_path"].as_string();
-    } catch (const toml::type_error &e) {
-      spdlog::error("error while parsing workspace config: {}", e.what());
-      return false;
-    }
-    return true;
-  }
-};
-
-class Files;
-
-enum class FileType {
-    DIC,
-    EDAT,
-    ESS,
-    NDFBIN,
-    PPK,
-    SCENARIO,
-    SFORMAT,
-    TGV,
-    UNKNOWN
-};
 
 class File {
 private:
@@ -191,44 +118,5 @@ public:
 };
 
 typedef std::vector<std::unique_ptr<File>> FileList;
-
-class Files {
-private:
-  // maps vfs_path to files / selected_file
-  std::unordered_map<std::string, std::pair<FileList, size_t>> files;
-  // used for tracking which windows are opened in imgui
-  std::unordered_map<std::string, bool> open_file_windows;
-
-  const WorkspaceConfig &m_config;
-
-public:
-  explicit Files(const WorkspaceConfig &config) : m_config(config) {}
-  void render_menu(const std::unique_ptr<File> &file);
-  void render();
-  void add_file(FileMetaList file_metas);
-  void open_window(std::string vfs_path);
-  void copy_bin_changes(fs::path dat_path, fs::path out_folder_path);
-  void save_changes_to_dat(bool save_to_fs_path);
-  File* get_file(std::string vfs_path) {
-      auto file_it = files.find(vfs_path);
-      if (file_it == files.end()) {
-          return nullptr;
-      }
-      auto& [file_list, _] = file_it->second;
-      assert(file_list.size() > 0);
-      return file_list.back().get();
-  }
-  bool is_changed() {
-    for (const auto &[_, file_idx] : files) {
-      const auto &[files, _] = file_idx;
-      for (const auto &file : files) {
-        if (file->is_changed()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-};
 
 } // namespace wgrd_files

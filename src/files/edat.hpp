@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../workspace.hpp"
+#include "workspace.hpp"
 
 namespace wgrd_files {
 

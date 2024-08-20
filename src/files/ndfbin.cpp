@@ -108,6 +108,8 @@ void wgrd_files::NdfBin::fill_class_list() {
   class_list.clear();
   object_references.clear();
   object_references.reserve(ndfbin.get_object_count());
+  import_references.clear();
+  import_references.reserve(ndfbin.get_object_count());
   for (auto &object_name : ndfbin.filter_objects("", "")) {
     auto &object = ndfbin.get_object(object_name);
 
@@ -119,12 +121,23 @@ void wgrd_files::NdfBin::fill_class_list() {
 
     class_it->second.objects.push_back(object_name);
     for (auto &property : object.properties) {
-      auto refs = property->get_object_references();
-      for (auto &ref : refs) {
-        if (!object_references.contains(ref)) {
-          object_references.emplace(ref, std::set<std::string>());
+      {
+        auto refs = property->get_object_references();
+        for (auto &ref : refs) {
+          if (!object_references.contains(ref)) {
+            object_references.emplace(ref, std::unordered_set<std::string>());
+          }
+          object_references[ref].insert(object_name);
         }
-        object_references[ref].insert(object_name);
+      }
+      {
+        auto refs = property->get_import_references();
+        for (auto &ref : refs) {
+          if (!import_references.contains(ref)) {
+            import_references.emplace(ref, std::unordered_set<std::string>());
+          }
+          import_references[ref].insert(object_name);
+        }
       }
 
       auto prop_it = class_it->second.properties.find(property->property_name);
@@ -1156,6 +1169,19 @@ void wgrd_files::NdfBin::render_extra() {
     m_is_changed = true;
   }
   changes.clear();
+}
+
+std::unordered_set<std::string>
+wgrd_files::NdfBin::get_import_references(std::string export_path) {
+  auto exp_it = import_references.find(export_path);
+  if (exp_it == import_references.end()) {
+    return {};
+  }
+  return exp_it->second;
+}
+
+bool wgrd_files::NdfBin::references_export_path(std::string export_path) {
+  return import_references.contains(export_path);
 }
 
 bool wgrd_files::NdfBin::is_file(const FileMeta &meta) {

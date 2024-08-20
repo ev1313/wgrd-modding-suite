@@ -34,13 +34,13 @@ protected:
   void flush_() override {}
 
 public:
-  logger() { py_redirect = std::make_unique<PyStdErrOutStreamRedirect>(); }
+  logger() {} // py_redirect = std::make_unique<PyStdErrOutStreamRedirect>(); }
   bool open_log = false;
   void render_log() {
     if (!open_log) {
       return;
     }
-    py_redirect->update_log();
+    // py_redirect->update_log();
 
     ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(gettext("Log"), &open_log)) {
@@ -63,7 +63,7 @@ public:
   }
   void deinit() {
     py::gil_scoped_acquire acquire;
-    py_redirect.reset();
+    // py_redirect.reset();
   }
 };
 

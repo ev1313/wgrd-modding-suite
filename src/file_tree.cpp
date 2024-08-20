@@ -1,4 +1,4 @@
-#include "file_tree.h"
+#include "file_tree.hpp"
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <iostream>
@@ -27,6 +27,8 @@ void FileTree::create_filetree(fs::path path, bool is_file) {
     fill_filetree(files);
   } catch (py::error_already_set &e) {
     spdlog::error(e.what());
+    spdlog::error("couldn't create_filetree from: {} is_file {}", path.string(),
+                  is_file);
   }
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "file_tree.h"
-#include "wgrd_files.h"
+#include "file_tree.hpp"
+#include "files/files.hpp"
 
 #include "toml.hpp"
 

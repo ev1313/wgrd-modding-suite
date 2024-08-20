@@ -39,7 +39,7 @@ private:
 
   struct Property {
     // maps the possible value to an object name
-    std::map<std::string, std::set<std::string>> values;
+    std::map<std::string, std::unordered_set<std::string>> values;
   };
 
   struct Class {
@@ -51,7 +51,11 @@ private:
   // maps the class name to the class
   std::map<std::string, Class> class_list;
   // contains a mapping object_name -> objects referencing the object
-  std::unordered_map<std::string, std::set<std::string>> object_references;
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      object_references;
+  // contains a mapping export_path -> objects names importing it
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+      import_references;
   // used for filtering the class list
   std::vector<std::string> class_list_filtered;
   // only for being able to save the last clicked position for auto focus
@@ -76,6 +80,13 @@ private:
   void render_property(std::string object_name, std::string property_name);
   std::optional<std::unique_ptr<NdfTransactionChangeProperty>>
   render_ndf_type(std::unique_ptr<NDFProperty> &property);
+
+  // returns list of object_names containing a reference to the given
+  // export_path
+  std::unordered_set<std::string>
+  get_import_references(std::string export_path);
+  // returns whether this object references the given export_path
+  bool references_export_path(std::string export_path);
 
 public:
   explicit NdfBin(FileMeta meta) : File(std::move(meta)) {}
