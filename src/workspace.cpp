@@ -93,8 +93,8 @@ bool Workspace::check_directories(fs::path fs_path, fs::path dat_path,
 }
 
 bool Workspace::init(fs::path fs_path, fs::path out_path) {
-  return init(fs_path, fs_path.parent_path(), out_path / "bin",
-              out_path / "xml", out_path / "tmp");
+  return init(fs_path, fs_path, out_path / "bin", out_path / "xml",
+              out_path / "tmp");
 }
 
 bool Workspace::init(const WorkspaceConfig &config) {
