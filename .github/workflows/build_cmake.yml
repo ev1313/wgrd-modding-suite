@@ -10,10 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
@@ -22,6 +22,11 @@ jobs:
       - name: CI-Build
         run: |
           ./ci-build.sh
+      - name: "check for modding_suite.exe"
+        uses: andstor/file-existence-action@v3
+        with:
+          files: build/modding_suite.exe
+          fail: true
       - uses: actions/upload-artifact@v3
         with:
           name: build
