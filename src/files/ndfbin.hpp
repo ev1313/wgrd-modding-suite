@@ -98,6 +98,8 @@ public:
   bool save_xml(fs::path path) override;
   bool load_bin(fs::path path) override;
   bool save_bin(fs::path path) override;
+  void open_window(std::string object_name);
+  void close_window(std::string object_name);
 };
 
 } // namespace wgrd_files

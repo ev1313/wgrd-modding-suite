@@ -97,7 +97,6 @@ target_link_libraries(lib_modding_suite
 )
 target_include_directories(lib_modding_suite
     PUBLIC
-    deps/wgrd-tools/src
     src/
 )
 
@@ -134,7 +133,7 @@ target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
 add_executable(tests_generator
     tests/generator.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
+target_link_libraries(tests_generator PUBLIC Catch2::Catch2WithMain lib_modding_suite)
 endif()
 
 install(TARGETS modding_suite DESTINATION bin)

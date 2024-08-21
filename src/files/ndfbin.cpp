@@ -88,9 +88,7 @@ void wgrd_files::NdfBin::render_object_list() {
                 is_selected)) {
           item_current_idx = it;
           std::string object_name = object_list_filtered[item_current_idx];
-          if (!object_name.empty()) {
-            open_object_windows.insert({object_name, true});
-          }
+          open_window(object_name);
         }
 
         // Set the initial focus when opening the combo (scrolling + keyboard
@@ -210,7 +208,7 @@ void wgrd_files::NdfBin::render_classes() {
             const auto &object = ndfbin.get_object(class_.objects[it]);
 
             if (ImGui::Selectable(object.name.c_str(), false)) {
-              open_object_windows.insert({object.name, true});
+              open_window(object.name);
             }
           }
         }
@@ -466,7 +464,7 @@ wgrd_files::NdfBin::render_object_info(std::string object_name) {
       ret = std::move(change);
       // FIXME: update name in open_object_windows not here? Breaks, when
       // transaction is not done...
-      open_object_windows[changed_object_name] = true;
+      open_window(changed_object_name);
     }
     ImGui::TableNextColumn();
     ImGui::Text("Export Path: ");
@@ -499,11 +497,7 @@ wgrd_files::NdfBin::render_object_info(std::string object_name) {
       ImGui::PushID(object.name.c_str());
       for (auto ref : object_references.at(object.name)) {
         if (ImGui::Button(ref.c_str())) {
-          if (open_object_windows.contains(ref)) {
-            open_object_windows.at(ref) = true;
-          } else {
-            open_object_windows.insert({ref, true});
-          }
+          open_window(ref);
           ImGui::SetWindowFocus(ref.c_str());
         }
         ImGui::SameLine();
@@ -776,7 +770,7 @@ wgrd_files::NdfBin::render_ndf_type(std::unique_ptr<NDFProperty> &property) {
         ImGui::BeginDisabled();
       }
       if (ImGui::Button(gettext("Jump"))) {
-        open_object_windows[value] = true;
+        open_window(value);
       }
       if (!ndfbin.contains_object(value)) {
         ImGui::EndDisabled();
@@ -1164,7 +1158,7 @@ void wgrd_files::NdfBin::render_extra() {
     object_count_changed = true;
     // if object was removed, we need to close its window as well
     if (!ndfbin.contains_object(object_name)) {
-      open_object_windows[object_name] = false;
+      close_window(object_name);
     }
     m_is_changed = true;
   }
@@ -1240,4 +1234,26 @@ bool wgrd_files::NdfBin::save_bin(fs::path path) {
   fs::create_directories(path.parent_path());
   ndfbin.save_ndfbin_to_file(path);
   return true;
+}
+
+void wgrd_files::NdfBin::open_window(std::string object_name) {
+  if (object_name.empty()) {
+    return;
+  }
+  if (!open_object_windows.contains("object_name")) {
+    open_object_windows.insert({object_name, true});
+  } else {
+    open_object_windows[object_name] = true;
+  }
+}
+
+void wgrd_files::NdfBin::close_window(std::string object_name) {
+  if (object_name.empty()) {
+    return;
+  }
+  if (!open_object_windows.contains("object_name")) {
+    open_object_windows.insert({object_name, false});
+  } else {
+    open_object_windows[object_name] = false;
+  }
 }
