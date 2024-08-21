@@ -2,6 +2,7 @@
 
 #include "files/file.hpp"
 #include "helpers.hpp"
+#include "threadpool.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <imgui.h>
@@ -113,15 +114,15 @@ bool Workspace::init(fs::path fs_path, fs::path dat_path, fs::path bin_path,
   m_parsed_promise = std::promise<bool>();
   m_parsed_future = m_parsed_promise->get_future();
 
-  std::thread([this, dat_path]() {
+  ThreadPoolSingleton::get_instance().submit([this, dat_path]() {
     try {
       file_tree.init_from_dat_path(dat_path);
-      m_parsed_promise->set_value_at_thread_exit(true);
+      m_parsed_promise->set_value(true);
     } catch (const std::exception &e) {
       spdlog::error("Failed to parse workspace: {}", e.what());
-      m_parsed_promise->set_value_at_thread_exit(false);
+      m_parsed_promise->set_value(false);
     }
-  }).detach();
+  });
 
   m_config.name = workspace_name;
   assert(!workspace_name.empty());
@@ -151,15 +152,15 @@ bool Workspace::init_from_file(fs::path file_path, fs::path dat_path,
   m_parsed_promise = std::promise<bool>();
   m_parsed_future = m_parsed_promise->get_future();
 
-  std::thread([this, file_path]() {
+  ThreadPoolSingleton::get_instance().submit([this, file_path]() {
     try {
       bool ret = file_tree.init_from_path(file_path);
-      m_parsed_promise->set_value_at_thread_exit(ret);
+      m_parsed_promise->set_value(ret);
     } catch (const std::exception &e) {
       spdlog::error("Failed to parse workspace: {}", e.what());
-      m_parsed_promise->set_value_at_thread_exit(false);
+      m_parsed_promise->set_value(false);
     }
-  }).detach();
+  });
   return true;
 }
 
@@ -188,6 +189,38 @@ void Workspace::render_extra() { files.render(); }
 void Workspace::save_changes_to_dat(bool save_to_fs_path) {
   files.save_changes_to_dat(save_to_fs_path);
 }
+
+bool Workspace::is_changed() { return files.is_changed(); }
+
+void Workspace::check_parsing() {
+  // if no parse ever started, the future/promise may not exist yet
+  if (m_is_parsed) {
+    return;
+  }
+  if (!m_is_parsing) {
+    return;
+  }
+  // but if it started they have to exist
+  if (!m_parsed_promise.has_value()) {
+    throw std::runtime_error("m_parsed_promise not set");
+  }
+  if (!m_parsed_future.has_value()) {
+    throw std::runtime_error("m_parsed_future not set");
+  }
+  // check if thread is already done
+  if (m_parsed_future.value().wait_for(std::chrono::seconds(0)) ==
+      std::future_status::ready) {
+    m_is_parsed = m_parsed_future.value().get();
+    if (!m_is_parsed) {
+      spdlog::error("Failed to parse workspace: {}", workspace_name);
+    }
+    m_is_parsing = false;
+  }
+}
+
+bool Workspace::is_parsed() { return m_is_parsed; }
+
+bool Workspace::is_parsing() { return m_is_parsing; }
 
 void Workspaces::render() {
   for (auto &[workspace_name, p_open] : open_workspace_windows) {

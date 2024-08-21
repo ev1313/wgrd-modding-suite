@@ -53,8 +53,9 @@ target_link_libraries(imgui_filedialog PUBLIC imgui)
 # modding-suite
 
 add_library(lib_modding_suite STATIC
+    src/threadpool.hpp
     src/file_tree.cpp
- src/file_tree.hpp
+    src/file_tree.hpp
 
     src/files/configs.hpp
     src/files/file.hpp

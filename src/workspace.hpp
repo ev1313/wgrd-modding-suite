@@ -4,6 +4,7 @@
 #include "files/file.hpp"
 #include "files/files.hpp"
 
+#include "helpers.hpp"
 #include "toml.hpp"
 
 using namespace wgrd_files;
@@ -47,34 +48,10 @@ public:
   // argument determines whether to save to the given dat_path or to save to the
   // input folder
   void save_changes_to_dat(bool save_to_fs_path);
-  bool is_changed() { return files.is_changed(); }
-  void check_parsing() {
-    // if no parse ever started, the future/promise may not exist yet
-    if (m_is_parsed) {
-      return;
-    }
-    if (!m_is_parsing) {
-      return;
-    }
-    // but if it started they have to exist
-    if (!m_parsed_promise.has_value()) {
-      throw std::runtime_error("m_parsed_promise not set");
-    }
-    if (!m_parsed_future.has_value()) {
-      throw std::runtime_error("m_parsed_future not set");
-    }
-    // check if thread is already done
-    if (m_parsed_future.value().wait_for(std::chrono::seconds(0)) ==
-        std::future_status::ready) {
-      m_is_parsed = m_parsed_future.value().get();
-      if (!m_is_parsed) {
-        spdlog::error("Failed to parse workspace: {}", workspace_name);
-      }
-      m_is_parsing = false;
-    }
-  }
-  bool is_parsed() { return m_is_parsed; }
-  bool is_parsing() { return m_is_parsing; }
+  bool is_changed();
+  void check_parsing();
+  bool is_parsed();
+  bool is_parsing();
 };
 
 class Workspaces {
