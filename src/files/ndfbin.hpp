@@ -54,9 +54,14 @@ private:
   // contains a mapping object_name -> objects referencing the object
   std::unordered_map<std::string, std::unordered_set<std::string>>
       object_references;
-  // contains a mapping export_path -> objects names importing it
+  // contains a mapping export_path -> objects names importing it in this ndfbin
   std::unordered_map<std::string, std::unordered_set<std::string>>
       import_references;
+  // contains a mapping export_path -> vfs_path/object_name from other ndfbins
+  // importing an object from this file
+  std::unordered_map<std::string,
+                     std::pair<std::string, std::unordered_set<std::string>>>
+      export_references;
   // used for filtering the class list
   std::vector<std::string> class_list_filtered;
   // only for being able to save the last clicked position for auto focus
@@ -86,6 +91,9 @@ private:
   // export_path
   std::unordered_set<std::string>
   get_import_references(std::string export_path);
+  // returns mapping export_path -> vfs_path/object_name
+  std::unordered_map<std::string, std::unordered_set<std::string>>
+  get_import_references(const std::unordered_set<std::string> &export_paths);
   // returns whether this object references the given export_path
   bool references_export_path(std::string export_path);
 
@@ -100,7 +108,10 @@ public:
   bool save_xml(fs::path path) override;
   bool load_bin(fs::path path) override;
   bool save_bin(fs::path path) override;
+  // opens window in this ndfbin file
   void open_window(std::string object_name);
+  // opens window in another ndfbin file
+  void open_window(std::string vfs_path, std::string object_name);
   void close_window(std::string object_name);
 };
 

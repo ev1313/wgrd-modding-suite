@@ -59,32 +59,32 @@ public:
   }
 
   virtual bool load_xml(fs::path path) {
-    spdlog::error("cannot load xml file {} into {}", meta.vfs_path,
-                  path.string());
+    spdlog::error("NOT IMPLEMENTED cannot load xml file {} into {}",
+                  meta.vfs_path, path.string());
     return false;
   }
   virtual bool save_xml(fs::path path) {
-    spdlog::error("cannot save xml file {} into {}", meta.vfs_path,
-                  path.string());
+    spdlog::error("NOT IMPLEMENTED cannot save xml file {} into {}",
+                  meta.vfs_path, path.string());
     return false;
   }
   virtual bool load_bin(fs::path path) {
-    spdlog::error("cannot save bin file {} into {}", meta.vfs_path,
-                  path.string());
+    spdlog::error("NOT IMPLEMENTED cannot save bin file {} into {}",
+                  meta.vfs_path, path.string());
     return false;
   }
   virtual bool save_bin(fs::path path) {
-    spdlog::error("cannot save bin file {} into {}", meta.vfs_path,
-                  path.string());
+    spdlog::error("NOT IMPLEMENTED cannot save bin file {} into {}",
+                  meta.vfs_path, path.string());
     return false;
   }
 
   virtual bool undo() {
-    spdlog::error("cannot undo {}", meta.vfs_path);
+    spdlog::error("NOT IMPLEMENTED cannot undo {}", meta.vfs_path);
     return false;
   }
   virtual bool redo() {
-    spdlog::error("cannot redo {}", meta.vfs_path);
+    spdlog::error("NOT IMPLEMENTED cannot redo {}", meta.vfs_path);
     return false;
   }
 
