@@ -14,6 +14,7 @@
 
 #include <filesystem>
 
+#include "file.hpp"
 #include "files/dic.hpp"
 #include "files/edat.hpp"
 #include "files/ess.hpp"
@@ -94,23 +95,23 @@ void wgrd_files::Files::add_file(FileMetaList file_metas) {
     std::unique_ptr<File> file;
     fs::path vfs_path = remove_dollar(meta.vfs_path);
     if (Dic::is_file(meta)) {
-      file = std::make_unique<Dic>(std::move(meta));
+      file = std::make_unique<Dic>(this, std::move(meta));
     } else if (EDat::is_file(meta)) {
-      file = std::make_unique<EDat>(std::move(meta));
+      file = std::make_unique<EDat>(this, std::move(meta));
     } else if (Ess::is_file(meta)) {
-      file = std::make_unique<Ess>(std::move(meta));
+      file = std::make_unique<Ess>(this, std::move(meta));
     } else if (SFormat::is_file(meta)) {
-      file = std::make_unique<SFormat>(std::move(meta));
+      file = std::make_unique<SFormat>(this, std::move(meta));
     } else if (TGV::is_file(meta)) {
-      file = std::make_unique<TGV>(std::move(meta));
+      file = std::make_unique<TGV>(this, std::move(meta));
     } else if (PPK::is_file(meta)) {
-      file = std::make_unique<PPK>(std::move(meta));
+      file = std::make_unique<PPK>(this, std::move(meta));
     } else if (Scenario::is_file(meta)) {
-      file = std::make_unique<Scenario>(std::move(meta));
+      file = std::make_unique<Scenario>(this, std::move(meta));
     } else if (NdfBin::is_file(meta)) {
-      file = std::make_unique<NdfBin>(std::move(meta));
+      file = std::make_unique<NdfBin>(this, std::move(meta));
     } else {
-      file = std::make_unique<File>(std::move(meta));
+      file = std::make_unique<File>(this, std::move(meta));
     }
     file->bin_path = m_config.bin_path / vfs_path;
     file->tmp_path = m_config.tmp_path / vfs_path;

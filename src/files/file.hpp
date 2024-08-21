@@ -13,6 +13,7 @@ private:
   std::optional<std::future<bool>> m_parsed_future;
 
 protected:
+  const wgrd_files::Files *files;
   // stores the actual informations regarding the dat file
   FileMeta meta;
   // path to the tmp directory of this file
@@ -31,7 +32,7 @@ protected:
   friend class Files;
 
 public:
-  explicit File(FileMeta meta);
+  explicit File(const Files *files, FileMeta meta);
   virtual FileType get_type() { return FileType::UNKNOWN; }
   void render();
   // this function should call the imgui shortcuts

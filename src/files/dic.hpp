@@ -1,5 +1,6 @@
 #pragma once
 
+#include "file.hpp"
 #include "workspace.hpp"
 
 namespace wgrd_files {
@@ -46,7 +47,8 @@ private:
   std::vector<std::unique_ptr<DicTransaction>> transactions;
 
 public:
-  explicit Dic(FileMeta meta) : File(std::move(meta)) {}
+  explicit Dic(const Files *files, FileMeta meta)
+      : File(files, std::move(meta)) {}
   FileType get_type() override { return FileType::DIC; }
   bool load_stream() override;
   bool load_xml(fs::path path) override;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "file.hpp"
 #include "workspace.hpp"
 
 #include "ndf.hpp"
@@ -89,7 +90,8 @@ private:
   bool references_export_path(std::string export_path);
 
 public:
-  explicit NdfBin(FileMeta meta) : File(std::move(meta)) {}
+  explicit NdfBin(const Files *files, FileMeta meta)
+      : File(files, std::move(meta)) {}
   FileType get_type() override { return FileType::NDFBIN; }
   void render_window() override;
   void render_extra() override;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "file.hpp"
 #include "workspace.hpp"
 
 namespace wgrd_files {
@@ -10,7 +11,8 @@ private:
   uint32_t loop_end = 0;
 
 public:
-  explicit Ess(FileMeta meta) : File(std::move(meta)) {}
+  explicit Ess(const Files *files, FileMeta meta)
+      : File(files, std::move(meta)) {}
   FileType get_type() override { return FileType::ESS; }
   void render_window() override;
   static bool is_file(const FileMeta &meta);
