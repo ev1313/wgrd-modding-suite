@@ -8,7 +8,8 @@
 namespace fs = std::filesystem;
 using namespace wgrd_files;
 
-wgrd_files::File::File(FileMeta meta) : meta(std::move(meta)) {}
+wgrd_files::File::File(const Files *files, FileMeta meta)
+    : files(files), meta(std::move(meta)) {}
 
 void wgrd_files::File::render_shortcuts() {
   if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_R)) {

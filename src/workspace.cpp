@@ -1,5 +1,6 @@
 #include "workspace.hpp"
 
+#include "files/file.hpp"
 #include "helpers.hpp"
 #include <algorithm>
 #include <filesystem>

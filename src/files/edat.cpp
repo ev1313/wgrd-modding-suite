@@ -5,7 +5,8 @@
 
 #include "helpers.hpp"
 
-wgrd_files::EDat::EDat(FileMeta meta) : File(std::move(meta)) {
+wgrd_files::EDat::EDat(const Files *files, FileMeta meta)
+    : File(files, std::move(meta)) {
   // xml_path = out_path / "edat" / vfs_path;
 }
 

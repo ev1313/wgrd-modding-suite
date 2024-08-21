@@ -1,6 +1,7 @@
 #pragma once
 
 #include "file_tree.hpp"
+#include "files/file.hpp"
 #include "files/files.hpp"
 
 #include "toml.hpp"
