@@ -12,8 +12,12 @@ namespace py = pybind11;
 
 #include <iostream>
 
+#include "ThreadPool.h"
+
 #include <filesystem>
 namespace fs = std::filesystem;
+
+extern ThreadPool thread_pool;
 
 // Based on:
 // https://stackoverflow.com/questions/58758429/pybind11-redirect-python-sys-stdout-to-c-from-print

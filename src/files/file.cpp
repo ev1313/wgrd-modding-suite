@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "imgui_stdlib.h"
+#include "threadpool.hpp"
 
 #include "ImGuiFileDialog.h"
 
@@ -93,7 +94,7 @@ void File::start_parsing(bool try_xml) {
   m_parsed_promise = std::promise<bool>();
   m_parsed_future = m_parsed_promise->get_future();
 
-  std::thread([this, try_xml]() {
+  ThreadPoolSingleton::get_instance().submit([this, try_xml]() {
     bool ret = false;
     if (try_xml) {
       ret = load_xml(xml_path);
@@ -104,8 +105,8 @@ void File::start_parsing(bool try_xml) {
         save_xml(xml_path);
       }
     }
-    m_parsed_promise->set_value_at_thread_exit(ret);
-  }).detach();
+    m_parsed_promise->set_value(ret);
+  });
 }
 
 bool File::copy_to_file(std::filesystem::path path) {

@@ -2,10 +2,13 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 #include <epoxy/gl.h>
-#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+// needs to be after epoxy include, else will include custom GL headers
+#include <GLFW/glfw3.h>
 
 #include "maingui.hpp"
+#include "threadpool.hpp"
 
 #include <libintl.h>
 #include <locale.h>
@@ -215,6 +218,8 @@ int main(int argc, char *argv[]) {
 
       glfwSwapBuffers(window);
     }
+
+    ThreadPoolSingleton::get_instance().shutdown();
 
     py::gil_scoped_acquire acquire;
 

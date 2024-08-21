@@ -11,7 +11,7 @@
 
 #include <libintl.h>
 
-maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
+maingui::maingui() : program(gettext("WG: RD Modding Suite")), workspaces() {
   program.add_argument("-p")
       .help(gettext("Load a project file"))
       .default_value(std::string{"project.toml"});
@@ -20,6 +20,8 @@ maingui::maingui() : program(gettext("WG: RD Modding Suite")) {
       .default_value(false)
       .implicit_value(true);
 }
+
+maingui::~maingui() { imgui_sink->deinit(); }
 
 bool maingui::init(int argc, char *argv[]) {
   program.parse_args(argc, argv);
@@ -158,11 +160,6 @@ bool maingui::render_menu_bar() {
       }
       if (ImGui::MenuItem(gettext("Log"), "Ctrl+L")) {
         imgui_sink->open_log = true;
-      }
-      if (ImGui::MenuItem(gettext("Lag Test"))) {
-        spdlog::info("Lag Test");
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        spdlog::info("Lag Test done");
       }
       ImGui::EndMenu();
     }
