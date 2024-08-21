@@ -17,8 +17,8 @@ set(VENV ${CMAKE_BINARY_DIR}/venv)
 set(PYDIR ${VENV}/bin)
 
 if(${LINUX})
-execute_process(COMMAND_ECHO STDOUT COMMAND ${Python_EXECUTABLE} -m venv ${VENV})
-execute_process(COMMAND_ECHO STDOUT COMMAND ${PYDIR}/python -m pip install wgrd-cons-parsers wgrd-cons-tools)
+    execute_process(COMMAND_ECHO STDOUT COMMAND ${Python_EXECUTABLE} -m venv ${VENV})
+    execute_process(COMMAND_ECHO STDOUT COMMAND ${PYDIR}/python -m pip install wgrd-cons-parsers wgrd-cons-tools)
 endif()
 
 add_subdirectory(deps/wgrd-tools/)
@@ -54,7 +54,7 @@ target_link_libraries(imgui_filedialog PUBLIC imgui)
 
 add_library(lib_modding_suite STATIC
     src/file_tree.cpp
-	src/file_tree.hpp
+ src/file_tree.hpp
 
     src/files/configs.hpp
     src/files/file.hpp
@@ -97,21 +97,22 @@ target_link_libraries(lib_modding_suite
 )
 target_include_directories(lib_modding_suite
     PUBLIC
+    deps/thread-pool/include/
     src/
 )
 
 # modding-suite executable
 
 add_executable(modding_suite
-	src/main.cpp
+ src/main.cpp
     src/maingui.cpp
     src/maingui.hpp
 )
 
 target_link_libraries(modding_suite
-	PRIVATE
-	${LibEpoxy_LIBRARIES}
-	lib_modding_suite
+ PRIVATE
+ ${LibEpoxy_LIBRARIES}
+ lib_modding_suite
 )
 
 target_include_directories(modding_suite
@@ -121,19 +122,19 @@ ${LibEpoxy_INCLUDE_DIRS}
 
 option(BUILD_TESTS "Build tests" OFF)
 if(${BUILD_TESTS})
-add_subdirectory(deps/Catch2)
+    add_subdirectory(deps/Catch2)
 
-# tests
+    # tests
 
-add_executable(tests
+    add_executable(tests
     tests/file_tree.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
+    target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
 
-add_executable(tests_generator
+    add_executable(tests_generator
     tests/generator.cpp
 )
-target_link_libraries(tests_generator PUBLIC Catch2::Catch2WithMain lib_modding_suite)
+    target_link_libraries(tests_generator PUBLIC Catch2::Catch2WithMain lib_modding_suite)
 endif()
 
 install(TARGETS modding_suite DESTINATION bin)

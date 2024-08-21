@@ -16,3 +16,6 @@
 [submodule "deps/Catch2"]
 	path = deps/Catch2
 	url = https://github.com/catchorg/Catch2
+[submodule "deps/thread-pool"]
+	path = deps/thread-pool
+	url = https://github.com/mtrebi/thread-pool
