@@ -16,6 +16,7 @@ namespace py = pybind11;
 namespace fs = std::filesystem;
 
 #include <fstream>
+#include <spdlog/spdlog.h>
 
 namespace wgrd_files {
 
@@ -33,22 +34,6 @@ struct FileMeta {
   // unique index of the dat file for the workspace
   // FIXME: technically useless now
   size_t idx;
-  // used by Files to access the file
-  std::unique_ptr<std::ifstream> stream;
-
-private:
-  // we do not want any other class then FileTree to be able to copy the
-  // FileMeta, since it should only be handled by exactly one File instance
-  FileMeta get_copy() const {
-    FileMeta ret;
-    ret.vfs_path = vfs_path;
-    ret.fs_path = fs_path;
-    ret.offset = offset;
-    ret.size = size;
-    ret.idx = idx;
-    return std::move(ret);
-  }
-  friend class FileTree;
 };
 
 typedef std::vector<FileMeta> FileMetaList;
@@ -79,6 +64,19 @@ public:
   bool init_from_path(fs::path path);
   bool init_from_stream(std::ifstream &stream);
   std::optional<FileMetaList> render();
+  std::vector<FileMetaList> get_all_files() {
+    std::vector<FileMetaList> ret;
+    for (auto &[_, metas] : vfs_files) {
+      ret.push_back({});
+      for (auto &meta : metas) {
+        if (meta.vfs_path.ends_with(".ndfbin")) {
+          spdlog::info("all files contains {}", meta.vfs_path);
+          ret.back().push_back(meta);
+        }
+      }
+    }
+    return ret;
+  }
 };
 
 } // namespace wgrd_files

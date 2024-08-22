@@ -7,14 +7,15 @@ void wgrd_files::Scenario::render_window() {
 }
 
 bool wgrd_files::Scenario::is_file(const FileMeta &meta) {
-  meta.stream->clear();
-  meta.stream->seekg(meta.offset);
+  auto stream_opt = open_file(meta.fs_path);
+  if (!stream_opt) {
+    return false;
+  }
+  auto &stream = stream_opt.value();
+  stream.seekg(meta.offset);
 
   char magic[8];
-  meta.stream->read(magic, sizeof(magic));
-
-  meta.stream->clear();
-  meta.stream->seekg(meta.offset);
+  stream.read(magic, sizeof(magic));
 
   if (!strcmp(magic, "SCENARIO")) {
     return true;

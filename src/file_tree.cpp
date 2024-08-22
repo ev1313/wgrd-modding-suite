@@ -261,7 +261,7 @@ std::optional<FileMetaList> FileTree::render() {
     assert(vfs_files.contains(ret.value()));
     FileMetaList result;
     for (const FileMeta &meta : vfs_files[ret.value()]) {
-      result.push_back(meta.get_copy());
+      result.push_back(meta);
     }
     return result;
   }

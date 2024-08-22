@@ -165,6 +165,13 @@ bool Workspace::init_from_file(fs::path file_path, fs::path dat_path,
 }
 
 void Workspace::render_window() {
+  // static bool test = false;
+  // if (!test) {
+  //   for (auto &metas : file_tree.get_all_files()) {
+  //     files.add_file(std::move(metas));
+  //   }
+  //   test = true;
+  // }
   auto file_metas = file_tree.render();
   if (file_metas) {
     if (!file_metas->size()) {

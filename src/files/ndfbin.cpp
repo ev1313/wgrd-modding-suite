@@ -41,6 +41,7 @@ void wgrd_files::NdfBin::render_object_list() {
   }
 
   if (object_count_changed) {
+    spdlog::info("Object count changed, refilling class list");
     fill_class_list();
     item_current_idx = -1;
     object_count_changed = false;
@@ -109,8 +110,11 @@ void wgrd_files::NdfBin::fill_class_list() {
   object_references.reserve(ndfbin.get_object_count());
   import_references.clear();
   import_references.reserve(ndfbin.get_object_count());
+  std::unordered_set<std::string> export_paths;
+  export_paths.reserve(ndfbin.get_object_count());
   for (auto &object_name : ndfbin.filter_objects("", "")) {
     auto &object = ndfbin.get_object(object_name);
+    export_paths.insert(object.export_path);
 
     auto class_it = class_list.find(object.class_name);
     if (class_it == class_list.end()) {
@@ -148,6 +152,21 @@ void wgrd_files::NdfBin::fill_class_list() {
       prop_it->second.values[property->as_string()].insert(object_name);
     }
   }
+
+  // auto ndfbin_files = files->get_files_of_type(FileType::NDFBIN);
+  // for (std::string vfs_path : ndfbin_files) {
+  //   NdfBin *ndfbin = (NdfBin *)files->get_file(vfs_path);
+  //   if (!ndfbin) {
+  //     spdlog::warn("got invalid ndfbin file?");
+  //     continue;
+  //   }
+
+  //  for (auto &[export_path, object_names] :
+  //       ndfbin->get_import_references(export_paths)) {
+  //    export_references.insert(
+  //        {export_path, std::make_pair(vfs_path, object_names)});
+  //  }
+  //}
 }
 
 std::string wgrd_files::NdfBin::render_class_list() {
@@ -442,7 +461,7 @@ wgrd_files::NdfBin::render_object_info(std::string object_name) {
                           ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders |
                           ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
   ImVec2 table_size = ImVec2(ImGui::GetContentRegionAvail().x,
-                             6 * ImGui::GetTextLineHeightWithSpacing());
+                             7 * ImGui::GetTextLineHeightWithSpacing());
   if (ImGui::BeginTable("object_prop_table", 2, flags, table_size)) {
     ImGui::TableSetupColumn(gettext("##OptionName"),
                             ImGuiTableColumnFlags_WidthFixed);
@@ -500,6 +519,24 @@ wgrd_files::NdfBin::render_object_info(std::string object_name) {
         if (ImGui::Button(ref.c_str())) {
           open_window(ref);
           ImGui::SetWindowFocus(ref.c_str());
+        }
+        ImGui::SameLine();
+      }
+      ImGui::PopID();
+    }
+
+    ImGui::TableNextColumn();
+    ImGui::Text("Import References: ");
+    ImGui::TableNextColumn();
+    if (export_references.contains(object.export_path)) {
+      ImGui::PushID(object.export_path.c_str());
+      auto &[vfs_path, object_names] = export_references.at(object.export_path);
+      for (auto &object_name : object_names) {
+        if (ImGui::Button(object_name.c_str())) {
+          open_window(vfs_path, object_name);
+          // FIXME: this requires some way of getting *proper* window names
+          // (unique!)
+          // ImGui::SetWindowFocus(ref.c_str());
         }
         ImGui::SameLine();
       }
@@ -1175,29 +1212,46 @@ wgrd_files::NdfBin::get_import_references(std::string export_path) {
   return exp_it->second;
 }
 
+std::unordered_map<std::string, std::unordered_set<std::string>>
+wgrd_files::NdfBin::get_import_references(
+    const std::unordered_set<std::string> &export_paths) {
+  std::unordered_map<std::string, std::unordered_set<std::string>> ret;
+  for (auto &export_path : export_paths) {
+    auto exp_it = import_references.find(export_path);
+    if (exp_it == import_references.end()) {
+      continue;
+    }
+    ret[export_path] = exp_it->second;
+  }
+  return std::move(ret);
+}
+
 bool wgrd_files::NdfBin::references_export_path(std::string export_path) {
   return import_references.contains(export_path);
 }
 
 bool wgrd_files::NdfBin::is_file(const FileMeta &meta) {
-  meta.stream->clear();
-  meta.stream->seekg(meta.offset);
+  auto stream_opt = open_file(meta.fs_path);
+  if (!stream_opt) {
+    return false;
+  }
+  auto &stream = stream_opt.value();
+  stream.seekg(meta.offset);
 
   char magic[4];
-  meta.stream->read(magic, sizeof(magic));
+  stream.read(magic, sizeof(magic));
   char magic2[4];
-  meta.stream->read(magic2, sizeof(magic2));
+  stream.read(magic2, sizeof(magic2));
   char magic3[4];
-  meta.stream->read(magic3, sizeof(magic3));
-
-  meta.stream->clear();
-  meta.stream->seekg(meta.offset);
+  stream.read(magic3, sizeof(magic3));
 
   if (strncmp(magic, "EUG0", 4)) {
+    spdlog::debug("magic {} at {:0X}", magic, meta.offset);
     return false;
   }
 
   if (strncmp(magic3, "CNDF", 4)) {
+    spdlog::debug("magic3 {} at {:0X}", magic3, meta.offset);
     return false;
   }
 
@@ -1210,11 +1264,15 @@ bool wgrd_files::NdfBin::load_xml(fs::path path) {
     return false;
   }
   if (!fs::is_regular_file(xml_path)) {
-    spdlog::error("Trying to load {} which is not a file!", xml_path.string());
+    spdlog::warn("Trying to load {} which is not a file!", xml_path.string());
     return false;
   }
-  spdlog::info("Loading ndf xml from {}", xml_path.string());
+  spdlog::debug("Loading ndf xml from {}", xml_path.string());
   ndfbin.load_from_xml_file(xml_path);
+  fill_class_list();
+  item_current_idx = -1;
+  object_count_changed = false;
+  filter_changed = true;
   return true;
 }
 
@@ -1225,8 +1283,12 @@ bool wgrd_files::NdfBin::save_xml(fs::path path) {
 }
 
 bool wgrd_files::NdfBin::load_bin(fs::path path) {
-  spdlog::info("Loading ndf bin from {}", path.string());
+  spdlog::debug("Loading ndf bin from {}", path.string());
   ndfbin.start_parsing(path, get_data());
+  fill_class_list();
+  item_current_idx = -1;
+  object_count_changed = false;
+  filter_changed = true;
   return true;
 }
 
@@ -1239,6 +1301,7 @@ bool wgrd_files::NdfBin::save_bin(fs::path path) {
 
 void wgrd_files::NdfBin::open_window(std::string object_name) {
   if (object_name.empty()) {
+    spdlog::warn("Trying to open empty object_name window {}", object_name);
     return;
   }
   if (!open_object_windows.contains("object_name")) {
@@ -1246,6 +1309,26 @@ void wgrd_files::NdfBin::open_window(std::string object_name) {
   } else {
     open_object_windows[object_name] = true;
   }
+}
+
+void wgrd_files::NdfBin::open_window(std::string vfs_path,
+                                     std::string object_name) {
+  if (vfs_path.empty() || object_name.empty()) {
+    spdlog::warn("Trying to open empty vfs_path/object_name window {} {}",
+                 vfs_path, object_name);
+    return;
+  }
+  auto file = files->get_file(vfs_path);
+  if (!file) {
+    spdlog::warn("Trying to open window for non-existing file {}", vfs_path);
+    return;
+  }
+  if (file->get_type() != FileType::NDFBIN) {
+    spdlog::warn("Trying to open window for non-ndfbin file {}", vfs_path);
+    return;
+  }
+  NdfBin *ndfbin = (NdfBin *)file;
+  ndfbin->open_window(object_name);
 }
 
 void wgrd_files::NdfBin::close_window(std::string object_name) {

@@ -45,8 +45,8 @@ public:
   void open_window(std::string vfs_path);
   void copy_bin_changes(fs::path dat_path, fs::path out_folder_path);
   void save_changes_to_dat(bool save_to_fs_path);
-  File *get_file(std::string vfs_path);
-  std::vector<std::string> get_files_of_type(FileType type);
+  File *get_file(std::string vfs_path) const;
+  std::vector<std::string> get_files_of_type(FileType type) const;
   bool is_changed();
 };
 
