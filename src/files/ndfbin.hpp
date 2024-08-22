@@ -51,6 +51,9 @@ private:
   };
   // maps the class name to the class
   std::map<std::string, Class> class_list;
+  std::optional<std::promise<bool>> m_class_list_promise;
+  std::optional<std::future<bool>> m_class_list_future;
+
   // contains a mapping object_name -> objects referencing the object
   std::unordered_map<std::string, std::unordered_set<std::string>>
       object_references;

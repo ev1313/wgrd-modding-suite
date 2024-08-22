@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "threadpool.hpp"
+#include <helpers.hpp>
 
 #include "ImGuiFileDialog.h"
 
@@ -75,12 +76,15 @@ std::vector<char> File::get_data() {
   std::vector<char> ret;
   ret.resize(meta.size);
 
-  size_t old = meta.stream->tellg();
-  meta.stream->seekg(meta.offset);
+  auto stream_opt = open_file(meta.fs_path);
+  if (!stream_opt) {
+    throw std::runtime_error("Failed to open file");
+  }
+  auto &stream = stream_opt.value();
+  stream.seekg(meta.offset);
 
-  meta.stream->read(ret.data(), meta.size);
+  stream.read(ret.data(), meta.size);
 
-  meta.stream->seekg(old);
   return std::move(ret);
 }
 
@@ -113,29 +117,32 @@ void File::start_parsing(bool try_xml) {
 bool File::copy_to_file(std::filesystem::path path) {
   fs::create_directories(path.parent_path());
 
-  std::ofstream of;
-  of.open(path, std::ios::out | std::ios::binary | std::ios::trunc);
-
-  if (!of.is_open()) {
+  auto of_opt = open_file(
+      path, std::ios::out | std::ios::binary | std::ios::trunc, false);
+  if (!of_opt) {
     return false;
   }
+  auto &of = of_opt.value();
 
-  size_t old = meta.stream->tellg();
-  meta.stream->seekg(meta.offset);
+  auto stream_opt = open_file(meta.fs_path);
+  if (!stream_opt) {
+    return false;
+  }
+  auto &stream = stream_opt.value();
+
+  stream.seekg(meta.offset);
   size_t end = meta.offset + meta.size;
 
-  while (!meta.stream->eof() && meta.stream->tellg() < end) {
+  while (!stream.eof() && stream.tellg() < end) {
     char buffer[1024];
-    size_t count = std::min(sizeof(buffer), end - meta.stream->tellg());
-    meta.stream->read(buffer, count);
+    size_t count = std::min(sizeof(buffer), end - stream.tellg());
+    stream.read(buffer, count);
     of.write(buffer, count);
   }
 
-  if (meta.stream->tellg() < end) {
-    meta.stream->seekg(old);
+  if (stream.tellg() < end) {
     return false;
   }
 
-  meta.stream->seekg(old);
   return true;
 }

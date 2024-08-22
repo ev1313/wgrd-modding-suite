@@ -41,6 +41,7 @@ void wgrd_files::NdfBin::render_object_list() {
   }
 
   if (object_count_changed) {
+    spdlog::info("Object count changed, refilling class list");
     fill_class_list();
     item_current_idx = -1;
     object_count_changed = false;
@@ -152,20 +153,20 @@ void wgrd_files::NdfBin::fill_class_list() {
     }
   }
 
-  auto ndfbin_files = files->get_files_of_type(FileType::NDFBIN);
-  for (std::string vfs_path : ndfbin_files) {
-    NdfBin *ndfbin = (NdfBin *)files->get_file(vfs_path);
-    if (!ndfbin) {
-      spdlog::warn("got invalid ndfbin file?");
-      continue;
-    }
+  // auto ndfbin_files = files->get_files_of_type(FileType::NDFBIN);
+  // for (std::string vfs_path : ndfbin_files) {
+  //   NdfBin *ndfbin = (NdfBin *)files->get_file(vfs_path);
+  //   if (!ndfbin) {
+  //     spdlog::warn("got invalid ndfbin file?");
+  //     continue;
+  //   }
 
-    for (auto &[export_path, object_names] :
-         ndfbin->get_import_references(export_paths)) {
-      export_references.insert(
-          {export_path, std::make_pair(vfs_path, object_names)});
-    }
-  }
+  //  for (auto &[export_path, object_names] :
+  //       ndfbin->get_import_references(export_paths)) {
+  //    export_references.insert(
+  //        {export_path, std::make_pair(vfs_path, object_names)});
+  //  }
+  //}
 }
 
 std::string wgrd_files::NdfBin::render_class_list() {
@@ -1230,27 +1231,27 @@ bool wgrd_files::NdfBin::references_export_path(std::string export_path) {
 }
 
 bool wgrd_files::NdfBin::is_file(const FileMeta &meta) {
-  meta.stream->clear();
-  meta.stream->seekg(meta.offset);
-  assert(!meta.stream->fail());
+  auto stream_opt = open_file(meta.fs_path);
+  if (!stream_opt) {
+    return false;
+  }
+  auto &stream = stream_opt.value();
+  stream.seekg(meta.offset);
 
   char magic[4];
-  meta.stream->read(magic, sizeof(magic));
+  stream.read(magic, sizeof(magic));
   char magic2[4];
-  meta.stream->read(magic2, sizeof(magic2));
+  stream.read(magic2, sizeof(magic2));
   char magic3[4];
-  meta.stream->read(magic3, sizeof(magic3));
-
-  meta.stream->clear();
-  meta.stream->seekg(meta.offset);
+  stream.read(magic3, sizeof(magic3));
 
   if (strncmp(magic, "EUG0", 4)) {
-    spdlog::info("magic {} at {:0X}", magic, meta.offset);
+    spdlog::debug("magic {} at {:0X}", magic, meta.offset);
     return false;
   }
 
   if (strncmp(magic3, "CNDF", 4)) {
-    spdlog::info("magic3 {} at {:0X}", magic3, meta.offset);
+    spdlog::debug("magic3 {} at {:0X}", magic3, meta.offset);
     return false;
   }
 
@@ -1263,11 +1264,15 @@ bool wgrd_files::NdfBin::load_xml(fs::path path) {
     return false;
   }
   if (!fs::is_regular_file(xml_path)) {
-    spdlog::error("Trying to load {} which is not a file!", xml_path.string());
+    spdlog::warn("Trying to load {} which is not a file!", xml_path.string());
     return false;
   }
-  spdlog::info("Loading ndf xml from {}", xml_path.string());
+  spdlog::debug("Loading ndf xml from {}", xml_path.string());
   ndfbin.load_from_xml_file(xml_path);
+  fill_class_list();
+  item_current_idx = -1;
+  object_count_changed = false;
+  filter_changed = true;
   return true;
 }
 
@@ -1278,8 +1283,12 @@ bool wgrd_files::NdfBin::save_xml(fs::path path) {
 }
 
 bool wgrd_files::NdfBin::load_bin(fs::path path) {
-  spdlog::info("Loading ndf bin from {}", path.string());
+  spdlog::debug("Loading ndf bin from {}", path.string());
   ndfbin.start_parsing(path, get_data());
+  fill_class_list();
+  item_current_idx = -1;
+  object_count_changed = false;
+  filter_changed = true;
   return true;
 }
 

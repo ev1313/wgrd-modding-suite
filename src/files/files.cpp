@@ -78,7 +78,7 @@ void wgrd_files::Files::open_window(std::string vfs_path) {
 
 void wgrd_files::Files::add_file(FileMetaList file_metas) {
   if (file_metas.size() == 0) {
-    // spdlog::warn("Files::add_file called with empty file_metas");
+    spdlog::debug("Files::add_file called with empty file_metas");
     return;
   }
   std::string vfs_path = file_metas[0].vfs_path;
@@ -86,22 +86,12 @@ void wgrd_files::Files::add_file(FileMetaList file_metas) {
     assert(meta.vfs_path == vfs_path);
   }
   if (files.contains(vfs_path)) {
-    spdlog::error("Files::add_file vfs_path {} already exists", vfs_path);
+    spdlog::debug("Files::add_file vfs_path {} already exists", vfs_path);
     return;
   }
 
   FileList file_list;
   for (auto &meta : file_metas) {
-    if (!fs::exists(meta.fs_path)) {
-      spdlog::warn("File {} does not exist", meta.fs_path.string());
-      continue;
-    }
-    meta.stream = std::make_unique<std::ifstream>(
-        meta.fs_path, std::ios::in | std::ios::binary);
-    if (!meta.stream->is_open()) {
-      spdlog::warn("Failed to open file {}", meta.fs_path.string());
-      continue;
-    }
 
     fs::path fs_path = meta.fs_path;
 
@@ -132,8 +122,8 @@ void wgrd_files::Files::add_file(FileMetaList file_metas) {
     file->xml_path = m_config.xml_path / vfs_path.replace_extension(new_ext);
     std::string file_type =
         std::string(magic_enum::enum_name(file->get_type()));
-    spdlog::info("{} : added file {} with type {}", fs_path.string(),
-                 vfs_path.string(), file_type);
+    spdlog::debug("{} : added file {} with type {}", fs_path.string(),
+                  vfs_path.string(), file_type);
     file_list.push_back(std::move(file));
   }
   file_list.back()->start_parsing();

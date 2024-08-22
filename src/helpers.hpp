@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ios>
 #include <pybind11/pybind11.h>
 #include <pystate.h>
 #include <pytypedefs.h>
@@ -10,6 +11,7 @@ namespace py = pybind11;
 #include "spdlog/spdlog.h"
 #include <ranges>
 
+#include <fstream>
 #include <iostream>
 
 #include "ThreadPool.h"
@@ -91,4 +93,20 @@ inline std::string str_tolower(std::string s) {
 inline fs::path append_ext(fs::path path, std::string ext) {
   std::string new_ext = path.extension().string() + ext;
   return path.replace_extension(new_ext);
+}
+
+inline std::optional<std::fstream>
+open_file(const fs::path &fs_path,
+          std::ios_base::openmode mode = std::ios::in | std::ios::binary,
+          bool check_exists = true) {
+  if (check_exists && !fs::exists(fs_path)) {
+    spdlog::warn("File {} does not exist", fs_path.string());
+    return std::nullopt;
+  }
+  std::fstream stream(fs_path, mode);
+  if (!stream.is_open()) {
+    spdlog::warn("Failed to open file {}", fs_path.string());
+    return std::nullopt;
+  }
+  return std::move(stream);
 }
