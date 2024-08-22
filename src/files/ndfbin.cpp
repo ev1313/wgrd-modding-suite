@@ -85,9 +85,10 @@ void wgrd_files::NdfBin::render_object_list() {
         const auto &object = ndfbin.get_object(object_list_filtered[it]);
 
         const bool is_selected = (item_current_idx == it);
-        if (ImGui::Selectable(
-                std::format("{} - {}", object.name, object.class_name).c_str(),
-                is_selected)) {
+        if (ImGui::Selectable(std::format("{} - {} - {}", object.name,
+                                          object.class_name, object.export_path)
+                                  .c_str(),
+                              is_selected)) {
           item_current_idx = it;
           std::string object_name = object_list_filtered[item_current_idx];
           open_window(object_name);
@@ -186,7 +187,7 @@ std::string wgrd_files::NdfBin::render_class_list() {
                               selected_class == class_name)) {
           selected_class = class_name;
           ret = class_name;
-          open_class_windows.insert({class_name, true});
+          open_class_windows[class_name] = true;
         }
 
         if (selected_class == class_name) {
