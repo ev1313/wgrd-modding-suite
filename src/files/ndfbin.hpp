@@ -6,10 +6,15 @@
 #include "ndf.hpp"
 #include "ndftransactions.hpp"
 
+#include "ndf_db.hpp"
+
 namespace wgrd_files {
 
 class NdfBin : public File {
 private:
+  // database interface, holds its own connection
+  NDF_DB db;
+  int ndf_id = 0;
   // object count is cached, since it iterates all objects in ndfbin
   // gets set to true if the object count changed after removing / adding /
   // cloning objects
@@ -99,6 +104,8 @@ private:
   get_import_references(const std::unordered_set<std::string> &export_paths);
   // returns whether this object references the given export_path
   bool references_export_path(std::string export_path);
+
+  bool reload_db();
 
 public:
   explicit NdfBin(const Files *files, FileMeta meta)

@@ -20,6 +20,11 @@ namespace py = pybind11;
 #include "helpers.hpp"
 #include "ndf.hpp"
 
+#include "ndf_db.hpp"
+
+#include <chrono>
+#include <numeric>
+
 namespace wgrd_files {
 
 struct NdfTransaction {
@@ -783,11 +788,41 @@ private:
 public:
   void start_parsing(fs::path vfs_path, fs::path file_path);
   void start_parsing(fs::path vfs_path, std::vector<char> vec_data);
-  void load_from_xml_file(fs::path path);
+  void load_from_xml_file(fs::path path, NDF_DB *db, int ndf_id);
 
   bool contains_object(const std::string &name) {
     return ndf.object_map.contains(name);
   }
+
+  /*
+  bool insert_objects(NDF_DB *db, int ndf_id) const {
+    {
+      std::vector<size_t> times;
+      SQLTransaction trans(db->get_db());
+      int i = 0;
+      for (auto &[object_name, object] : ndf.object_map) {
+        if ((i % 10000) == 0) {
+          spdlog::info("inserting {}", i);
+          spdlog::info("time until now: {}",
+                       std::accumulate(times.begin(), times.end(), 0));
+        }
+        auto start = std::chrono::high_resolution_clock::now();
+        if (!db->insert_object(ndf_id, object)) {
+          spdlog::error("error loading object {}", object_name);
+          trans.rollback();
+          return false;
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        times.push_back(
+            std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+                .count());
+        i++;
+      }
+    }
+    return true;
+  }
+  */
+
   NDFObject &get_object(const std::string &name) {
     auto it = ndf.object_map.find(name);
     if (it == ndf.object_map.end()) {

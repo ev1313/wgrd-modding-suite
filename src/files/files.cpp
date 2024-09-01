@@ -116,6 +116,7 @@ void wgrd_files::Files::add_file(FileMetaList file_metas) {
     } else {
       file = std::make_unique<File>(this, std::move(meta));
     }
+    file->db_path = m_config.db_path;
     file->bin_path = m_config.bin_path / vfs_path;
     file->tmp_path = m_config.tmp_path / vfs_path;
     std::string new_ext = vfs_path.extension().string() + ".xml";
