@@ -16,6 +16,8 @@ protected:
   const wgrd_files::Files *files;
   // stores the actual informations regarding the dat file
   FileMeta meta;
+  // path to the database folder, dbs are shared between all files
+  fs::path db_path;
   // path to the tmp directory of this file
   // (may be used while parsing or saving, will be deleted afterwards)
   fs::path tmp_path;

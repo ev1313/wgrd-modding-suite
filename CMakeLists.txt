@@ -131,11 +131,6 @@ if(${BUILD_TESTS})
     tests/file_tree.cpp
 )
     target_link_libraries(tests PRIVATE Catch2::Catch2WithMain lib_modding_suite)
-
-    add_executable(tests_generator
-    tests/generator.cpp
-)
-    target_link_libraries(tests_generator PUBLIC Catch2::Catch2WithMain lib_modding_suite)
 endif()
 
 install(TARGETS modding_suite DESTINATION bin)

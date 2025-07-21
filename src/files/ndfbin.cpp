@@ -1259,6 +1259,33 @@ bool wgrd_files::NdfBin::is_file(const FileMeta &meta) {
   return true;
 }
 
+bool wgrd_files::NdfBin::reload_db() {
+  if (!db.is_initialized()) {
+    db.init(db_path / "ndfbin.db");
+  }
+  if (!db.is_initialized()) {
+    return false;
+  }
+
+  if (ndf_id != 0) {
+    spdlog::info("deleting old ndf file in db {}", ndf_id);
+    db.delete_file(ndf_id);
+  }
+
+  // FIXME : check which paths are actually necessary in the db
+  auto ndf_id_opt =
+      db.insert_file(meta.vfs_path, meta.fs_path.parent_path(), meta.fs_path,
+                     meta.fs_path.parent_path(), true);
+  if (!ndf_id_opt) {
+    spdlog::error("Failed to insert ndf file into db {} {}", meta.vfs_path,
+                  meta.fs_path.string());
+    return false;
+  }
+  ndf_id = ndf_id_opt.value();
+
+  return true;
+}
+
 bool wgrd_files::NdfBin::load_xml(fs::path path) {
   if (!fs::exists(xml_path)) {
     spdlog::info("No ndf xml file found at {}", xml_path.string());
@@ -1269,7 +1296,8 @@ bool wgrd_files::NdfBin::load_xml(fs::path path) {
     return false;
   }
   spdlog::debug("Loading ndf xml from {}", xml_path.string());
-  ndfbin.load_from_xml_file(xml_path);
+  reload_db();
+  ndfbin.load_from_xml_file(xml_path, &db, ndf_id);
   fill_class_list();
   item_current_idx = -1;
   object_count_changed = false;
@@ -1287,6 +1315,7 @@ bool wgrd_files::NdfBin::load_bin(fs::path path) {
   spdlog::debug("Loading ndf bin from {}", path.string());
   ndfbin.start_parsing(path, get_data());
   fill_class_list();
+  reload_db();
   item_current_idx = -1;
   object_count_changed = false;
   filter_changed = true;

@@ -34,8 +34,9 @@ void wgrd_files::NdfBinFile::start_parsing(fs::path vfs_path,
   }
 }
 
-void wgrd_files::NdfBinFile::load_from_xml_file(fs::path path) {
+void wgrd_files::NdfBinFile::load_from_xml_file(fs::path path, NDF_DB *db,
+                                                int ndf_id) {
   spdlog::info("Loading ndfbin from xml {}", path.string());
   ndf.clear();
-  ndf.load_from_ndf_xml(path);
+  ndf.load_from_ndf_xml(path, db, ndf_id);
 }

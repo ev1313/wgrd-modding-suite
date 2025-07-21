@@ -61,7 +61,7 @@ Workspace::render_init_workspace(bool *show_workspace) {
 
 bool Workspace::check_directories(fs::path fs_path, fs::path dat_path,
                                   fs::path bin_path, fs::path xml_path,
-                                  fs::path tmp_path) {
+                                  fs::path db_path, fs::path tmp_path) {
   if (!fs::exists(fs_path)) {
     spdlog::warn("fs_path does not exist {}", fs_path.string());
     return false;
@@ -81,11 +81,17 @@ bool Workspace::check_directories(fs::path fs_path, fs::path dat_path,
     spdlog::warn("could not create directories {}", (xml_path).string());
     return false;
   }
+  fs::create_directories(db_path);
+  if (!fs::is_directory(db_path)) {
+    spdlog::warn("could not create directories {}", (db_path).string());
+    return false;
+  }
   fs::create_directories(tmp_path);
   if (!fs::is_directory(tmp_path)) {
     spdlog::warn("could not create directories {}", (tmp_path).string());
     return false;
   }
+  m_config.db_path = db_path;
   m_config.fs_path = fs_path;
   m_config.dat_path = dat_path;
   m_config.bin_path = bin_path;
@@ -96,17 +102,18 @@ bool Workspace::check_directories(fs::path fs_path, fs::path dat_path,
 
 bool Workspace::init(fs::path fs_path, fs::path out_path) {
   return init(fs_path, fs_path, out_path / "bin", out_path / "xml",
-              out_path / "tmp");
+              out_path / "db", out_path / "tmp");
 }
 
 bool Workspace::init(const WorkspaceConfig &config) {
   return init(config.fs_path, config.dat_path, config.bin_path, config.xml_path,
-              config.tmp_path);
+              config.db_path, config.tmp_path);
 }
 
 bool Workspace::init(fs::path fs_path, fs::path dat_path, fs::path bin_path,
-                     fs::path xml_path, fs::path tmp_path) {
-  if (!check_directories(fs_path, dat_path, bin_path, xml_path, tmp_path)) {
+                     fs::path xml_path, fs::path db_path, fs::path tmp_path) {
+  if (!check_directories(fs_path, dat_path, bin_path, xml_path, db_path,
+                         tmp_path)) {
     return false;
   }
 
@@ -132,19 +139,20 @@ bool Workspace::init(fs::path fs_path, fs::path dat_path, fs::path bin_path,
 
 bool Workspace::init_from_file(fs::path file_path, fs::path out_path) {
   return init_from_file(file_path, out_path / "dat", out_path / "bin",
-                        out_path / "xml", out_path / "tmp");
+                        out_path / "xml", out_path / "db", out_path / "tmp");
 }
 
 bool Workspace::init_from_file(const WorkspaceConfig &config) {
   return init_from_file(config.fs_path, config.dat_path, config.bin_path,
-                        config.xml_path, config.tmp_path);
+                        config.xml_path, config.db_path, config.tmp_path);
 }
 
 bool Workspace::init_from_file(fs::path file_path, fs::path dat_path,
                                fs::path bin_path, fs::path xml_path,
-                               fs::path tmp_path) {
+                               fs::path db_path, fs::path tmp_path) {
   spdlog::info("Loading workspace from file {}", file_path.string());
-  if (!check_directories(file_path, dat_path, bin_path, xml_path, tmp_path)) {
+  if (!check_directories(file_path, dat_path, bin_path, xml_path, db_path,
+                         tmp_path)) {
     return false;
   }
 

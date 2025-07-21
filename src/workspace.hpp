@@ -28,7 +28,8 @@ private:
   friend class Workspaces;
   // checks and creates directories
   bool check_directories(fs::path fs_path, fs::path dat_path, fs::path bin_path,
-                         fs::path xml_path, fs::path tmp_path);
+                         fs::path xml_path, fs::path db_path,
+                         fs::path tmp_path);
 
 public:
   explicit Workspace() : files(m_config) {}
@@ -37,12 +38,12 @@ public:
   render_init_workspace(bool *show_workspace);
   bool init(fs::path fs_path, fs::path out_path);
   bool init(fs::path fs_path, fs::path dat_path, fs::path bin_path,
-            fs::path xml_path, fs::path tmp_path);
+            fs::path xml_path, fs::path db_path, fs::path tmp_path);
   bool init(const WorkspaceConfig &config);
   bool init_from_file(fs::path file_path, fs::path out_path);
   bool init_from_file(const WorkspaceConfig &config);
   bool init_from_file(fs::path file_path, fs::path dat_path, fs::path bin_path,
-                      fs::path xml_path, fs::path tmp_path);
+                      fs::path xml_path, fs::path db_path, fs::path tmp_path);
   void render_window();
   void render_extra();
   // argument determines whether to save to the given dat_path or to save to the
