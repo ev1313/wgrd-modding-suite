@@ -27,7 +27,7 @@ jobs:
         with:
           files: build/modding_suite.exe
           fail: true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
