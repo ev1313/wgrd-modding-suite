@@ -1,4 +1,4 @@
-cmake -DPython3_ROOT_DIR="${Python3_ROOT_DIR}" -DCMAKE_MODULE_PATH="$(pwd)/modules/" -DWIN32=ON -B build/
+cmake -DPython3_ROOT_DIR="${Python3_ROOT_DIR}" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_MODULE_PATH="$(pwd)/modules/" -DWIN32=ON -B build/
 cmake --build build/ -j8
 cp -r fonts/ build/
 cp /ucrt64/bin/libgcc_s_seh-1.dll build/
