@@ -225,7 +225,7 @@ std::optional<std::string> FileTree::render_file_tree() {
         // keyboard navigation
         // if the node is selected but already open, open all sub nodes
         if (!ImGui::IsItemToggledOpen() && ImGui::IsItemHovered() &&
-            ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow))) {
+            ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
           child_open_all = x;
         }
       }
