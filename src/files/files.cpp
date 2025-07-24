@@ -188,9 +188,9 @@ void wgrd_files::Files::save_changes_to_dat(bool save_to_fs_path) {
                               .attr("edat")
                               .attr("EdatMain")();
         // as the EdatMain uses the . instead of [] for accessing, we need the
-        // dingsda Container
+        // conshex Container
         py::object container =
-            py::module::import("dingsda.lib.containers").attr("Container");
+            py::module::import("conshex.lib.containers").attr("Container");
         py::dict args = py::dict();
         args["no_alignment"] = true;
         args["disable_checksums"] = true;
@@ -214,7 +214,7 @@ void wgrd_files::Files::save_changes_to_dat(bool save_to_fs_path) {
                               .attr("edat")
                               .attr("EdatMain")();
         py::object container =
-            py::module::import("dingsda.lib.containers").attr("Container");
+            py::module::import("conshex.lib.containers").attr("Container");
         py::dict args = py::dict();
         args["no_alignment"] = true;
         args["disable_checksums"] = true;
